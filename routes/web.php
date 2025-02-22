@@ -6,6 +6,11 @@ use App\Http\Controllers\Controles\ControlController;
 use App\Http\Controllers\Backend\Roles\RolesController;
 use App\Http\Controllers\Backend\Roles\PermisoController;
 use App\Http\Controllers\Backend\Perfil\PerfilController;
+use App\Http\Controllers\Backend\Configuracion\ConfiguracionController;
+use App\Http\Controllers\Backend\Registro\RegistroController;
+
+
+
 use App\Http\Controllers\Backend\Dashboard\DashboardController;
 
 
@@ -49,6 +54,31 @@ Route::post('/admin/editar-perfil/actualizar', [PerfilController::class, 'editar
 
 // --- SIN PERMISOS VISTA 403 ---
 Route::get('sin-permisos', [ControlController::class,'indexSinPermiso'])->name('no.permisos.index');
+
+
+
+// --- LIBRO ---
+Route::get('/admin/libros/index', [ConfiguracionController::class,'indexLibros'])->name('admin.libros.index');
+Route::get('/admin/libros/tabla', [ConfiguracionController::class,'tablaLibros']);
+Route::post('/admin/libros/nuevo', [ConfiguracionController::class, 'nuevoLibro']);
+Route::post('/admin/libros/informacion', [ConfiguracionController::class, 'informacionLibro']);
+Route::post('/admin/libros/editar', [ConfiguracionController::class, 'editarLibro']);
+
+
+// --- REGISTRO ---
+Route::get('/admin/registro/index', [RegistroController::class,'indexRegistro'])->name('admin.registro.index');
+Route::post('/admin/registro/buscar/correlativo', [RegistroController::class, 'buscarCorrelativo']);
+Route::post('/admin/registro/nuevo', [RegistroController::class, 'nuevoRegistro']);
+
+// --- TABLAS DE REGISTROS ---
+Route::get('/admin/librosdetalle/index', [RegistroController::class,'indexLibrosDetalle'])->name('admin.libros.detalle.index');
+Route::get('/admin/librosdetalle/tabla/{id}', [RegistroController::class,'tablaLibrosDetalle']);
+
+
+
+
+
+
 
 
 
