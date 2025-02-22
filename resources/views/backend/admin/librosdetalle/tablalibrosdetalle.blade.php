@@ -7,14 +7,22 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
+
                         <table id="tabla" class="table table-bordered table-striped">
                             <thead>
                             <tr>
-                                <th style="width: 4%"># de Nicho</th>
+                                <th style="width: 2%">Nicho</th>
                                 <th style="width: 4%">Nombre Fallecidos</th>
-                                <th style="width: 4%">Fecha Fallecidos</th>
-                                <th style="width: 4%">Fecha Exhumación</th>
-                                <th style="width: 4%">Fecha Vencimiento</th>
+                                <th style="width: 4%">F. Fallecidos</th>
+                                <th style="width: 4%">F. Exhumación</th>
+                                <th style="width: 6%">
+                                    Fecha Inicio
+                                    <button class="btn btn-sm btn-light" onclick="mostrarAyuda()">
+                                        <i class="fas fa-question-circle"></i>
+                                    </button>
+                                </th>
+                                <th style="width: 4%">P. Pagados</th>
+                                <th style="width: 4%">F. Vencimiento</th>
                                 <th style="width: 4%">Periodo Mora</th>
                                 <th style="width: 6%">Opciones</th>
                             </tr>
@@ -27,12 +35,19 @@
                                     <td>{!! $dato->nombresFallecidos !!}</td>
                                     <td>{!! $dato->fechasFallecimiento !!}</td>
                                     <td>{!! $dato->fechasExhumacion !!}</td>
-                                    <td>{!! $dato->fechaCiclo !!}</td>
-                                    <td>{!! $dato->periodoCiclo !!}</td>
+                                    <td>{!! $dato->fechaInicioCiclo !!}</td>
+                                    <td>{!! $dato->periodosPagados !!}</td>
+                                    <td>{!! $dato->fechaProxVencimiento !!}</td>
+                                    <td>{!! $dato->peridosMora !!}</td>
                                     <td>
                                         <button type="button" class="btn btn-info btn-xs"
                                                 onclick="vistaDetalle({{ $dato->id }})">
                                             <i class="fas fa-eye" title="Detalle"></i>&nbsp; Detalle
+                                        </button>
+
+                                        <button type="button" style="margin: 4px" class="btn btn-danger btn-xs"
+                                                onclick="infoBorrar({{ $dato->id }})">
+                                            <i class="fas fa-trash" title="Borrar"></i>&nbsp; Borrar
                                         </button>
 
                                     </td>

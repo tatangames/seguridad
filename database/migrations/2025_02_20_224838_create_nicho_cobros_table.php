@@ -15,7 +15,10 @@ return new class extends Migration
             $table->id();
             $table->bigInteger('id_nichomunicipal_detalle')->unsigned();
 
-            // FECHA DESDE CUANDO INICIA EL CICLO DE PERIODO
+            // LA PRIMERA VEZ QUE SE HACE UN REGISTRO, ESTO SERA LA FECHA DEL FALLECIDO
+            // YA CUANDO SE REGISTRA UN COBRO SE TOMA LA FECHA DE RECIBO
+
+            // NO BORRAR (fecha_recibo) PORQUE AL REGISTRAR NUEVO, PUEDE SER NULL
             $table->date('fecha_ciclo');
 
             $table->string('nombre', 100);

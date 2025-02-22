@@ -140,55 +140,71 @@ class RegistroController extends Controller
 
             $arrayNichoMuniDetalle = NichoMunicipalDetalle::where('id_nicho_municipal', $fila->id)->get();
 
+
+            // COLUMNA: NOMBRE DEL FALLECIDO
             $nombresFallecidos = '';
+            // COLUMNA: FECHA DE FALLECIMIENTO
             $fechasFallecimiento = '';
-            $fechasExhumacion = '';
-
-
+            // COLUMNA: FECHA EXHUMACION
+            $fechasExhumacion = "";
+            // COLUMNA: FECHA INICIO (desde fecha Fallecimiento o del ultimo cobro)
+            $fechaInicioCiclo = "";
+            // COLUMNA: FECHA VENCIMIENTO
             $proximaFechaVencimiento = "";
+            // COLUMNA: PERIODO MORA PENDIENTE
             $periodosMoraVencimiento = "";
+            // COLUMNA: PERIODOS PAGADOS
+            $periodosPagados = "";
+
+            // SI HAY FECHA DE EXHUMACION ME MOSTRARA EL TEXTO, SINO HARA EL CALCULO
+
+
 
             $hayVarios = false;
             if(count($arrayNichoMuniDetalle) > 1){
                 $hayVarios = true;
             }
 
+
             $contadorFallecidos = 0;
-            foreach ($arrayNichoMuniDetalle as $item){
+            foreach ($arrayNichoMuniDetalle as $index => $item){
+
                 $contadorFallecidos++;
                 $ff = date("d-m-Y", strtotime($item->fecha_fallecimiento));
-                $fechasFallecimiento .= $ff . '<br>';
+                $fechasFallecimiento .= $ff . '<hr><br>';
 
                 $feEx = '';
                 if($item->fecha_exhumacion != null){
                     $fe = date("d-m-Y", strtotime($item->fecha_exhumacion));
-                    $feEx .= $fe . '<br>';
+                    $feEx .= $fe . '<hr><br>';
                 }else{
-                    $feEx .= '-' . '<br>';
+                    $feEx .= '-' . '<hr><br>';
                 }
                 $fechasExhumacion .= $feEx;
 
                 if($hayVarios){
-                    $nombresFallecidos .= $contadorFallecidos . "-" . $item->nombre . '<br>';
+                    $nombresFallecidos .= $contadorFallecidos . "-" . $item->nombre . '<hr><br>';
                 }else{
-                    $nombresFallecidos .= $item->nombre . '<br>';
+                    $nombresFallecidos .= $item->nombre . '<hr><br>';
                 }
 
 
                 // VERIFICAR CADA CICLO DE COBROS
 
+                // OBTENER EL ULTIMO REGISTRO
+                $infoCobro = NichoCobros::where('id_nichomunicipal_detalle', $item->id)
+                    ->orderByDesc('fecha_ciclo') // Ordenar de más reciente a más antiguo
+                    ->first();
+
+                // SIEMPRE HABRA MINIMO 1 REGISTRO
+                $conteoCobro = NichoCobros::where('id_nichomunicipal_detalle', $item->id)->count();
 
                 if($item->fecha_exhumacion == null){
-                    // OBTENER EL ULTIMO REGISTRO
-                    $infoCobro = NichoCobros::where('id_nichomunicipal_detalle', $item->id)
-                        ->orderByDesc('fecha_ciclo') // Ordenar de más reciente a más antiguo
-                        ->first();
-
-                    // SIEMPRE HABRA MINIMO 1 REGISTRO
-                    $conteoCobro = NichoCobros::where('id_nichomunicipal_detalle', $item->id)->count();
+                    $periodosPagados .= $infoCobro->periodo . "<hr><br>";
 
                     if ($conteoCobro == 1){
                         // Solo tiene 1 registro de pago
+                        $fechaInicioCiclo .= "Fecha Fallecimiento" . "<hr><br>";
 
                         $fechaPago = Carbon::parse($infoCobro->fecha_ciclo); // Fecha del último cobro
                         $fechaVencimiento = $fechaPago->copy()->addYears(14)->startOfDay(); // Sumar 14 años y fijar a la medianoche
@@ -215,32 +231,70 @@ class RegistroController extends Controller
                         }
 
                         if ($estado === 'amarillo') {
-                            $proximaFechaVencimiento .= '<span class="badge bg-warning">' . $fechaVencimiento->format('d-m-Y') . '</span><br>';
+                            $proximaFechaVencimiento .= '<span class="badge bg-warning">' . $fechaVencimiento->format('d-m-Y') . '</span><hr><br>';
                         } elseif ($estado === 'rojo') {
-                            $proximaFechaVencimiento .= '<span class="badge bg-danger">' . $fechaVencimiento->format('d-m-Y') . '</span><br>';
+                            $proximaFechaVencimiento .= '<span class="badge bg-danger">' . $fechaVencimiento->format('d-m-Y') . '</span><hr><br>';
                         } else {
                             // No se muestra etiqueta si es "normal"
-                            $proximaFechaVencimiento .= $fechaVencimiento->format('d-m-Y');
+                            $proximaFechaVencimiento .= $fechaVencimiento->format('d-m-Y') . "<hr><br>";
                         }
 
-
-                        $periodosMoraVencimiento .= $periodosMora;
+                        $periodosMoraVencimiento .= $periodosMora . "<hr><br>";
                     } else {
 
+                        $fechaInicioCiclo .= "Recibo (" . date("d-m-Y", strtotime($infoCobro->fecha_ciclo)) . ")" . "<hr><br>";
+
+                        $fechaPago = Carbon::parse($infoCobro->fecha_ciclo); // Último pago registrado
+                        // Ahora la fecha de vencimiento es la fecha del último pago más 7 años
+                        // Pero se multiplica por cada periodo
+                        $periodoMultiplicado = 7 * $infoCobro->periodo;
+
+                        $fechaVencimiento = $fechaPago->copy()->addYears($periodoMultiplicado)->startOfDay();
+                        $fechaActual = Carbon::now('America/El_Salvador')->startOfDay();
+
+                        $periodosMora = 0;
+                        $estado = 'normal';
+
+                        // Calculamos los años transcurridos desde el último pago
+                        $aniosTranscurridos = $fechaActual->diffInYears($fechaPago);
+
+                        // Cada 7 años completos desde el último pago cuentan como 1 periodo de mora
+                        if ($aniosTranscurridos >= 7) {
+                            $periodosMora = floor($aniosTranscurridos / 7);
+                        }
+
+                        // Determinamos el estado (amarillo o rojo) según la fecha de vencimiento
+                        if ($fechaActual->isSameYear($fechaVencimiento) && $fechaActual->isBefore($fechaVencimiento)) {
+                            $estado = 'amarillo';
+                        } elseif ($fechaActual->isSameDay($fechaVencimiento) || $fechaActual->isAfter($fechaVencimiento)) {
+                            $estado = 'rojo';
+                        }
+
+                        if ($estado === 'amarillo') {
+                            $proximaFechaVencimiento .= '<span class="badge bg-warning">' . $fechaVencimiento->format('d-m-Y') . '</span><hr><br>';
+                        } elseif ($estado === 'rojo') {
+                            $proximaFechaVencimiento .= '<span class="badge bg-danger">' . $fechaVencimiento->format('d-m-Y') . '</span><hr><br>';
+                        } else {
+                            $proximaFechaVencimiento .= $fechaVencimiento->format('d-m-Y') . "<hr><br>";
+                        }
+
+                        $periodosMoraVencimiento .= $periodosMora . '</span><hr><br>';
                     }
-
-
-
-
+                }else{
+                    $fechaInicioCiclo .= "Exhumado" . "<hr><br>";
+                    $proximaFechaVencimiento .= "Exhumado" . "<hr><br>";
+                    $periodosMoraVencimiento .= "Exhumado" . "<hr><br>";
+                    $periodosPagados .= "Exhumado" . "<hr><br>";
                 }
             }
 
             $fila->nombresFallecidos = $nombresFallecidos;
             $fila->fechasFallecimiento = $fechasFallecimiento;
             $fila->fechasExhumacion = $fechasExhumacion;
-
-            $fila->fechaCiclo = $proximaFechaVencimiento;
-            $fila->periodoCiclo = $periodosMoraVencimiento;
+            $fila->fechaInicioCiclo = $fechaInicioCiclo;
+            $fila->fechaProxVencimiento = $proximaFechaVencimiento;
+            $fila->peridosMora = $periodosMoraVencimiento;
+            $fila->periodosPagados = $periodosPagados;
         }
 
         return view('backend.admin.librosdetalle.tablalibrosdetalle', compact('listado'));
@@ -248,6 +302,42 @@ class RegistroController extends Controller
 
 
 
+    //****** BORRAR NICHO COMPLETO *****
+
+
+    public function borrarNichoCompleto(Request $request)
+    {
+        $regla = array(
+            'id' => 'required', // nicho_municipal
+        );
+
+        $validar = Validator::make($request->all(), $regla);
+
+        if ($validar->fails()){ return ['success' => 0];}
+
+        DB::beginTransaction();
+
+        try {
+
+            $pilaArrayNMDetalle = array();
+            $arrayNMDetalle = NichoMunicipalDetalle::where('id_nicho_municipal', $request->id)->get();
+            foreach ($arrayNMDetalle as $fila) {
+                array_push($pilaArrayNMDetalle, $fila->id);
+            }
+
+            NichoCobros::whereIn('id_nichomunicipal_detalle', $pilaArrayNMDetalle)->delete();
+            NichoMunicipalDetalle::where('id_nicho_municipal', $request->id)->delete();
+            NichoMunicipal::where('id', $request->id)->delete();
+
+            DB::commit();
+            return ['success' => 1];
+
+        } catch (\Throwable $e) {
+            Log::info('ee ' . $e);
+            DB::rollback();
+            return ['success' => 99];
+        }
+    }
 
 
 

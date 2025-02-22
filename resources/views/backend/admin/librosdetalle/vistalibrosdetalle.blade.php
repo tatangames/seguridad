@@ -99,14 +99,80 @@
         }
 
         function recargar(){
-            /*var id = document.getElementById('select-proyectos').value;
-            var ruta = "{{ URL::to('/admin/bodega/historial/salidas/tabla') }}/" + id;
-            $('#tablaDatatable').load(ruta);*/
+            var id = document.getElementById('select-proyectos').value;
+            var ruta = "{{ URL::to('/admin/librosdetalle/tabla') }}/" + id;
+            $('#tablaDatatable').load(ruta);
         }
 
-        function vistaDetalle(idsolicitud){
-           // window.location.href="{{ url('/admin/bodega/historial/salidadetalle/index') }}/" + idsolicitud;
+
+        function mostrarAyuda(){
+
+            let mensaje = `Cuando se hace el Primer Registro para calcular fecha Vencimiento se toma Fecha de Fallecimiento,
+                Cuando se hace un Cobro se toma en cuentra Fecha Recibo (Tesoreria).
+                Ya no se harán cálculos cuando haya una fecha de exhumación`;
+
+            Swal.fire({
+                title: 'Información',
+                text: mensaje,
+                icon: 'info',
+                showCancelButton: false,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#d33',
+                cancelButtonText: 'Cancelar',
+                confirmButtonText: 'Aceptar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+
+                }
+            })
         }
+
+        function infoBorrar(id){
+            Swal.fire({
+                title: 'Borrar Registro',
+                text: "Se eliminara el Nicho",
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#d33',
+                cancelButtonText: 'Cancelar',
+                confirmButtonText: 'Eliminar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    eliminarCompleto(id)
+                }
+            })
+        }
+
+        function eliminarCompleto(id){
+            openLoading();
+            var formData = new FormData();
+            formData.append('id', id);
+
+            axios.post(url+'/librosdetalle/borrarnicho/completo', formData, {
+            })
+                .then((response) => {
+                    closeLoading();
+                    if(response.data.success === 1){
+                        toastr.success('Borrado correctamente');
+                        recargar();
+                    }
+                    else {
+                        toastr.error('Error al borrar');
+                    }
+                })
+                .catch((error) => {
+                    toastr.error('Error al borrar');
+                    closeLoading();
+                });
+        }
+
+
+        function vistaDetalle(idsolicitud){
+            // window.location.href="{{ url('/admin/bodega/historial/salidadetalle/index') }}/" + idsolicitud;
+        }
+
+
 
 
     </script>
