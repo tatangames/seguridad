@@ -28,7 +28,7 @@
                         <div class="form-group col-md-3">
                             <label style="color: #686868">Libros</label>
                             <div>
-                                <select id="select-proyectos" class="form-control">
+                                <select id="select-libro" class="form-control">
                                     @foreach($arrayLibros as $item)
                                         <option value="{{$item->id}}">{{$item->nombre}}</option>
                                     @endforeach
@@ -97,14 +97,72 @@
                                     </button>
                                 </div>
                             </div>
-
                         </div>
                     </form>
                 </div>
-
             </div>
         </div>
     </div>
+
+
+
+    <div class="modal fade" id="modalEditar">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Editar</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="formulario-editar">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-12">
+
+                                    <div class="form-group">
+                                        <input type="hidden" id="id-editar">
+                                    </div>
+
+
+                                    <div class="form-group">
+                                        <label>Nombre Fallecido *:</label>
+                                        <input type="text" maxlength="100" class="form-control" autocomplete="off" id="nombre-fallecido">
+                                    </div>
+
+                                    <div class="form-group col-md-4">
+                                        <label>Fecha Fallecimiento *:</label>
+                                        <input type="date" class="form-control" autocomplete="off" id="fecha-fallecido">
+                                    </div>
+
+                                    <div class="form-group col-md-4">
+                                        <label>Fecha Exhumación:</label>
+                                        <input type="date" class="form-control" autocomplete="off" id="fecha-exhumacion">
+                                    </div>
+
+
+
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-primary" onclick="editarCampos()">Actualizar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+
+
+
 
 </div>
 
@@ -150,7 +208,8 @@
         }
 
         function recargar(){
-            var id = document.getElementById('select-proyectos').value;
+            var id = document.getElementById('select-libro').value;
+
             var ruta = "{{ URL::to('/admin/librosdetalle/tabla') }}/" + id;
             $('#tablaDatatable').load(ruta);
         }
@@ -178,8 +237,9 @@
             })
         }
 
-        function infoBorrar(id){
+        function infoBorrar(){
             var nombre = document.getElementById('nombre-fa').value;
+            var id = document.getElementById('id-detalle').value;
 
             Swal.fire({
                 title: 'Borrar Registro',
@@ -202,12 +262,13 @@
             var formData = new FormData();
             formData.append('id', id);
 
-            axios.post(url+'/librosdetalle/borrarnicho/completo', formData, {
+            axios.post(url+'/librosdetalle/borrar/fallecido', formData, {
             })
                 .then((response) => {
                     closeLoading();
                     if(response.data.success === 1){
                         toastr.success('Borrado correctamente');
+                        $('#modalBotones').modal('hide');
                         recargar();
                     }
                     else {
@@ -252,6 +313,90 @@
                 });
         }
 
+
+        function infoEditar(){
+
+            var id = document.getElementById('id-detalle').value;
+
+            openLoading();
+            var formData = new FormData();
+            formData.append('id', id);
+
+            axios.post(url+'/librosdetalle/info/fallecido', formData, {
+            })
+                .then((response) => {
+                    closeLoading();
+                    if(response.data.success === 1){
+
+                        $('#id-editar').val(id);
+                        $('#nombre-fallecido').val(response.data.info.nombre);
+                        $('#fecha-fallecido').val(response.data.info.fecha_fallecimiento);
+                        $('#fecha-exhumacion').val(response.data.info.fecha_exhumacion);
+
+                        $('#modalEditar').modal('show');
+                    }
+                    else {
+                        toastr.error('Error al buscar');
+                    }
+                })
+                .catch((error) => {
+                    toastr.error('Error al buscar');
+                    closeLoading();
+                });
+        }
+
+
+
+        function editarCampos(){
+
+            var id = document.getElementById('id-editar').value;
+            var nombreFallecido = document.getElementById('nombre-fallecido').value;
+            var fechaFallecido = document.getElementById('fecha-fallecido').value;
+            var fechaExhumacion = document.getElementById('fecha-exhumacion').value; //null
+
+
+            if(id === ''){
+                toastr.error('Libro es requerido');
+                return;
+            }
+            if(nombreFallecido === ''){
+                toastr.error('Nombre Fallecido es requerido');
+                return;
+            }
+            if(fechaFallecido === ''){
+                toastr.error('Fecha Fallecido es requerido');
+                return;
+            }
+
+            openLoading();
+            var formData = new FormData();
+            formData.append('id', id);
+            formData.append('nombreFallecido', nombreFallecido);
+            formData.append('fechaFallecido', fechaFallecido);
+            formData.append('fechaExhumacion', fechaExhumacion);
+
+            axios.post(url+'/librosdetalle/actualizar/datos', formData, {
+            })
+                .then((response) => {
+                    closeLoading();
+                    if(response.data.success === 1){
+
+                        toastr.success('Actualizado');
+                        $('#modalEditar').modal('hide');
+                        $('#modalBotones').modal('hide');
+                        recargar()
+                    }
+                    else {
+                        toastr.error('Error al actualizar');
+                    }
+                })
+                .catch((error) => {
+                    toastr.error('Error al actualizar');
+                    closeLoading();
+                });
+
+
+        }
 
 
 

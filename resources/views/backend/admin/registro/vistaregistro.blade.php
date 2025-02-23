@@ -196,9 +196,12 @@
                 let fechaMora = new Date(fechaVencimiento);
                 fechaMora.setFullYear(fechaMora.getFullYear() + 7);
 
-               // document.getElementById("fecha-vencimiento").value = fechaVencimiento.toISOString().split('T')[0];
                 document.getElementById("fecha-vencimiento").value = fechaMora.toISOString().split('T')[0];
             }
+        });
+
+        document.getElementById("fecha-fallecido").addEventListener("change", function () {
+            actualizarFechaVencimiento();
         });
 
         document.getElementById("periodo-contribuyente").addEventListener("input", function() {
@@ -216,7 +219,34 @@
 
             document.getElementById("costono5-contribuyente").value = costoSin5.toFixed(2);
             document.getElementById("costo5-contribuyente").value = costoCon5.toFixed(2);
+
+            actualizarFechaVencimiento(periodo);
         });
+
+
+        function actualizarFechaVencimiento(periodo = null) {
+            let fechaFallecidoInput = document.getElementById("fecha-fallecido").value;
+            let fechaVencimientoInput = document.getElementById("fecha-vencimiento");
+
+            let fechaFallecido = new Date(fechaFallecidoInput);
+
+            if (!isNaN(fechaFallecido.getTime())) {
+                periodo = periodo || parseInt(document.getElementById("periodo-contribuyente").value) || 1;
+
+                // Cálculo de los años a sumar: 14 si periodo es 1, caso contrario 14 + (periodo - 1) * 7
+                let añosASumar = (periodo === 1) ? 14 : 14 + ((periodo - 1) * 7);
+
+                let fechaVencimiento = new Date(fechaFallecido);
+                fechaVencimiento.setFullYear(fechaVencimiento.getFullYear() + añosASumar);
+
+                fechaVencimientoInput.value = fechaVencimiento.toISOString().split('T')[0];
+            } else {
+                fechaVencimientoInput.value = ""; // Borra la fecha si la fecha de fallecimiento no es válida
+            }
+        }
+
+
+
 
         function buscarCorrelativo(){
 
@@ -271,6 +301,10 @@
             }
             if(nombreFallecido === ''){
                 toastr.error('Nombre Fallecido es requerido');
+                return;
+            }
+            if(fechaFallecido === ''){
+                toastr.error('Fecha Fallecido es requerido');
                 return;
             }
             if(periodoContribuyente === ''){

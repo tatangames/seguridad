@@ -65,11 +65,6 @@ class RegistroController extends Controller
         DB::beginTransaction();
 
         try {
-            $fechaCiclo = $request->fechaTesoreriaContribuyente;
-            if($request->fechaTesoreriaContribuyente == null){
-                $fechaCiclo = Carbon::now('America/El_Salvador');
-            }
-
             $nicho = NichoMunicipal::where('id_libros', $request->idlibro)
                 ->orderByDesc('correlativo')
                 ->first();
@@ -90,7 +85,7 @@ class RegistroController extends Controller
 
             $regContribuyente = new NichoCobros();
             $regContribuyente->id_nichomunicipal_detalle = $regNichoMunicipalDetalle->id;
-            $regContribuyente->fecha_ciclo = $fechaCiclo;
+            $regContribuyente->fecha_ciclo = $request->fechaFallecido;
             $regContribuyente->nombre = $request->nombreContribuyente;
             $regContribuyente->dui = $request->duiContribuyente;
             $regContribuyente->telefono = $request->telefonoContribuyente;
@@ -214,9 +209,15 @@ class RegistroController extends Controller
                         // Solo tiene 1 registro de pago
                         $fechaInicioCiclo .= "Fecha Fallecimiento" . "<hr><br>";
 
+
                         $fechaPago = Carbon::parse($infoCobro->fecha_ciclo); // Fecha del último cobro
-                        $fechaVencimiento = $fechaPago->copy()->addYears(14)->startOfDay(); // Sumar 14 años y fijar a la medianoche
                         $fechaActual = Carbon::now('America/El_Salvador')->startOfDay(); // Fecha actual sin hora
+
+                        $periodos = ($infoCobro->periodo == 1) ? 14 : 14 + (($infoCobro->periodo - 1) * 7);
+
+                        $fechaVencimiento = $fechaPago->copy()->addYears($periodos)->startOfDay(); // Sumar los años correspondientes
+
+
 
                         $periodosMora = 0;
                         $estado = 'normal'; // Estado por defecto
@@ -231,6 +232,9 @@ class RegistroController extends Controller
                             // Cada 7 años completos adicionales suman otro periodo de mora
                             $periodosMora += floor($aniosAdicionales / 7);
                         }
+
+
+
 
                         if ($fechaActual->isSameYear($fechaVencimiento) && $fechaActual->isBefore($fechaVencimiento)) {
                             $estado = 'amarillo'; // Estamos en el año de vencimiento, pero antes de la fecha
@@ -305,7 +309,6 @@ class RegistroController extends Controller
             $fila->periodosPagados = $periodosPagados;
             $fila->botonNicho = $botonNicho;
         }
-
         return view('backend.admin.librosdetalle.tablalibrosdetalle', compact('listado'));
     }
 
@@ -313,7 +316,7 @@ class RegistroController extends Controller
     public function infoFallecido(Request $request)
     {
         $regla = array(
-            'id' => 'required', // nicho_municipal
+            'id' => 'required', // nicho_municipal_detalle
         );
 
         $validar = Validator::make($request->all(), $regla);
@@ -328,16 +331,10 @@ class RegistroController extends Controller
     }
 
 
-
-
-
-    //****** BORRAR NICHO COMPLETO *****
-
-
-    public function borrarNichoCompleto(Request $request)
+    public function borrarFallecido(Request $request)
     {
         $regla = array(
-            'id' => 'required', // nicho_municipal
+            'id' => 'required', // nicho_municipal_detalle
         );
 
         $validar = Validator::make($request->all(), $regla);
@@ -348,15 +345,9 @@ class RegistroController extends Controller
 
         try {
 
-            $pilaArrayNMDetalle = array();
-            $arrayNMDetalle = NichoMunicipalDetalle::where('id_nicho_municipal', $request->id)->get();
-            foreach ($arrayNMDetalle as $fila) {
-                array_push($pilaArrayNMDetalle, $fila->id);
-            }
-
-            NichoCobros::whereIn('id_nichomunicipal_detalle', $pilaArrayNMDetalle)->delete();
-            NichoMunicipalDetalle::where('id_nicho_municipal', $request->id)->delete();
-            NichoMunicipal::where('id', $request->id)->delete();
+            NichoCobros::where('id_nichomunicipal_detalle', $request->id)->delete();
+            NichoMunicipalDetalle::where('id', $request->id)->delete();
+            NichoMunicipal::whereNotIn('id', NichoMunicipalDetalle::pluck('id_nicho_municipal'))->delete();
 
             DB::commit();
             return ['success' => 1];
@@ -369,7 +360,29 @@ class RegistroController extends Controller
     }
 
 
+    public function actualizarDatos(Request $request)
+    {
+        $regla = array(
+            'id' => 'required',
+            'nombreFallecido' => 'required',
+            'fechaFallecido' => 'required',
+        );
 
+        // fechaExhumacion
+
+        $validar = Validator::make($request->all(), $regla);
+
+        if ($validar->fails()){ return ['success' => 0];}
+
+
+        NichoMunicipalDetalle::where('id', $request->id)->update([
+            'nombre' => $request->nombreFallecido,
+            'fecha_fallecimiento' => $request->fechaFallecido,
+            'fecha_exhumacion' => $request->fechaExhumacion,
+        ]);
+
+        return ['success' => 1];
+    }
 
 
 

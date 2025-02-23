@@ -73,11 +73,13 @@ Route::post('/admin/registro/nuevo', [RegistroController::class, 'nuevoRegistro'
 // --- TABLAS DE REGISTROS ---
 Route::get('/admin/librosdetalle/index', [RegistroController::class,'indexLibrosDetalle'])->name('admin.libros.detalle.index');
 Route::get('/admin/librosdetalle/tabla/{id}', [RegistroController::class,'tablaLibrosDetalle']);
-
 // - Info Fallecido
 Route::post('/admin/librosdetalle/info/fallecido', [RegistroController::class, 'infoFallecido']);
+// - Borrar fallecido
+Route::post('/admin/librosdetalle/borrar/fallecido', [RegistroController::class, 'borrarFallecido']);
+// - actualizar
+Route::post('/admin/librosdetalle/actualizar/datos', [RegistroController::class, 'actualizarDatos']);
 
-Route::post('/admin/librosdetalle/borrarnicho/completo', [RegistroController::class, 'borrarNichoCompleto']);
 
 
 
