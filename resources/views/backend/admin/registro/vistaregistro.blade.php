@@ -91,7 +91,7 @@
                             <div class="row">
 
                                 <div class="form-group col-md-4">
-                                    <label>Contribuyente que Cancela *:</label>
+                                    <label>Contribuyente que Cancela:</label>
                                     <input type="text" maxlength="100" class="form-control" autocomplete="off" id="nombre-contribuyente">
                                 </div>
 
@@ -273,10 +273,6 @@
                 toastr.error('Nombre Fallecido es requerido');
                 return;
             }
-            if(nombreContribuyente === ''){
-                toastr.error('Nombre Contribuyente es requerido');
-                return;
-            }
             if(periodoContribuyente === ''){
                 toastr.error('Periodo Contribuyente es requerido');
                 return;
@@ -324,7 +320,8 @@
                 confirmButtonColor: '#28a745',
                 cancelButtonColor: '#d33',
                 cancelButtonText: 'Cancelar',
-                confirmButtonText: 'Aceptar'
+                confirmButtonText: 'Aceptar',
+                closeOnClickOutside: false,
             }).then((result) => {
                 if (result.isConfirmed) {
                     location.reload();

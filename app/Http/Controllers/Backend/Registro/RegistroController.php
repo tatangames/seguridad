@@ -55,7 +55,6 @@ class RegistroController extends Controller
             'idlibro' => 'required',
             'nombreFallecido' => 'required',
             'fechaFallecido' => 'required',
-            'nombreContribuyente' => 'required',
             'periodoContribuyente' => 'required',
         );
 
@@ -156,8 +155,11 @@ class RegistroController extends Controller
             // COLUMNA: PERIODOS PAGADOS
             $periodosPagados = "";
 
-            // SI HAY FECHA DE EXHUMACION ME MOSTRARA EL TEXTO, SINO HARA EL CALCULO
+            // BOTON INFO PARA CADA PERSONA
 
+            $botonNicho = "";
+
+            // SI HAY FECHA DE EXHUMACION ME MOSTRARA EL TEXTO, SINO HARA EL CALCULO
 
 
             $hayVarios = false;
@@ -167,9 +169,15 @@ class RegistroController extends Controller
 
 
             $contadorFallecidos = 0;
-            foreach ($arrayNichoMuniDetalle as $index => $item){
-
+            foreach ($arrayNichoMuniDetalle as $item){
                 $contadorFallecidos++;
+
+                $botonNicho .= '<button type="button" class="btn btn-info btn-xs"
+                 onclick="vistaDetalle(' . $item->id . ')">
+                 <i class="fas fa-eye" title="Info"></i>&nbsp; Info
+               </button><hr><br>';
+
+
                 $ff = date("d-m-Y", strtotime($item->fecha_fallecimiento));
                 $fechasFallecimiento .= $ff . '<hr><br>';
 
@@ -295,10 +303,31 @@ class RegistroController extends Controller
             $fila->fechaProxVencimiento = $proximaFechaVencimiento;
             $fila->peridosMora = $periodosMoraVencimiento;
             $fila->periodosPagados = $periodosPagados;
+            $fila->botonNicho = $botonNicho;
         }
 
         return view('backend.admin.librosdetalle.tablalibrosdetalle', compact('listado'));
     }
+
+
+    public function infoFallecido(Request $request)
+    {
+        $regla = array(
+            'id' => 'required', // nicho_municipal
+        );
+
+        $validar = Validator::make($request->all(), $regla);
+
+        if ($validar->fails()){ return ['success' => 0];}
+
+        if($info = NichoMunicipalDetalle::where('id', $request->id)->first()){
+            return ['success' => 1, 'info' => $info];
+        }else{
+            return ['success' => 0];
+        }
+    }
+
+
 
 
 

@@ -55,6 +55,57 @@
         </div>
     </section>
 
+
+    <div class="modal fade" id="modalBotones">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Información</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="formulario-botones">
+                        <div class="card-body">
+
+                            <div class="form-group">
+                                <input type="hidden" id="id-detalle">
+                            </div>
+
+                            <div class="form-group col-md-12">
+                                <label>Nombre Fallecido</label><br>
+                                <input type="text" disabled class="form-control"  id="nombre-fa">
+                            </div>
+
+                            <div style="display: flex; flex-direction: column; align-items: center;">
+                                <div class="form-group">
+                                    <button type="button" class="btn btn-primary btn-xs" onclick="infoEditar()">
+                                        <i class="fas fa-edit" title="Editar"></i>&nbsp; Editar
+                                    </button>
+                                </div>
+
+                                <div class="form-group">
+                                    <button type="button" class="btn btn-warning btn-xs" onclick="infoCobros()">
+                                        <i class="fas fa-edit" title="Cobros"></i>&nbsp; Cobros
+                                    </button>
+                                </div>
+
+                                <div class="form-group">
+                                    <button type="button" class="btn btn-danger btn-xs" onclick="infoBorrar()">
+                                        <i class="fas fa-trash" title="Borrar"></i>&nbsp; Borrar
+                                    </button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
 </div>
 
 
@@ -108,7 +159,7 @@
         function mostrarAyuda(){
 
             let mensaje = `Cuando se hace el Primer Registro para calcular fecha Vencimiento se toma Fecha de Fallecimiento,
-                Cuando se hace un Cobro se toma en cuentra Fecha Recibo (Tesoreria).
+                Cuando se hace un Cobro se toma en cuenta Fecha Recibo (Tesoreria).
                 Ya no se harán cálculos cuando haya una fecha de exhumación`;
 
             Swal.fire({
@@ -128,9 +179,11 @@
         }
 
         function infoBorrar(id){
+            var nombre = document.getElementById('nombre-fa').value;
+
             Swal.fire({
                 title: 'Borrar Registro',
-                text: "Se eliminara el Nicho",
+                text: "Se eliminara todos los registros para: " + nombre,
                 icon: 'info',
                 showCancelButton: true,
                 confirmButtonColor: '#28a745',
@@ -168,8 +221,35 @@
         }
 
 
-        function vistaDetalle(idsolicitud){
-            // window.location.href="{{ url('/admin/bodega/historial/salidadetalle/index') }}/" + idsolicitud;
+        function vistaDetalle(id){
+            // nicho_municipal_detalle
+
+            document.getElementById("formulario-botones").reset();
+
+            openLoading();
+            var formData = new FormData();
+            formData.append('id', id);
+
+            axios.post(url+'/librosdetalle/info/fallecido', formData, {
+            })
+                .then((response) => {
+                    closeLoading();
+                    if(response.data.success === 1){
+                        $('#modalBotones').modal('show');
+
+                        $('#id-detalle').val(id);
+                        $('#nombre-fa').val(response.data.info.nombre);
+
+
+                    }
+                    else {
+                        toastr.error('Error al buscar');
+                    }
+                })
+                .catch((error) => {
+                    toastr.error('Error al buscar');
+                    closeLoading();
+                });
         }
 
 

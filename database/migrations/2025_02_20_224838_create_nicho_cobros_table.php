@@ -16,12 +16,15 @@ return new class extends Migration
             $table->bigInteger('id_nichomunicipal_detalle')->unsigned();
 
             // LA PRIMERA VEZ QUE SE HACE UN REGISTRO, ESTO SERA LA FECHA DEL FALLECIDO
-            // YA CUANDO SE REGISTRA UN COBRO SE TOMA LA FECHA DE RECIBO
+            // YA CUANDO SE REGISTRA UN COBRO SE TOMA LA FECHA DE RECIBO.
+            // ES DECIR QUE CUANDO AGREGAMOS UNA FECHA TESORERIA ESTE SE UPDATE EN
+            // CAMPO FECHA CICLO
 
-            // NO BORRAR (fecha_recibo) PORQUE AL REGISTRAR NUEVO, PUEDE SER NULL
+            // NO BORRAR PORQUE AL REGISTRAR NUEVO NICHO, SERA NULL, YA DESPUES TENDRA UNA
+            // FECHA QUE SERA LA MISMA DE FECHA RECIBO TESORERIA
             $table->date('fecha_ciclo');
 
-            $table->string('nombre', 100);
+            $table->string('nombre', 100)->nullable();
             $table->string('dui', 15)->nullable();
             $table->string('telefono', 10)->nullable();
             $table->string('direccion', 300)->nullable();

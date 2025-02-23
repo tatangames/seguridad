@@ -74,7 +74,9 @@ Route::post('/admin/registro/nuevo', [RegistroController::class, 'nuevoRegistro'
 Route::get('/admin/librosdetalle/index', [RegistroController::class,'indexLibrosDetalle'])->name('admin.libros.detalle.index');
 Route::get('/admin/librosdetalle/tabla/{id}', [RegistroController::class,'tablaLibrosDetalle']);
 
-// - BORRAR Completo un Nicho
+// - Info Fallecido
+Route::post('/admin/librosdetalle/info/fallecido', [RegistroController::class, 'infoFallecido']);
+
 Route::post('/admin/librosdetalle/borrarnicho/completo', [RegistroController::class, 'borrarNichoCompleto']);
 
 

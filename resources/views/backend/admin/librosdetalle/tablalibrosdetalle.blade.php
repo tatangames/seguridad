@@ -13,8 +13,8 @@
                             <tr>
                                 <th style="width: 2%">Nicho</th>
                                 <th style="width: 4%">Nombre Fallecidos</th>
-                                <th style="width: 4%">F. Fallecidos</th>
-                                <th style="width: 4%">F. Exhumación</th>
+                                <th style="width: 4%">Fallecio</th>
+                                <th style="width: 5%">Exhumación</th>
                                 <th style="width: 6%">
                                     Fecha Inicio
                                     <button class="btn btn-sm btn-light" onclick="mostrarAyuda()">
@@ -24,7 +24,7 @@
                                 <th style="width: 4%">P. Pagados</th>
                                 <th style="width: 4%">F. Vencimiento</th>
                                 <th style="width: 4%">Periodo Mora</th>
-                                <th style="width: 6%">Opciones</th>
+                                <th style="width: 3%">Opciones</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -39,18 +39,7 @@
                                     <td>{!! $dato->periodosPagados !!}</td>
                                     <td>{!! $dato->fechaProxVencimiento !!}</td>
                                     <td>{!! $dato->peridosMora !!}</td>
-                                    <td>
-                                        <button type="button" class="btn btn-info btn-xs"
-                                                onclick="vistaDetalle({{ $dato->id }})">
-                                            <i class="fas fa-eye" title="Detalle"></i>&nbsp; Detalle
-                                        </button>
-
-                                        <button type="button" style="margin: 4px" class="btn btn-danger btn-xs"
-                                                onclick="infoBorrar({{ $dato->id }})">
-                                            <i class="fas fa-trash" title="Borrar"></i>&nbsp; Borrar
-                                        </button>
-
-                                    </td>
+                                    <td>{!! $dato->botonNicho !!}</td>
                                 </tr>
                             @endforeach
 
