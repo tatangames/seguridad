@@ -381,6 +381,12 @@ class RegistroController extends Controller
             'fecha_exhumacion' => $request->fechaExhumacion,
         ]);
 
+        if ($info = NichoCobros::where('id_nichomunicipal_detalle', $request->id)->first()) {
+            if (NichoCobros::where('id_nichomunicipal_detalle', $request->id)->count() == 1) {
+                $info->update(['fecha_ciclo' => $request->fechaFallecido]);
+            }
+        }
+
         return ['success' => 1];
     }
 
