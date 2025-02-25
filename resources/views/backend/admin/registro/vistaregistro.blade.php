@@ -138,11 +138,6 @@
                                     <input type="date" class="form-control" autocomplete="off" id="fechatesoreria-contribuyente">
                                 </div>
                             </div>
-
-
-
-
-
                         </div>
 
                     </div>
@@ -244,8 +239,6 @@
                 fechaVencimientoInput.value = ""; // Borra la fecha si la fecha de fallecimiento no es válida
             }
         }
-
-
 
 
         function buscarCorrelativo(){

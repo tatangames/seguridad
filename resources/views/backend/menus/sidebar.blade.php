@@ -41,7 +41,12 @@
                  </li>
                 @endcan
 
-
+                <li class="nav-item">
+                    <a href="{{ route('admin.buscador.index') }}" target="frameprincipal" class="nav-link">
+                        <i class="far fa-circle nav-icon"></i>
+                        <p>Buscador</p>
+                    </a>
+                </li>
 
                 <li class="nav-item">
                     <a href="{{ route('admin.registro.index') }}" target="frameprincipal" class="nav-link">

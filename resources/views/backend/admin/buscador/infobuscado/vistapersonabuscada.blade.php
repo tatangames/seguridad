@@ -16,36 +16,16 @@
 
 <div id="divcontenedor" style="display: none">
 
-    <section class="content" style="margin-top: 15px">
+    <section class="content" style="margin-top: 8px">
         <div class="container-fluid">
             <div class="card card-gray-dark">
                 <div class="card-header">
-                    <h3 class="card-title">Listado de Libros</h3>
+                    <h3 class="card-title">Listado</h3>
                 </div>
                 <div class="card-body">
-
-                    <div class="row d-flex align-items-center">
-                        <div class="form-group col-md-3">
-                            <label style="color: #686868">Libros</label>
-                            <div>
-                                <select id="select-libro" class="form-control">
-                                    @foreach($arrayLibros as $item)
-                                        <option value="{{$item->id}}">{{$item->nombre}}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="col-auto">
-                            <button type="button" onclick="buscarListado()" class="btn btn-success btn-sm">
-                                <i class="fas fa-search"></i>
-                                Buscar
-                            </button>
-                        </div>
-                    </div>
-
                     <div class="row">
                         <div class="col-md-12">
+
                             <div id="tablaDatatable">
                             </div>
                         </div>
@@ -54,6 +34,12 @@
             </div>
         </div>
     </section>
+
+
+
+
+
+
 
 
     <div class="modal fade" id="modalBotones">
@@ -184,9 +170,6 @@
                                         <input type="hidden" id="id-nuevoregistro">
                                     </div>
 
-
-
-
                                     <div class="card-body">
 
                                         <div class="row">
@@ -270,10 +253,6 @@
                                             </div>
                                         </div>
                                     </div>
-
-
-
-
                                 </div>
                             </div>
                         </div>
@@ -286,6 +265,13 @@
             </div>
         </div>
     </div>
+
+
+
+
+
+
+
 
 
 
@@ -308,13 +294,9 @@
     <script type="text/javascript">
         $(document).ready(function(){
 
-            var id = @json($primerId); // idproyecto
-
-            if (id != null) {
-                openLoading()
-                var ruta = "{{ URL::to('/admin/librosdetalle/tabla') }}/" + id;
-                $('#tablaDatatable').load(ruta);
-            }
+            let id = {{ $id }};
+            var ruta = "{{ URL::to('/admin/buscador/persona/tabla') }}/" + id;
+            $('#tablaDatatable').load(ruta);
 
             document.getElementById("divcontenedor").style.display = "block";
         });
@@ -322,22 +304,11 @@
 
     <script>
 
-        function buscarListado(){
-            var idlibro = document.getElementById('select-libro').value;
 
-            if(idlibro === ''){
-                toastr.error('Libro es requerido');
-                return;
-            }
-            openLoading()
-            var ruta = "{{ URL::to('/admin/librosdetalle/tabla') }}/" + idlibro;
-            $('#tablaDatatable').load(ruta);
-        }
 
         function recargar(){
-            var id = document.getElementById('select-libro').value;
-
-            var ruta = "{{ URL::to('/admin/librosdetalle/tabla') }}/" + id;
+            let id = {{ $id }};
+            var ruta = "{{ URL::to('/admin/buscador/persona/tabla') }}/" + id;
             $('#tablaDatatable').load(ruta);
         }
 
@@ -394,9 +365,8 @@
                 .then((response) => {
                     closeLoading();
                     if(response.data.success === 1){
-                        toastr.success('Borrado correctamente');
-                        $('#modalBotones').modal('hide');
-                        recargar();
+
+                        modalBorrado()
                     }
                     else {
                         toastr.error('Error al borrar');
@@ -406,6 +376,24 @@
                     toastr.error('Error al borrar');
                     closeLoading();
                 });
+        }
+
+        function modalBorrado(){
+            Swal.fire({
+                title: 'Registro Borrado',
+                text: "",
+                icon: 'success',
+                showCancelButton: false,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#d33',
+                cancelButtonText: 'Cancelar',
+                confirmButtonText: 'Aceptar',
+                allowOutsideClick: false,
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href="{{ url('/admin/buscador/index') }}";
+                }
+            })
         }
 
 
@@ -667,8 +655,6 @@
 
 
 
-
     </script>
-
 
 @endsection

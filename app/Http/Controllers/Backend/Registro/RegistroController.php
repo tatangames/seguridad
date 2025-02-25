@@ -85,16 +85,11 @@ class RegistroController extends Controller
 
             $regContribuyente = new NichoCobros();
             $regContribuyente->id_nichomunicipal_detalle = $regNichoMunicipalDetalle->id;
-            $regContribuyente->fecha_ciclo = $request->fechaFallecido;
             $regContribuyente->nombre = $request->nombreContribuyente;
             $regContribuyente->dui = $request->duiContribuyente;
             $regContribuyente->telefono = $request->telefonoContribuyente;
             $regContribuyente->periodo = $request->periodoContribuyente;
             $regContribuyente->direccion = $request->direccionContribuyente;
-            // Sera Costo de $20.00 por LEY
-            $regContribuyente->base_costo = 20; // FIJO POR LEY 20 DOLARES
-            $regContribuyente->anios_cobro = 7; // FIJO POR LEY 7 AÑOS
-            $regContribuyente->base_comision = 5; // FIJO POR LEY 5%
             $regContribuyente->recibo = $request->reciboTesoreriaContribuyente;
             $regContribuyente->fecha_recibo = $request->fechaTesoreriaContribuyente;
             $regContribuyente->save();
@@ -163,9 +158,9 @@ class RegistroController extends Controller
             }
 
 
-            $contadorFallecidos = 0;
+
             foreach ($arrayNichoMuniDetalle as $item){
-                $contadorFallecidos++;
+
 
                 $botonNicho .= '<button type="button" class="btn btn-info btn-xs"
                  onclick="vistaDetalle(' . $item->id . ')">
@@ -185,18 +180,14 @@ class RegistroController extends Controller
                 }
                 $fechasExhumacion .= $feEx;
 
-                if($hayVarios){
-                    $nombresFallecidos .= $contadorFallecidos . "-" . $item->nombre . '<hr><br>';
-                }else{
-                    $nombresFallecidos .= $item->nombre . '<hr><br>';
-                }
+                $nombresFallecidos .= $item->nombre . '<hr><br>';
 
 
                 // VERIFICAR CADA CICLO DE COBROS
 
                 // OBTENER EL ULTIMO REGISTRO
                 $infoCobro = NichoCobros::where('id_nichomunicipal_detalle', $item->id)
-                    ->orderByDesc('fecha_ciclo') // Ordenar de más reciente a más antiguo
+                    ->orderByDesc('fecha_recibo') // Ordenar de más reciente a más antiguo
                     ->first();
 
                 // SIEMPRE HABRA MINIMO 1 REGISTRO
@@ -209,8 +200,7 @@ class RegistroController extends Controller
                         // Solo tiene 1 registro de pago
                         $fechaInicioCiclo .= "Fecha Fallecimiento" . "<hr><br>";
 
-
-                        $fechaPago = Carbon::parse($infoCobro->fecha_ciclo); // Fecha del último cobro
+                        $fechaPago = Carbon::parse($item->fecha_fallecimiento);
                         $fechaActual = Carbon::now('America/El_Salvador')->startOfDay(); // Fecha actual sin hora
 
                         $periodos = ($infoCobro->periodo == 1) ? 14 : 14 + (($infoCobro->periodo - 1) * 7);
@@ -234,8 +224,6 @@ class RegistroController extends Controller
                         }
 
 
-
-
                         if ($fechaActual->isSameYear($fechaVencimiento) && $fechaActual->isBefore($fechaVencimiento)) {
                             $estado = 'amarillo'; // Estamos en el año de vencimiento, pero antes de la fecha
                         } elseif ($fechaActual->isSameDay($fechaVencimiento) || $fechaActual->isAfter($fechaVencimiento)) {
@@ -254,9 +242,9 @@ class RegistroController extends Controller
                         $periodosMoraVencimiento .= $periodosMora . "<hr><br>";
                     } else {
 
-                        $fechaInicioCiclo .= "Recibo (" . date("d-m-Y", strtotime($infoCobro->fecha_ciclo)) . ")" . "<hr><br>";
+                        $fechaInicioCiclo .= "Recibo (" . date("d-m-Y", strtotime($infoCobro->fecha_recibo)) . ")" . "<hr><br>";
 
-                        $fechaPago = Carbon::parse($infoCobro->fecha_ciclo); // Último pago registrado
+                        $fechaPago = Carbon::parse($infoCobro->fecha_recibo); // Último pago registrado
                         // Ahora la fecha de vencimiento es la fecha del último pago más 7 años
                         // Pero se multiplica por cada periodo
                         $periodoMultiplicado = 7 * $infoCobro->periodo;
@@ -374,22 +362,169 @@ class RegistroController extends Controller
 
         if ($validar->fails()){ return ['success' => 0];}
 
-
         NichoMunicipalDetalle::where('id', $request->id)->update([
             'nombre' => $request->nombreFallecido,
             'fecha_fallecimiento' => $request->fechaFallecido,
             'fecha_exhumacion' => $request->fechaExhumacion,
         ]);
 
-        if ($info = NichoCobros::where('id_nichomunicipal_detalle', $request->id)->first()) {
-            if (NichoCobros::where('id_nichomunicipal_detalle', $request->id)->count() == 1) {
-                $info->update(['fecha_ciclo' => $request->fechaFallecido]);
-            }
-        }
-
         return ['success' => 1];
     }
 
+
+
+
+
+    //************** COBROS ***************************
+
+
+    public function indexCobros($id)
+    {
+        // id: nicho_municipal_detalle
+        $infoNichoMuniDeta = NichoMunicipalDetalle::where('id', $id)->first();
+
+        return view('backend.admin.librosdetalle.cobros.vistacobros', compact('id',
+        'infoNichoMuniDeta'));
+    }
+
+
+    public function tablaCobros($id)
+    {
+        // id: nicho_municipal_detalle
+        $listado = NichoCobros::where('id_nichomunicipal_detalle', $id)->get();
+
+        foreach ($listado as $item) {
+            $fechaReciboFormat = "";
+            if($item->fecha_recibo != null){
+                $fechaReciboFormat = date("d-m-Y", strtotime($item->fecha_recibo));
+            }
+            $item->fechaReciboFormat = $fechaReciboFormat;
+        }
+
+        return view('backend.admin.librosdetalle.cobros.tablacobros', compact('listado'));
+    }
+
+    function borrarCobro(Request $request)
+    {
+
+        $regla = array(
+            'id' => 'required',
+        );
+
+        $validar = Validator::make($request->all(), $regla);
+
+        if ($validar->fails()){ return ['success' => 0];}
+
+        if ($info = NichoCobros::where('id', $request->id)->first()) {
+            $conteo = NichoCobros::where('id_nichomunicipal_detalle', $info->id_nichomunicipal_detalle)->count();
+
+            if($conteo == 1) {
+                return ['success' => 1];
+            }
+        }
+
+        NichoCobros::where('id', $request->id)->delete();
+        return ['success' => 2];
+    }
+
+
+    public function nuevoRegistroCobro(Request $request)
+    {
+        $regla = array(
+            'id' => 'required',
+            'periodoContribuyente' => 'required',
+            'fechaTesoreriaContribuyente' => 'required',
+        );
+
+        $validar = Validator::make($request->all(), $regla);
+
+        if ($validar->fails()){ return ['success' => 0];}
+
+        DB::beginTransaction();
+
+        try {
+
+
+            $registro = new NichoCobros();
+            $registro->id_nichomunicipal_detalle = $request->id;
+            $registro->nombre = $request->nombreContribuyente;
+            $registro->dui = $request->duiContribuyente;
+            $registro->telefono = $request->telefonoContribuyente;
+            $registro->direccion = $request->direccionContribuyente;
+            $registro->periodo = $request->periodoContribuyente;
+            $registro->recibo = $request->reciboTesoreriaContribuyente;
+            $registro->fecha_recibo = $request->fechaTesoreriaContribuyente;
+            $registro->save();
+
+
+            DB::commit();
+            return ['success' => 1];
+
+        } catch (\Throwable $e) {
+            Log::info('ee ' . $e);
+            DB::rollback();
+            return ['success' => 99];
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+    public function agregarExtraFallecido(Request $request)
+    {
+        $regla = array(
+            'id' => 'required', // nicho_municipal_detalle
+            'nombreFallecido' => 'required',
+            'fechaFallecido' => 'required',
+            'periodoContribuyente' => 'required',
+        );
+
+        $validar = Validator::make($request->all(), $regla);
+
+        if ($validar->fails()){ return ['success' => 0];}
+
+        DB::beginTransaction();
+
+        try {
+
+            $infoData = NichoMunicipalDetalle::where('id', $request->id)->first();
+
+
+            $regNichoMunicipalDetalle = new NichoMunicipalDetalle();
+            $regNichoMunicipalDetalle->id_nicho_municipal = $infoData->id_nicho_municipal;
+            $regNichoMunicipalDetalle->nombre = $request->nombreFallecido;
+            $regNichoMunicipalDetalle->fecha_fallecimiento = $request->fechaFallecido;
+            $regNichoMunicipalDetalle->fecha_exhumacion = $request->fechaExhumacion;
+            $regNichoMunicipalDetalle->save();
+
+            $regContribuyente = new NichoCobros();
+            $regContribuyente->id_nichomunicipal_detalle = $regNichoMunicipalDetalle->id;
+            $regContribuyente->nombre = $request->nombreContribuyente;
+            $regContribuyente->dui = $request->duiContribuyente;
+            $regContribuyente->telefono = $request->telefonoContribuyente;
+            $regContribuyente->periodo = $request->periodoContribuyente;
+            $regContribuyente->direccion = $request->direccionContribuyente;
+            $regContribuyente->recibo = $request->reciboTesoreriaContribuyente;
+            $regContribuyente->fecha_recibo = $request->fechaTesoreriaContribuyente;
+            $regContribuyente->save();
+
+            DB::commit();
+            return ['success' => 1];
+
+        } catch (\Throwable $e) {
+            Log::info('ee ' . $e);
+            DB::rollback();
+            return ['success' => 99];
+        }
+    }
 
 
 

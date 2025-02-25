@@ -22,7 +22,7 @@ class ControlController extends Controller
             $ruta = 'admin.roles.index';
         }
         else if($user->hasRole('usuario')){
-            $ruta = 'admin.registro.index';
+            $ruta = 'admin.buscador.index';
         }
         else{
             // no tiene ningun permiso de vista, redirigir a pantalla sin permisos

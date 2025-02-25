@@ -11,8 +11,8 @@ class NichoCobros extends Model
     protected $table = 'nicho_cobros';
     public $timestamps = false;
 
-    protected $fillable = [
+   /* protected $fillable = [
         'id_nichomunicipal_detalle',
         'fecha_ciclo', // Asegúrate de agregar este campo
-    ];
+    ];*/
 }
