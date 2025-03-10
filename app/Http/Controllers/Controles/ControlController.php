@@ -22,14 +22,14 @@ class ControlController extends Controller
             $ruta = 'admin.roles.index';
         }
         else if($user->hasRole('usuario')){
-            $ruta = 'admin.buscador.index';
+            $ruta = 'admin.dashboard.index';
         }
         else{
             // no tiene ningun permiso de vista, redirigir a pantalla sin permisos
             $ruta = 'no.permisos.index';
         }
 
-        $titulo = "Alcaldía de Metapán";
+        $titulo = "Base Proyecto";
 
         return view('backend.index', compact( 'ruta', 'user', 'titulo'));
     }

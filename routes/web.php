@@ -55,47 +55,6 @@ Route::post('/admin/editar-perfil/actualizar', [PerfilController::class, 'editar
 // --- SIN PERMISOS VISTA 403 ---
 Route::get('sin-permisos', [ControlController::class,'indexSinPermiso'])->name('no.permisos.index');
 
+Route::get('/admin/dashboard', [DashboardController::class,'vistaDashboard'])->name('admin.dashboard.index');
 
-
-// --- LIBRO ---
-Route::get('/admin/libros/index', [ConfiguracionController::class,'indexLibros'])->name('admin.libros.index');
-Route::get('/admin/libros/tabla', [ConfiguracionController::class,'tablaLibros']);
-Route::post('/admin/libros/nuevo', [ConfiguracionController::class, 'nuevoLibro']);
-Route::post('/admin/libros/informacion', [ConfiguracionController::class, 'informacionLibro']);
-Route::post('/admin/libros/editar', [ConfiguracionController::class, 'editarLibro']);
-
-
-// --- REGISTRO ---
-Route::get('/admin/registro/index', [RegistroController::class,'indexRegistro'])->name('admin.registro.index');
-Route::post('/admin/registro/buscar/correlativo', [RegistroController::class, 'buscarCorrelativo']);
-Route::post('/admin/registro/nuevo', [RegistroController::class, 'nuevoRegistro']);
-
-// --- TABLAS DE REGISTROS ---
-Route::get('/admin/librosdetalle/index', [RegistroController::class,'indexLibrosDetalle'])->name('admin.libros.detalle.index');
-Route::get('/admin/librosdetalle/tabla/{id}', [RegistroController::class,'tablaLibrosDetalle']);
-// - Info Fallecido
-Route::post('/admin/librosdetalle/info/fallecido', [RegistroController::class, 'infoFallecido']);
-// - Borrar fallecido
-Route::post('/admin/librosdetalle/borrar/fallecido', [RegistroController::class, 'borrarFallecido']);
-// - actualizar
-Route::post('/admin/librosdetalle/actualizar/datos', [RegistroController::class, 'actualizarDatos']);
-// - Nuevo registro a uno existente
-Route::post('/admin/librosdetalle/extra/fallecido', [RegistroController::class, 'agregarExtraFallecido']);
-
-
-// --- COBROS ---
-Route::get('/admin/cobros/index/{id}', [RegistroController::class,'indexCobros']);
-Route::get('/admin/cobros/tabla/{id}', [RegistroController::class,'tablaCobros']);
-Route::post('/admin/cobros/borrar', [RegistroController::class, 'borrarCobro']);
-Route::post('/admin/cobros/nuevoRegistro', [RegistroController::class, 'nuevoRegistroCobro']);
-
-
-
-// --- BUSCADOR ---
-Route::get('/admin/buscador/index', [DashboardController::class,'vistaBuscador'])->name('admin.buscador.index');
-Route::post('/admin/buscar/persona',  [DashboardController::class,'buscadorPersona']);
-
-// - PERSONA BUSCADA
-Route::get('/admin/buscador/persona/{id}', [DashboardController::class,'vistaPersonaBuscada']);
-Route::get('/admin/buscador/persona/tabla/{id}', [DashboardController::class,'tablaPersonaBuscada']);
 
