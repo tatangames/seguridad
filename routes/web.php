@@ -6,8 +6,8 @@ use App\Http\Controllers\Controles\ControlController;
 use App\Http\Controllers\Backend\Roles\RolesController;
 use App\Http\Controllers\Backend\Roles\PermisoController;
 use App\Http\Controllers\Backend\Perfil\PerfilController;
-use App\Http\Controllers\Backend\Configuracion\ConfiguracionController;
-use App\Http\Controllers\Backend\Registro\RegistroController;
+use App\Http\Controllers\Backend\Config\ConfiguracionController;
+use App\Http\Controllers\Backend\Materiales\MaterialesController;
 
 
 
@@ -55,6 +55,61 @@ Route::post('/admin/editar-perfil/actualizar', [PerfilController::class, 'editar
 // --- SIN PERMISOS VISTA 403 ---
 Route::get('sin-permisos', [ControlController::class,'indexSinPermiso'])->name('no.permisos.index');
 
+
+// DASHBOARD
 Route::get('/admin/dashboard', [DashboardController::class,'vistaDashboard'])->name('admin.dashboard.index');
+
+
+// UNIDAD DE MEDIDA
+Route::get('/admin/unidadmedida/index', [ConfiguracionController::class,'vistaUnidadMedida'])->name('admin.unidadmedida.index');
+Route::get('/admin/unidadmedida/tabla', [ConfiguracionController::class,'tablaUnidadMedida']);
+Route::post('/admin/unidadmedida/nuevo', [ConfiguracionController::class,'nuevoUnidadMedida']);
+Route::post('/admin/unidadmedida/informacion', [ConfiguracionController::class,'infoUnidadMedida']);
+Route::post('/admin/unidadmedida/editar', [ConfiguracionController::class,'actualizarUnidadMedida']);
+
+
+// MARCA
+Route::get('/admin/marca/index', [ConfiguracionController::class,'vistaMarca'])->name('admin.marca.index');
+Route::get('/admin/marca/tabla', [ConfiguracionController::class,'tablaMarca']);
+Route::post('/admin/marca/nuevo', [ConfiguracionController::class,'nuevoMarca']);
+Route::post('/admin/marca/informacion', [ConfiguracionController::class,'infoMarca']);
+Route::post('/admin/marca/editar', [ConfiguracionController::class,'actualizarMarca']);
+
+// NORMATIVA
+Route::get('/admin/normativa/index', [ConfiguracionController::class,'vistaNormativa'])->name('admin.normativa.index');
+Route::get('/admin/normativa/tabla', [ConfiguracionController::class,'tablaNormativa']);
+Route::post('/admin/normativa/nuevo', [ConfiguracionController::class,'nuevoNormativa']);
+Route::post('/admin/normativa/informacion', [ConfiguracionController::class,'infoNormativa']);
+Route::post('/admin/normativa/editar', [ConfiguracionController::class,'actualizarNormativa']);
+
+// DISTRITO
+Route::get('/admin/distrito/index', [ConfiguracionController::class,'vistaDistrito'])->name('admin.distrito.index');
+Route::get('/admin/distrito/tabla', [ConfiguracionController::class,'tablaDistrito']);
+Route::post('/admin/distrito/nuevo', [ConfiguracionController::class,'nuevoDistrito']);
+Route::post('/admin/distrito/informacion', [ConfiguracionController::class,'infoDistrito']);
+Route::post('/admin/distrito/editar', [ConfiguracionController::class,'actualizarDistrito']);
+
+
+// MATERIALES
+Route::get('/admin/materiales/index', [MaterialesController::class,'indexMateriales'])->name('admin.materiales.index');
+Route::get('/admin/materiales/tabla/index', [MaterialesController::class,'tablaMateriales']);
+Route::post('/admin/materiales/nuevo', [MaterialesController::class, 'nuevoMaterial']);
+Route::post('/admin/materiales/informacion', [MaterialesController::class, 'informacionMaterial']);
+Route::post('/admin/materiales/editar', [MaterialesController::class, 'editarMaterial']);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

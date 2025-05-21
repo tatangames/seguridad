@@ -43,6 +43,61 @@
 
 
 
+                <li class="nav-item">
+                    <a href="{{ route('admin.materiales.index') }}" target="frameprincipal" class="nav-link">
+                        <i class="far fa-circle nav-icon"></i>
+                        <p>Materiales</p>
+                    </a>
+                </li>
+
+
+
+                <li class="nav-item">
+
+                    <a href="#" class="nav-link nav-">
+                        <i class="far fa-edit"></i>
+                        <p>
+                            Configuración
+                            <i class="fas fa-angle-left right"></i>
+                        </p>
+                    </a>
+
+                    <ul class="nav nav-treeview">
+
+                        <li class="nav-item">
+                            <a href="{{ route('admin.unidadmedida.index') }}" target="frameprincipal" class="nav-link">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Unidad de Medida</p>
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a href="{{ route('admin.marca.index') }}" target="frameprincipal" class="nav-link">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Marca</p>
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a href="{{ route('admin.normativa.index') }}" target="frameprincipal" class="nav-link">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Normativa</p>
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a href="{{ route('admin.distrito.index') }}" target="frameprincipal" class="nav-link">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Distrito</p>
+                            </a>
+                        </li>
+
+
+                    </ul>
+                </li>
+
+
+
 
             </ul>
         </nav>

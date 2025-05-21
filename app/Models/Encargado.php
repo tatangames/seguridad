@@ -5,9 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class NichoMunicipalDetalle extends Model
+class Encargado extends Model
 {
     use HasFactory;
-    protected $table = 'nicho_municipal_detalle';
+
+    protected $table = 'encargado';
     public $timestamps = false;
 }

@@ -12,7 +12,14 @@ use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
-   public function vistaDashboard()
+
+    public function __construct(){
+        $this->middleware('auth');
+    }
+
+
+
+    public function vistaDashboard()
    {
        return view('backend.admin.dashboard.vistadashboard');
    }
