@@ -93,6 +93,20 @@
                                 </div>
                             </div>
 
+
+                            <div class="col-md-5">
+                                <div class="form-group">
+                                    <label>Marca:</label>
+                                    <br>
+                                    <select width="70%"  class="form-control" id="select-marca-nuevo">
+                                        <option value="" selected>Seleccione una opción</option>
+                                        @foreach($arrayMarcas as $sel)
+                                            <option value="{{ $sel->id }}">{{ $sel->nombre }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+
                         </div>
                     </form>
                 </div>
@@ -149,6 +163,15 @@
                                         </div>
                                     </div>
 
+                                    <div class="col-md-5">
+                                        <div class="form-group">
+                                            <label>Marca:</label>
+                                            <br>
+                                            <select style="width: 70%; height: 45px"  class="form-control" id="select-marca-editar">
+                                            </select>
+                                        </div>
+                                    </div>
+
                                 </div>
                             </div>
                         </div>
@@ -181,10 +204,19 @@
 
             openLoading()
 
-            var ruta = "{{ URL::to('/admin/inventario/tabla/index') }}";
+            var ruta = "{{ URL::to('/admin/materiales/tabla/index') }}";
             $('#tablaDatatable').load(ruta);
 
             $('#select-unidad-nuevo').select2({
+                theme: "bootstrap-5",
+                "language": {
+                    "noResults": function(){
+                        return "Busqueda no encontrada";
+                    }
+                },
+            });
+
+            $('#select-marca-nuevo').select2({
                 theme: "bootstrap-5",
                 "language": {
                     "noResults": function(){
@@ -202,6 +234,15 @@
                 },
             });
 
+            $('#select-marca-editar').select2({
+                theme: "bootstrap-5",
+                "language": {
+                    "noResults": function(){
+                        return "Busqueda no encontrada";
+                    }
+                },
+            });
+
             document.getElementById("divcontenedor").style.display = "block";
         });
     </script>
@@ -209,7 +250,7 @@
     <script>
 
         function recargar(){
-            var ruta = "{{ url('/admin/inventario/tabla/index') }}";
+            var ruta = "{{ url('/admin/materiales/tabla/index') }}";
             $('#tablaDatatable').load(ruta);
         }
 
@@ -229,6 +270,7 @@
             var nombre = document.getElementById('nombre-nuevo').value;
             var codigo = document.getElementById('codigo-nuevo').value;
             var unidad = document.getElementById('select-unidad-nuevo').value;
+            var marca = document.getElementById('select-marca-nuevo').value;
 
             if(nombre === ''){
                 toastr.error('Nombre es requerido');
@@ -240,13 +282,19 @@
                 return
             }
 
+            if(marca === ''){
+                toastr.error('Marca es requerido');
+                return
+            }
+
             openLoading();
             var formData = new FormData();
             formData.append('nombre', nombre);
             formData.append('codigo', codigo);
             formData.append('unidad', unidad);
+            formData.append('marca', marca);
 
-            axios.post(url+'/inventario/nuevo', formData, {
+            axios.post(url+'/materiales/nuevo', formData, {
             })
                 .then((response) => {
                     closeLoading();
@@ -269,7 +317,7 @@
             openLoading();
             document.getElementById("formulario-editar").reset();
 
-            axios.post(url+'/inventario/informacion',{
+            axios.post(url+'/materiales/informacion',{
                 'id': id
             })
                 .then((response) => {
@@ -284,13 +332,21 @@
                         contarcaracteresEditar();
 
                         document.getElementById("select-unidad-editar").options.length = 0;
-
+                        document.getElementById("select-marca-editar").options.length = 0;
                         // unidad de medida
                         $.each(response.data.unidad, function( key, val ){
                             if(response.data.material.id_medida == val.id){
                                 $('#select-unidad-editar').append('<option value="' +val.id +'" selected="selected">'+ val.nombre +'</option>');
                             }else{
                                 $('#select-unidad-editar').append('<option value="' +val.id +'">'+ val.nombre +'</option>');
+                            }
+                        });
+
+                        $.each(response.data.marca, function( key, val ){
+                            if(response.data.material.id_marca == val.id){
+                                $('#select-marca-editar').append('<option value="' +val.id +'" selected="selected">'+ val.nombre +'</option>');
+                            }else{
+                                $('#select-marca-editar').append('<option value="' +val.id +'">'+ val.nombre +'</option>');
                             }
                         });
 
@@ -309,7 +365,8 @@
             var id = document.getElementById('id-editar').value;
             var nombre = document.getElementById('nombre-editar').value;
             var codigo = document.getElementById('codigo-editar').value;
-            var unidad = document.getElementById('select-unidad-editar').value; // nullable
+            var unidad = document.getElementById('select-unidad-editar').value;
+            var marca = document.getElementById('select-marca-editar').value;
 
             if(nombre === ''){
                 toastr.error('Nombre es requerido');
@@ -321,14 +378,20 @@
                 return
             }
 
+            if(marca === ''){
+                toastr.error('Marca es requerido');
+                return
+            }
+
             openLoading();
             var formData = new FormData();
             formData.append('id', id);
             formData.append('nombre', nombre);
             formData.append('codigo', codigo);
             formData.append('unidad', unidad);
+            formData.append('marca', marca);
 
-            axios.post(url+'/inventario/editar', formData, {
+            axios.post(url+'/materiales/editar', formData, {
             })
                 .then((response) => {
                     closeLoading();
@@ -365,7 +428,7 @@
 
         // mostrara que materiales quedan aun
         function infoDetalle(id){
-            window.location.href="{{ url('/admin/detalle/material/cantidad') }}/" + id;
+            window.location.href="{{ url('/admin/material/detalle') }}/" + id;
         }
 
     </script>

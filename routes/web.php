@@ -8,6 +8,7 @@ use App\Http\Controllers\Backend\Roles\PermisoController;
 use App\Http\Controllers\Backend\Perfil\PerfilController;
 use App\Http\Controllers\Backend\Config\ConfiguracionController;
 use App\Http\Controllers\Backend\Materiales\MaterialesController;
+use App\Http\Controllers\Backend\Materiales\RegistrosController;
 
 
 
@@ -97,11 +98,16 @@ Route::post('/admin/materiales/nuevo', [MaterialesController::class, 'nuevoMater
 Route::post('/admin/materiales/informacion', [MaterialesController::class, 'informacionMaterial']);
 Route::post('/admin/materiales/editar', [MaterialesController::class, 'editarMaterial']);
 
+// - Detalle
+Route::get('/admin/material/detalle/{id}', [MaterialesController::class,'vistaDetalleMaterial']);
+Route::get('/admin/material/detalle/tabla/{id}', [MaterialesController::class,'tablaDetalleMaterial']);
 
 
 
-
-
+// REGISTRO DE ENTRADAS
+Route::get('/admin/entradas/vista', [RegistrosController::class,'indexRegistroEntrada'])->name('admin.entrada.registro.index');
+Route::post('/admin/buscar/material',  [RegistrosController::class,'buscadorMaterialGlobal']);
+Route::post('/admin/entradas/guardar',  [RegistrosController::class,'guardarEntrada']);
 
 
 

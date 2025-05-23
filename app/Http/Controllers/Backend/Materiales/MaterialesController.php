@@ -3,9 +3,13 @@
 namespace App\Http\Controllers\Backend\Materiales;
 
 use App\Http\Controllers\Controller;
+use App\Models\Entradas;
+use App\Models\EntradasDetalle;
+use App\Models\Marca;
 use App\Models\Materiales;
 use App\Models\UnidadMedida;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class MaterialesController extends Controller
 {
@@ -14,15 +18,14 @@ class MaterialesController extends Controller
         $this->middleware('auth');
     }
 
-
-
     //*****************  REGISTRO DE MATERIALES   **********************************
 
 
     public function indexMateriales(){
         $arrayUnidades = UnidadMedida::orderBy('nombre', 'ASC')->get();
+        $arrayMarcas = Marca::orderBy('nombre', 'ASC')->get();
 
-        return view('backend.admin.materiales.vistamateriales', compact('arrayUnidades'));
+        return view('backend.admin.materiales.vistamateriales', compact('arrayUnidades', 'arrayMarcas'));
     }
 
     public function tablaMateriales(){
@@ -32,7 +35,11 @@ class MaterialesController extends Controller
         foreach ($lista as $fila) {
 
             $infoUnidad = UnidadMedida::where('id', $fila->id_medida)->first();
-            $fila->medida = $infoUnidad->nombre;
+            $fila->unidadMedida = $infoUnidad->nombre;
+
+            $infoMarca = Marca::where('id', $fila->id_marca)->first();
+            $fila->marca = $infoMarca->nombre;
+
 
             // CANTIDAD GLOBAL QUE TENGO DE ESE PRODUCTO
             $totalCantidadMate = EntradasDetalle::where('id_material', $fila->id)->sum('cantidad');
@@ -49,7 +56,10 @@ class MaterialesController extends Controller
         $regla = array(
             'nombre' => 'required',
             'unidad' => 'required',
+            'marca' => 'required',
         );
+
+        // codigo
 
         $validar = Validator::make($request->all(), $regla);
 
@@ -57,6 +67,7 @@ class MaterialesController extends Controller
 
         $registro = new Materiales();
         $registro->id_medida = $request->unidad;
+        $registro->id_marca = $request->marca;
         $registro->nombre = $request->nombre;
         $registro->codigo = $request->codigo;
 
@@ -79,8 +90,10 @@ class MaterialesController extends Controller
         if($lista = Materiales::where('id', $request->id)->first()){
 
             $arrayUnidad = UnidadMedida::orderBy('nombre', 'ASC')->get();
+            $arrayMarca = Marca::orderBy('nombre', 'ASC')->get();
 
-            return ['success' => 1, 'material' => $lista, 'unidad' => $arrayUnidad];
+            return ['success' => 1, 'material' => $lista, 'unidad' => $arrayUnidad,
+                'marca' => $arrayMarca];
         }else{
             return ['success' => 2];
         }
@@ -91,7 +104,10 @@ class MaterialesController extends Controller
         $regla = array(
             'nombre' => 'required',
             'unidad' => 'required',
+            'marca' => 'required',
         );
+
+        // codigo
 
         $validar = Validator::make($request->all(), $regla);
 
@@ -99,11 +115,42 @@ class MaterialesController extends Controller
 
         Materiales::where('id', $request->id)->update([
             'id_medida' => $request->unidad,
+            'id_marca' => $request->marca,
             'nombre' => $request->nombre,
             'codigo' => $request->codigo
         ]);
 
         return ['success' => 1];
     }
+
+
+    //************************************************************
+
+
+    public function vistaDetalleMaterial($id){
+        return view('backend.admin.materiales.detalle.vistadetallematerial', compact('id'));
+    }
+
+
+    public function tablaDetalleMaterial($idmaterial){
+
+        $listado = EntradasDetalle::where('id_material', $idmaterial)
+            ->whereColumn('cantidad_entregada', '<', 'cantidad')
+            ->get();
+
+        foreach ($listado as $fila) {
+            $infoEntrada = Entradas::where('id', $fila->id_entradas)->first();
+            $fila->fechaFormat = date("d-m-Y", strtotime($infoEntrada->fecha));
+
+            $fila->cantidadDisponible = ($fila->cantidad - $fila->cantidad_entregada);
+        }
+
+        return view('backend.admin.materiales.detalle.tabladetallematerial', compact('listado'));
+    }
+
+
+
+
+
 
 }
