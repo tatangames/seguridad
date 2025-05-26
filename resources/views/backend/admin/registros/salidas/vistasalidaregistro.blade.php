@@ -607,7 +607,7 @@
             var salidaCantidad = $("input[name='salidaArray[]']").map(function(){return $(this).attr("data-cantidadSalida");}).get();
 
             // checkbox Retornara
-            var checkboxes = $("input[name='retornoArray[]']");
+            var checkboxes = $("input[name='retornoArray[]']").map(function(){return $(this).attr("data-retorno");}).get();
 
             //*******************
 
@@ -649,7 +649,7 @@
             for(var p = 0; p < salidaCantidad.length; p++){
                 let infoIdEntradaDeta = idEntradaDetalle[p];
                 let infoCantidad = salidaCantidad[p];
-                var infoRetorno = $(checkboxes[p]).prop("checked") ? 1 : 0;
+                var infoRetorno = checkboxes[p];
 
                 contenedorArray.push({ infoIdEntradaDeta, infoCantidad, infoRetorno});
             }
