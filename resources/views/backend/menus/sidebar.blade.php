@@ -58,6 +58,13 @@
                 </li>
 
                 <li class="nav-item">
+                    <a href="{{ route('admin.salidas.registro.index') }}" target="frameprincipal" class="nav-link">
+                        <i class="far fa-circle nav-icon"></i>
+                        <p>Salidas</p>
+                    </a>
+                </li>
+
+                <li class="nav-item">
 
                     <a href="#" class="nav-link nav-">
                         <i class="far fa-edit"></i>
@@ -97,7 +104,12 @@
                             </a>
                         </li>
 
-
+                        <li class="nav-item">
+                            <a href="{{ route('admin.encargado.index') }}" target="frameprincipal" class="nav-link">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Encargado</p>
+                            </a>
+                        </li>
                     </ul>
                 </li>
 

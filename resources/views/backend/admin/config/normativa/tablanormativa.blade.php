@@ -7,7 +7,7 @@
                         <table id="tabla" class="table table-bordered table-striped">
                             <thead>
                             <tr>
-                                <th  style="width: 50%">Medida</th>
+                                <th  style="width: 50%">Normativa</th>
                                 <th  style="width: 8%">Opciones</th>
                             </tr>
                             </thead>

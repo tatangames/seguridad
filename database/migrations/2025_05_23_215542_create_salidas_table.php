@@ -13,7 +13,13 @@ return new class extends Migration
     {
         Schema::create('salidas', function (Blueprint $table) {
             $table->id();
-            $table->timestamps();
+            $table->dateTime('fecha');
+            $table->bigInteger('id_encargado')->unsigned();
+            $table->bigInteger('id_distrito')->unsigned();
+            $table->string('descripcion', 800)->nullable();
+
+            $table->foreign('id_encargado')->references('id')->on('encargado');
+            $table->foreign('id_distrito')->references('id')->on('distrito');
         });
     }
 

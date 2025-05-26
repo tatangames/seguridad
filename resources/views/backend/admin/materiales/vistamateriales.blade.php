@@ -107,6 +107,19 @@
                                 </div>
                             </div>
 
+                            <div class="col-md-5">
+                                <div class="form-group">
+                                    <label>Normativa:</label>
+                                    <br>
+                                    <select width="70%"  class="form-control" id="select-normativa-nuevo">
+                                        <option value="" selected>Seleccione una opción</option>
+                                        @foreach($arrayNormativa as $sel)
+                                            <option value="{{ $sel->id }}">{{ $sel->nombre }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+
                         </div>
                     </form>
                 </div>
@@ -172,6 +185,15 @@
                                         </div>
                                     </div>
 
+                                    <div class="col-md-5">
+                                        <div class="form-group">
+                                            <label>Normativa:</label>
+                                            <br>
+                                            <select style="width: 70%; height: 45px"  class="form-control" id="select-normativa-editar">
+                                            </select>
+                                        </div>
+                                    </div>
+
                                 </div>
                             </div>
                         </div>
@@ -225,6 +247,19 @@
                 },
             });
 
+            $('#select-normativa-nuevo').select2({
+                theme: "bootstrap-5",
+                "language": {
+                    "noResults": function(){
+                        return "Busqueda no encontrada";
+                    }
+                },
+            });
+
+
+
+
+
             $('#select-unidad-editar').select2({
                 theme: "bootstrap-5",
                 "language": {
@@ -235,6 +270,15 @@
             });
 
             $('#select-marca-editar').select2({
+                theme: "bootstrap-5",
+                "language": {
+                    "noResults": function(){
+                        return "Busqueda no encontrada";
+                    }
+                },
+            });
+
+            $('#select-normativa-editar').select2({
                 theme: "bootstrap-5",
                 "language": {
                     "noResults": function(){
@@ -259,11 +303,8 @@
             document.getElementById('res-caracter-nuevo').innerHTML = '0/300 ';
 
             $('#select-unidad-nuevo').prop('selectedIndex', 0).change();
-
             $('#modalAgregar').modal({backdrop: 'static', keyboard: false})
         }
-
-
 
         function nuevo(){
 
@@ -271,6 +312,7 @@
             var codigo = document.getElementById('codigo-nuevo').value;
             var unidad = document.getElementById('select-unidad-nuevo').value;
             var marca = document.getElementById('select-marca-nuevo').value;
+            var normativa = document.getElementById('select-normativa-nuevo').value;
 
             if(nombre === ''){
                 toastr.error('Nombre es requerido');
@@ -287,12 +329,18 @@
                 return
             }
 
+            if(normativa === ''){
+                toastr.error('Normativa es requerido');
+                return
+            }
+
             openLoading();
             var formData = new FormData();
             formData.append('nombre', nombre);
             formData.append('codigo', codigo);
             formData.append('unidad', unidad);
             formData.append('marca', marca);
+            formData.append('normativa', marca);
 
             axios.post(url+'/materiales/nuevo', formData, {
             })
@@ -333,6 +381,8 @@
 
                         document.getElementById("select-unidad-editar").options.length = 0;
                         document.getElementById("select-marca-editar").options.length = 0;
+                        document.getElementById("select-normativa-editar").options.length = 0;
+
                         // unidad de medida
                         $.each(response.data.unidad, function( key, val ){
                             if(response.data.material.id_medida == val.id){
@@ -342,11 +392,21 @@
                             }
                         });
 
+                        // marca
                         $.each(response.data.marca, function( key, val ){
                             if(response.data.material.id_marca == val.id){
                                 $('#select-marca-editar').append('<option value="' +val.id +'" selected="selected">'+ val.nombre +'</option>');
                             }else{
                                 $('#select-marca-editar').append('<option value="' +val.id +'">'+ val.nombre +'</option>');
+                            }
+                        });
+
+                        // normativa
+                        $.each(response.data.normativa, function( key, val ){
+                            if(response.data.material.id_normativa == val.id){
+                                $('#select-normativa-editar').append('<option value="' +val.id +'" selected="selected">'+ val.nombre +'</option>');
+                            }else{
+                                $('#select-normativa-editar').append('<option value="' +val.id +'">'+ val.nombre +'</option>');
                             }
                         });
 
@@ -367,6 +427,7 @@
             var codigo = document.getElementById('codigo-editar').value;
             var unidad = document.getElementById('select-unidad-editar').value;
             var marca = document.getElementById('select-marca-editar').value;
+            var normativa = document.getElementById('select-normativa-editar').value;
 
             if(nombre === ''){
                 toastr.error('Nombre es requerido');
@@ -383,6 +444,11 @@
                 return
             }
 
+            if(normativa === ''){
+                toastr.error('Normativa es requerido');
+                return
+            }
+
             openLoading();
             var formData = new FormData();
             formData.append('id', id);
@@ -390,6 +456,7 @@
             formData.append('codigo', codigo);
             formData.append('unidad', unidad);
             formData.append('marca', marca);
+            formData.append('normativa', normativa);
 
             axios.post(url+'/materiales/editar', formData, {
             })

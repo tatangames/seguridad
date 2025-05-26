@@ -17,7 +17,8 @@ return new class extends Migration
             $table->bigInteger('id_material')->unsigned();
             $table->integer('cantidad');
 
-            // SE IRA SUMANDO LA CANTIDAD ENTREGADA
+            // SE IRA SUMANDO LA CANTIDAD ENTREGADA / RESTANDO CUANDO ENTRE DE NUEVO
+            // QUEDARA UN REGISTRO POR CADA ITEM RECIBIDO
             $table->integer('cantidad_entregada');
 
             $table->foreign('id_entradas')->references('id')->on('entradas');

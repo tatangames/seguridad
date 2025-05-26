@@ -7,6 +7,7 @@ use App\Models\Entradas;
 use App\Models\EntradasDetalle;
 use App\Models\Marca;
 use App\Models\Materiales;
+use App\Models\Normativa;
 use App\Models\UnidadMedida;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -24,8 +25,9 @@ class MaterialesController extends Controller
     public function indexMateriales(){
         $arrayUnidades = UnidadMedida::orderBy('nombre', 'ASC')->get();
         $arrayMarcas = Marca::orderBy('nombre', 'ASC')->get();
+        $arrayNormativa = Normativa::orderBy('nombre', 'ASC')->get();
 
-        return view('backend.admin.materiales.vistamateriales', compact('arrayUnidades', 'arrayMarcas'));
+        return view('backend.admin.materiales.vistamateriales', compact('arrayUnidades', 'arrayMarcas', 'arrayNormativa'));
     }
 
     public function tablaMateriales(){
@@ -39,6 +41,9 @@ class MaterialesController extends Controller
 
             $infoMarca = Marca::where('id', $fila->id_marca)->first();
             $fila->marca = $infoMarca->nombre;
+
+            $infoNormativa = Normativa::where('id', $fila->id_normativa)->first();
+            $fila->normativa = $infoNormativa->nombre;
 
 
             // CANTIDAD GLOBAL QUE TENGO DE ESE PRODUCTO
@@ -57,6 +62,7 @@ class MaterialesController extends Controller
             'nombre' => 'required',
             'unidad' => 'required',
             'marca' => 'required',
+            'normativa' => 'required',
         );
 
         // codigo
@@ -68,6 +74,7 @@ class MaterialesController extends Controller
         $registro = new Materiales();
         $registro->id_medida = $request->unidad;
         $registro->id_marca = $request->marca;
+        $registro->id_normativa = $request->normativa;
         $registro->nombre = $request->nombre;
         $registro->codigo = $request->codigo;
 
@@ -91,9 +98,10 @@ class MaterialesController extends Controller
 
             $arrayUnidad = UnidadMedida::orderBy('nombre', 'ASC')->get();
             $arrayMarca = Marca::orderBy('nombre', 'ASC')->get();
+            $arrayNormativa = Normativa::orderBy('nombre', 'ASC')->get();
 
             return ['success' => 1, 'material' => $lista, 'unidad' => $arrayUnidad,
-                'marca' => $arrayMarca];
+                'marca' => $arrayMarca, 'normativa' => $arrayNormativa];
         }else{
             return ['success' => 2];
         }
@@ -105,6 +113,7 @@ class MaterialesController extends Controller
             'nombre' => 'required',
             'unidad' => 'required',
             'marca' => 'required',
+            'normativa' => 'required',
         );
 
         // codigo
@@ -116,6 +125,7 @@ class MaterialesController extends Controller
         Materiales::where('id', $request->id)->update([
             'id_medida' => $request->unidad,
             'id_marca' => $request->marca,
+            'id_normativa' => $request->normativa,
             'nombre' => $request->nombre,
             'codigo' => $request->codigo
         ]);

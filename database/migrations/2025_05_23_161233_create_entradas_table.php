@@ -17,6 +17,8 @@ return new class extends Migration
             $table->date('fecha');
             $table->string('descripcion', 800)->nullable();
 
+            $table->string('lote', 100)->nullable();
+
             $table->foreign('id_usuario')->references('id')->on('usuarios');
         });
     }

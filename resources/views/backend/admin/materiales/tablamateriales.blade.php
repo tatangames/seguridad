@@ -11,6 +11,7 @@
                                 <th style="width: 20%">Nombre</th>
                                 <th style="width: 7%">Medida</th>
                                 <th style="width: 7%">Marca</th>
+                                <th style="width: 7%">Normativa</th>
                                 <th style="width: 7%">Cantidad Actual</th>
                                 <th style="width: 7%">Opciones</th>
                             </tr>
@@ -23,6 +24,7 @@
                                     <td>{{ $dato->nombre }}</td>
                                     <td>{{ $dato->unidadMedida }}</td>
                                     <td>{{ $dato->marca }}</td>
+                                    <td>{{ $dato->normativa }}</td>
                                     <td>{{ $dato->cantidadGlobal }}</td>
                                     <td>
 

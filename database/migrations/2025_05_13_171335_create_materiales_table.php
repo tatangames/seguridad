@@ -15,12 +15,14 @@ return new class extends Migration
             $table->id();
             $table->bigInteger('id_medida')->unsigned();
             $table->bigInteger('id_marca')->unsigned();
+            $table->bigInteger('id_normativa')->unsigned();
 
             $table->string('nombre', 300);
             $table->string('codigo', 100)->nullable();
 
             $table->foreign('id_medida')->references('id')->on('unidad_medida');
             $table->foreign('id_marca')->references('id')->on('marca');
+            $table->foreign('id_normativa')->references('id')->on('normativa');
         });
     }
 

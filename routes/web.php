@@ -90,6 +90,17 @@ Route::post('/admin/distrito/nuevo', [ConfiguracionController::class,'nuevoDistr
 Route::post('/admin/distrito/informacion', [ConfiguracionController::class,'infoDistrito']);
 Route::post('/admin/distrito/editar', [ConfiguracionController::class,'actualizarDistrito']);
 
+// ENCARGADO
+Route::get('/admin/encargado/index', [ConfiguracionController::class,'vistaEncargado'])->name('admin.encargado.index');
+Route::get('/admin/encargado/tabla', [ConfiguracionController::class,'tablaEncargado']);
+Route::post('/admin/encargado/nuevo', [ConfiguracionController::class,'nuevoEncargado']);
+Route::post('/admin/encargado/informacion', [ConfiguracionController::class,'infoEncargado']);
+Route::post('/admin/encargado/editar', [ConfiguracionController::class,'actualizarEncargado']);
+
+
+
+
+
 
 // MATERIALES
 Route::get('/admin/materiales/index', [MaterialesController::class,'indexMateriales'])->name('admin.materiales.index');
@@ -110,6 +121,12 @@ Route::post('/admin/buscar/material',  [RegistrosController::class,'buscadorMate
 Route::post('/admin/entradas/guardar',  [RegistrosController::class,'guardarEntrada']);
 
 
+
+// REGISTRO DE SALIDAS
+Route::get('/admin/salidas/vista', [RegistrosController::class,'indexRegistroSalida'])->name('admin.salidas.registro.index');
+Route::post('/admin/buscar/material/disponible',  [RegistrosController::class,'buscadorMaterialDisponible']);
+Route::post('/admin/buscar/material/disponibilidad', [RegistrosController::class, 'infoBodegaMaterialDetalleFila']);
+Route::post('/admin/salida/guardar',  [RegistrosController::class,'guardarSalidaMateriales']);
 
 
 

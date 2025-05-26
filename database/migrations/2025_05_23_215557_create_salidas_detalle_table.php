@@ -13,7 +13,18 @@ return new class extends Migration
     {
         Schema::create('salidas_detalle', function (Blueprint $table) {
             $table->id();
-            $table->timestamps();
+            $table->bigInteger('id_salida')->unsigned();
+            $table->bigInteger('id_entrada_detalle')->unsigned();
+
+            $table->integer('cantidad_salida');
+
+            // SABER SI ESTE MATERIAL REGRESARA DE NUEVO A BODEGA,
+            // PARA QUE SALGA EN PENDIENTES DE REGRESO
+            $table->boolean('regresa');
+
+
+            $table->foreign('id_salida')->references('id')->on('salidas');
+            $table->foreign('id_entrada_detalle')->references('id')->on('entradas_detalle');
         });
     }
 

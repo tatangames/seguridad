@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Backend\Config;
 
 use App\Http\Controllers\Controller;
 use App\Models\Distrito;
+use App\Models\Encargado;
 use App\Models\Marca;
 use App\Models\Normativa;
 use App\Models\UnidadMedida;
@@ -352,6 +353,89 @@ class ConfiguracionController extends Controller
     }
 
 
+
+
+
+    //******************** ENCARGADO *************************************************************
+
+
+    public function vistaEncargado()
+    {
+        return view('backend.admin.config.encargado.vistaencargado');
+    }
+
+    public function tablaEncargado()
+    {
+        $lista = Encargado::orderBy('nombre', 'ASC')->get();
+
+        return view('backend.admin.config.encargado.tablaencargado', compact('lista'));
+    }
+
+
+    public function nuevoEncargado(Request $request)
+    {
+        $regla = array(
+            'nombre' => 'required'
+        );
+
+        $validar = Validator::make($request->all(), $regla);
+
+        if ($validar->fails()) {
+            return ['success' => 0];
+        }
+        DB::beginTransaction();
+
+        try {
+            $dato = new Encargado();
+            $dato->nombre = $request->nombre;
+            $dato->save();
+
+            DB::commit();
+            return ['success' => 1];
+        } catch (\Throwable $e) {
+            Log::info('error ' . $e);
+            DB::rollback();
+            return ['success' => 99];
+        }
+    }
+
+
+    public function infoEncargado(Request $request)
+    {
+        $regla = array(
+            'id' => 'required'
+        );
+
+        $validar = Validator::make($request->all(), $regla);
+
+        if ($validar->fails()) {
+            return ['success' => 0];
+        }
+
+        $info = Encargado::where('id', $request->id)->first();
+
+        return ['success' => 1, 'info' => $info];
+    }
+
+    public function actualizarEncargado(Request $request)
+    {
+        $regla = array(
+            'id' => 'required',
+            'nombre' => 'required'
+        );
+
+        $validar = Validator::make($request->all(), $regla);
+
+        if ($validar->fails()) {
+            return ['success' => 0];
+        }
+
+        Encargado::where('id', $request->id)->update([
+            'nombre' => $request->nombre
+        ]);
+
+        return ['success' => 1];
+    }
 
 
 

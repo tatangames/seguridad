@@ -55,7 +55,14 @@
                                 </div>
                             </div>
 
-                            <div style="margin-left: 15px; margin-right: 15px; margin-top: 15px;">
+                            <div class="col-md-4" style=" margin-right: 15px; margin-top: 15px;">
+                                <div class="form-group">
+                                    <label>LOTE (Opcional):</label>
+                                    <input type="text" class="form-control" autocomplete="off" maxlength="100" id="lote">
+                                </div>
+                            </div>
+
+                            <div style="margin-left: 8px; margin-right: 15px; margin-top: 15px;">
                                 <div class="form-group">
                                     <label>Descripción (Opcional):</label>
                                     <input type="text" class="form-control" autocomplete="off" maxlength="800" id="descripcion">
@@ -378,6 +385,7 @@
 
             var fecha = document.getElementById('fecha').value;
             var descripc = document.getElementById('descripcion').value; // max 800
+            var lote = document.getElementById('lote').value;
 
             if(fecha === ''){
                 toastr.error('Fecha es requerida');
@@ -453,6 +461,7 @@
 
             formData.append('fecha', fecha);
             formData.append('descripcion', descripc);
+            formData.append('lote', lote);
             formData.append('contenedorArray', JSON.stringify(contenedorArray));
 
             axios.post(url+'/entradas/guardar', formData, {
