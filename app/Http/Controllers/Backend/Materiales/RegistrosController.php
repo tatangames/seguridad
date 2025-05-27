@@ -439,6 +439,7 @@ class RegistrosController extends Controller
             $nuevo = new Retorno();
             $nuevo->fecha = $request->fecha;
             $nuevo->id_entrada_detalle = $infoSalidaDetalle->id_entrada_detalle;
+            $nuevo->id_salida_detalle = $request->id;
             $nuevo->id_encargado = $request->encargado;
             $nuevo->observacion = $request->descripcion;
             $nuevo->tipo_retorno = 0; // 0: Retorno 1: Descarte
@@ -507,6 +508,7 @@ class RegistrosController extends Controller
             $nuevo = new Retorno();
             $nuevo->fecha = $request->fecha;
             $nuevo->id_entrada_detalle = $infoSalidaDetalle->id_entrada_detalle;
+            $nuevo->id_salida_detalle = $request->id;
             $nuevo->id_encargado = null;
             $nuevo->observacion = $request->descripcion;
             $nuevo->tipo_retorno = 1; // 0: Retorno 1: Descarte
@@ -556,9 +558,91 @@ class RegistrosController extends Controller
             DB::rollback();
             return ['success' => 99];
         }
-
-
     }
+
+
+    public function borrarRetornoDescarte(Request $request)
+    {
+
+        $regla = array(
+            'id' => 'required', // id retorno
+        );
+
+        $validar = Validator::make($request->all(), $regla);
+
+        if ($validar->fails()){ return ['success' => 0];}
+
+        DB::beginTransaction();
+
+        try {
+
+            if($infoRetorno = Retorno::where('id', $request->id)->first()){
+
+                // IDENTIFICAR EL TIPO SI FUE RETORNO O DESCARTE
+                $infoSalidaDetalle = SalidasDetalle::where('id', $infoRetorno->id_salida_detalle)->first();
+
+
+                if($infoRetorno->tipo_retorno == 0){
+                    // TIPO REINGRESO
+
+                    $suma = $infoSalidaDetalle->cantidad_salida + $infoRetorno->cantidad_reingreso;
+
+                    // SE SUMARA LA CANTIDAD ENTREGADA
+                    SalidasDetalle::where('id', $infoSalidaDetalle->id)->update([
+                        'cantidad_salida' => $suma
+                    ]);
+
+                    $infoEntradaDeta = EntradasDetalle::where('id', $infoRetorno->id_entrada_detalle)->first();
+                    // SE RESTARA TAMBIEN CANTIDAD ENTREGADA
+                    $sumaEntradaDeta = $infoEntradaDeta->cantidad_entregada + $infoRetorno->cantidad_reingreso;
+
+                    EntradasDetalle::where('id', $infoEntradaDeta->id)->update([
+                        'cantidad_entregada' => $sumaEntradaDeta
+                    ]);
+
+                    Retorno::where('id', $request->id)->delete();
+                }
+                else if($infoRetorno->tipo_retorno == 1){
+
+                    // TIPO DESCARTE
+
+                    $suma = $infoSalidaDetalle->cantidad_salida + $infoRetorno->cantidad_descarto;
+
+                    // SE SUMARA LA CANTIDAD ENTREGADA
+                    SalidasDetalle::where('id', $infoSalidaDetalle->id)->update([
+                        'cantidad_salida' => $suma
+                    ]);
+                    $infoEntradaDetalle = EntradasDetalle::where('id', $infoRetorno->id_entrada_detalle)->first();
+
+                    $sumaEntradaDeta = $infoEntradaDetalle->cantidad_entregada + $infoRetorno->cantidad_descarto;
+                    // sumar de nuevo
+                    $sumaCantidad = $infoEntradaDetalle->cantidad + $infoRetorno->cantidad_descarto;
+
+
+                    EntradasDetalle::where('id', $infoEntradaDetalle->id)->update([
+                        'cantidad_entregada' => $sumaEntradaDeta,
+                        'cantidad' => $sumaCantidad,
+                    ]);
+
+                    Retorno::where('id', $request->id)->delete();
+                }
+                else{
+                    // ERROR
+                    return ['success' => 99];
+                }
+            }
+
+
+            DB::commit();
+            return ['success' => 1];
+        }catch(\Throwable $e){
+            Log::info('error ' . $e);
+            DB::rollback();
+            return ['success' => 99];
+        }
+    }
+
+
 
 
 

@@ -213,7 +213,7 @@
     <script>
 
         function recargar(){
-            var ruta = "{{ url('/admin/retorno/tabla') }}";
+            var ruta = "{{ url('/admin/retornos/tabla') }}";
             $('#tablaDatatable').load(ruta);
         }
 

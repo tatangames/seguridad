@@ -61,11 +61,52 @@
 
     <script>
 
+        function recargar(){
+            let id = {{ $id }};
+            var ruta = "{{ URL::to('/admin/material/movimientos/detalle/tabla') }}/" + id;
+            $('#tablaDatatable').load(ruta);
+        }
 
-        function infoBorrar(){
+        function infoBorrar(id){
+            Swal.fire({
+                title: 'ADVERTENCIA',
+                text: "Esto eliminará el registro (RETORNO / DESCARTE)",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Borrar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    borrarRegistro(id)
+                }
+            })
+        }
 
 
+        function borrarRegistro(id){
 
+            openLoading();
+            var formData = new FormData();
+            formData.append('id', id);
+
+            axios.post(url+'/retornos/borrar', formData, {
+            })
+                .then((response) => {
+                    closeLoading();
+                    if(response.data.success === 1){
+                        toastr.success('Borrado correctamente');
+                        recargar();
+                    }
+                    else {
+                        toastr.error('Error al registrar');
+                    }
+                })
+                .catch((error) => {
+                    toastr.error('Error al registrar');
+                    closeLoading();
+                });
         }
 
 
