@@ -113,6 +113,10 @@ Route::post('/admin/materiales/editar', [MaterialesController::class, 'editarMat
 Route::get('/admin/material/detalle/{id}', [MaterialesController::class,'vistaDetalleMaterial']);
 Route::get('/admin/material/detalle/tabla/{id}', [MaterialesController::class,'tablaDetalleMaterial']);
 
+// Movimientos detalle
+Route::get('/admin/material/movimientos/detalle/{id}', [MaterialesController::class,'vistaMovimientosDetalleMaterial']);
+Route::get('/admin/material/movimientos/detalle/tabla/{id}', [MaterialesController::class,'tablaMovimientosDetalleMaterial']);
+
 
 
 // REGISTRO DE ENTRADAS

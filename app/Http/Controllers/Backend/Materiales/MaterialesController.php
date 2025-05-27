@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Backend\Materiales;
 
 use App\Http\Controllers\Controller;
+use App\Models\Encargado;
 use App\Models\Entradas;
 use App\Models\EntradasDetalle;
 use App\Models\Marca;
 use App\Models\Materiales;
 use App\Models\Normativa;
+use App\Models\Retorno;
 use App\Models\UnidadMedida;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -152,6 +154,9 @@ class MaterialesController extends Controller
             $infoEntrada = Entradas::where('id', $fila->id_entradas)->first();
             $fila->fechaFormat = date("d-m-Y", strtotime($infoEntrada->fecha));
 
+            $fila->descripcion = $infoEntrada->descripcion;
+            $fila->lote  = $infoEntrada->lote;
+
             $fila->cantidadDisponible = ($fila->cantidad - $fila->cantidad_entregada);
         }
 
@@ -161,6 +166,40 @@ class MaterialesController extends Controller
 
 
 
+    //**********************  MOVIMIENTOS  **************************************
+
+
+    public function vistaMovimientosDetalleMaterial($id){ // id entrada_detalle
+        return view('backend.admin.materiales.detalle.movimientos.vistamovimientos', compact('id'));
+    }
+
+
+    public function tablaMovimientosDetalleMaterial($id){
+
+        // id entrada_detalle
+
+        $listado = Retorno::where('id_entrada_detalle', $id)
+            ->orderBy('fecha', 'ASC')
+            ->get();
+
+
+        foreach ($listado as $fila) {
+            $fila->fechaFormat = date("d-m-Y", strtotime($fila->fecha));
+
+            //0: REINGRESO
+            //1: DESCARTADO
+
+            if($infoPersona = Encargado::where('id', $fila->id_encargado)->first()){
+                $fila->personaEntrego = $infoPersona->nombre;
+            }else{
+                $fila->personaEntrego = "";
+            }
+
+            $fila->cantidadDisponible = ($fila->cantidad - $fila->cantidad_entregada);
+        }
+
+        return view('backend.admin.materiales.detalle.movimientos.tablamovimientos', compact('listado'));
+    }
 
 
 }

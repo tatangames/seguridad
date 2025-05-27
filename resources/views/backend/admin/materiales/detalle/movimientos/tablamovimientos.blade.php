@@ -7,11 +7,13 @@
                         <table id="tabla" class="table table-bordered table-striped">
                             <thead>
                             <tr>
-                                <th style="width: 3%">Fecha Ingreso</th>
-                                <th style="width: 3%">LOTE</th>
-                                <th style="width: 3%">Descripción</th>
-                                <th style="width: 4%">Cantidad Actual</th>
-                                <th style="width: 2%">Opciones</th>
+                                <th style="width: 3%">Fecha Registro</th>
+                                <th style="width: 4%">Tipo Retorno</th>
+                                <th style="width: 4%">Persona Entrego</th>
+                                <th style="width: 4%">Cantidad Reingreso</th>
+                                <th style="width: 4%">Cantidad Descartada</th>
+                                <th style="width: 6%">Observación</th>
+                                <th style="width: 3%">Opciones</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -19,13 +21,22 @@
                             @foreach($listado as $dato)
                                 <tr>
                                     <td>{{ $dato->fechaFormat }}</td>
-                                    <td>{{ $dato->lote }}</td>
-                                    <td>{{ $dato->descripcion }}</td>
-                                    <td>{{ $dato->cantidadDisponible }}</td>
+                                    <td>
+                                        @if($dato->tipo_retorno == 1)
+                                            <span class="badge bg-danger">DESCARTADO</span>
+                                        @else
+                                            <span class="badge bg-success">Reingreso</span>
+                                        @endif
+                                    </td>
+
+                                    <td>{{ $dato->personaEntrego }}</td>
+                                    <td>{{ $dato->cantidad_reingreso }}</td>
+                                    <td>{{ $dato->cantidad_descarto }}</td>
+                                    <td>{{ $dato->observacion }}</td>
                                     <td>
 
-                                        <button type="button" class="btn btn-primary btn-xs" onclick="movimientos({{ $dato->id }})">
-                                            <i class="fas fa-edit" title="Movimientos"></i>&nbsp; Movimientos
+                                        <button type="button" class="btn btn-danger btn-xs" onclick="infoBorrar({{ $dato->id }})">
+                                            <i class="fas fa-trash" title="Borrar"></i>&nbsp; BORRAR
                                         </button>
 
                                     </td>

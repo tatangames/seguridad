@@ -21,7 +21,7 @@
         <div class="container-fluid">
             <div class="card card-gray-dark">
                 <div class="card-header">
-                    <h3 class="card-title">Detalle</h3>
+                    <h3 class="card-title">Detalle - Movimientos</h3>
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -52,7 +52,7 @@
     <script type="text/javascript">
         $(document).ready(function(){
             let id = {{ $id }};
-            var ruta = "{{ URL::to('/admin/material/detalle/tabla') }}/" + id;
+            var ruta = "{{ URL::to('/admin/material/movimientos/detalle/tabla') }}/" + id;
             $('#tablaDatatable').load(ruta);
             document.getElementById("divcontenedor").style.display = "block";
         });
@@ -62,9 +62,10 @@
     <script>
 
 
-        function movimientos(id){
-            // id entrada_detalle
-            window.location.href="{{ url('/admin/material/movimientos/detalle') }}/" + id;
+        function infoBorrar(){
+
+
+
         }
 
 

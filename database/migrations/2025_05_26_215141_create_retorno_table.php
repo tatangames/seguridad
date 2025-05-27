@@ -14,6 +14,9 @@ return new class extends Migration
         Schema::create('retorno', function (Blueprint $table) {
             $table->id();
             $table->date('fecha');
+            $table->bigInteger('id_entrada_detalle')->unsigned()->nullable();
+
+
             // PERSONA QUE DEVOLVIO
             $table->bigInteger('id_encargado')->unsigned()->nullable();
             $table->string('observacion', 800)->nullable();
@@ -29,7 +32,7 @@ return new class extends Migration
             // 1: descarte
             $table->boolean('tipo_retorno');
 
-
+            $table->foreign('id_entrada_detalle')->references('id')->on('entradas_detalle');
             $table->foreign('id_encargado')->references('id')->on('encargado');
         });
     }

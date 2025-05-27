@@ -433,9 +433,12 @@ class RegistrosController extends Controller
 
         try {
 
+            $infoSalidaDetalle = SalidasDetalle::where('id', $request->id)->first();
+
             // REGISTRAR RETORNO
             $nuevo = new Retorno();
             $nuevo->fecha = $request->fecha;
+            $nuevo->id_entrada_detalle = $infoSalidaDetalle->id_entrada_detalle;
             $nuevo->id_encargado = $request->encargado;
             $nuevo->observacion = $request->descripcion;
             $nuevo->tipo_retorno = 0; // 0: Retorno 1: Descarte
@@ -443,7 +446,7 @@ class RegistrosController extends Controller
             $nuevo->cantidad_descarto = 0; // SOLO CUANDO SE DESCARTA
             $nuevo->save();
 
-            $infoSalidaDetalle = SalidasDetalle::where('id', $request->id)->first();
+
             $resta = $infoSalidaDetalle->cantidad_salida - $request->retorno;
 
             if($resta < 0){
@@ -498,9 +501,12 @@ class RegistrosController extends Controller
 
         try {
 
+            $infoSalidaDetalle = SalidasDetalle::where('id', $request->id)->first();
+
             // REGISTRAR RETORNO
             $nuevo = new Retorno();
             $nuevo->fecha = $request->fecha;
+            $nuevo->id_entrada_detalle = $infoSalidaDetalle->id_entrada_detalle;
             $nuevo->id_encargado = null;
             $nuevo->observacion = $request->descripcion;
             $nuevo->tipo_retorno = 1; // 0: Retorno 1: Descarte
@@ -509,7 +515,7 @@ class RegistrosController extends Controller
             $nuevo->save();
 
             // SE DEBERA ACTUALIZAR SALIDAS DETALLE
-            $infoSalidaDetalle = SalidasDetalle::where('id', $request->id)->first();
+
             $resta = $infoSalidaDetalle->cantidad_salida - $request->descarto;
 
             if($resta < 0){
