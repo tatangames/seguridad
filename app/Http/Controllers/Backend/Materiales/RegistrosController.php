@@ -9,6 +9,7 @@ use App\Models\Entradas;
 use App\Models\EntradasDetalle;
 use App\Models\Materiales;
 use App\Models\Normativa;
+use App\Models\Retorno;
 use App\Models\Salidas;
 use App\Models\SalidasDetalle;
 use App\Models\UnidadMedida;
@@ -274,7 +275,7 @@ class RegistrosController extends Controller
 
     public function guardarSalidaMateriales(Request  $request)
     {
-        Log::info("llegaaaa");
+
         $regla = array(
             'fecha' => 'required',
             'idencargado' => 'required',
@@ -328,7 +329,8 @@ class RegistrosController extends Controller
                 $detalle->id_salida = $reg->id;
                 $detalle->id_entrada_detalle = $infoFilaEntradaDetalle->id;
                 $detalle->cantidad_salida = $filaArray['infoCantidad'];
-                $detalle->retorno = $filaArray['infoRetorno'];
+                $detalle->cantidad_salidainicial = $filaArray['infoCantidad'];
+                $detalle->regresa = $filaArray['infoRetorno'];
                 $detalle->save();
 
                 // ACTUALIZAR CANTIDADES DE SALIDA
@@ -345,5 +347,136 @@ class RegistrosController extends Controller
             return ['success' => 99];
         }
     }
+
+
+
+
+    //******************** RETORNO *************************************************************
+
+
+    public function vistaRetorno()
+    {
+        $arrayEncargado = Encargado::orderBy('nombre', 'asc')->get();
+
+        return view('backend.admin.registros.retornos.vistaretorno', compact('arrayEncargado'));
+    }
+
+    public function tablaRetorno()
+    {
+        $lista = DB::table('salidas_detalle AS sa')
+            ->join('entradas_detalle AS deta', 'sa.id_entrada_detalle', '=', 'deta.id')
+            ->select('sa.cantidad_salida', 'deta.id_material', 'sa.id', 'sa.id_salida', 'deta.id_entradas')
+            ->where('sa.cantidad_salida', '>', 0) // SOLO CANTIDAD FUERA MAYOR A 0
+            ->where('sa.regresa', 1) // VERIFICAR LOS QUE REGRESARAN A BODEGA
+            ->get();
+
+        foreach ($lista as $fila){
+
+            $infoMaterial = Materiales::where('id', $fila->id_material)->first();
+            $fila->nombreMaterial = $infoMaterial->nombre;
+
+            $infoSalida = Salidas::where('id', $fila->id_salida)->first();
+            $fila->fechaSalida =date("d-m-Y", strtotime($infoSalida->fecha));
+
+            $infoEntrada = Entradas::where('id', $fila->id_entradas)->first();
+            $fila->lote = $infoEntrada->lote;
+
+            $infoEncargado = Encargado::where('id', $infoSalida->id_encargado)->first();
+            $fila->nombreEncargado = $infoEncargado->nombre;
+
+            $infoDistrito = Distrito::where('id', $infoSalida->id_distrito)->first();
+            $fila->nombreDistrito = $infoDistrito->nombre;
+
+            $infoMedida = UnidadMedida::where('id', $infoMaterial->id_medida)->first();
+            $fila->nombreMedida = $infoMedida->nombre;
+        }
+
+        return view('backend.admin.registros.retornos.tablaretorno', compact('lista'));
+    }
+
+
+    public function informacionRetorno(Request $request)
+    {
+        $regla = array(
+            'id' => 'required', // salidas_detalle
+        );
+
+        $validar = Validator::make($request->all(), $regla);
+
+        if ($validar->fails()){ return ['success' => 0];}
+
+
+        if($info = SalidasDetalle::where('id', $request->id)->first()){
+            return ['success' => 1, 'info' => $info];
+        }else{
+            return ['success' => 2];
+        }
+    }
+
+
+    public function registrarRetorno(Request $request)
+    {
+        $regla = array(
+            'id' => 'required', // salidas_detalle
+            'fecha' => 'required',
+            'retorno' => 'required',
+            'encargado' => 'required',
+        );
+
+        // descripcion
+
+        $validar = Validator::make($request->all(), $regla);
+
+        if ($validar->fails()){ return ['success' => 0];}
+
+        DB::beginTransaction();
+
+        try {
+
+            // REGISTRAR RETORNO
+            $nuevo = new Retorno();
+            $nuevo->fecha = $request->fecha;
+            $nuevo->id_encargado = $request->encargado;
+            $nuevo->observacion = $request->descripcion;
+            $nuevo->tipo_retorno = 0; // 0: Retorno 1: Descarte
+            $nuevo->cantidad_reingreso = $request->retorno;
+            $nuevo->save();
+
+            $infoSalidaDetalle = SalidasDetalle::where('id', $request->id)->first();
+            $resta = $infoSalidaDetalle->cantidad_salida - $request->retorno;
+
+            if($resta < 0){
+                // ERROR NO DEBERIA SER MENOR
+                return ['success' => 99];
+            }
+
+            // SE RESTARA LA CANTIDAD ENTREGADA
+            SalidasDetalle::where('id', $request->id)->update([
+                'cantidad_salida' => $resta
+            ]);
+
+            $infoEntradaDeta = EntradasDetalle::where('id', $infoSalidaDetalle->id_entrada_detalle)->first();
+            // SE RESTARA TAMBIEN CANTIDAD ENTREGADA
+            $restaEntradaDeta = $infoEntradaDeta->cantidad_entregada - $request->retorno;
+
+            if($restaEntradaDeta < 0){
+                // ERROR NO DEBERIA SER MENOR
+                return ['success' => 99];
+            }
+
+            EntradasDetalle::where('id', $infoEntradaDeta->id)->update([
+                'cantidad_entregada' => $restaEntradaDeta
+            ]);
+
+
+            DB::commit();
+            return ['success' => 1];
+        }catch(\Throwable $e){
+            Log::info('error ' . $e);
+            DB::rollback();
+            return ['success' => 99];
+        }
+    }
+
 
 }

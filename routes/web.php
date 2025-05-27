@@ -129,8 +129,11 @@ Route::post('/admin/buscar/material/disponibilidad', [RegistrosController::class
 Route::post('/admin/salida/guardar',  [RegistrosController::class,'guardarSalidaMateriales']);
 
 
-
-
+// RETORNOS
+Route::get('/admin/retornos/index', [RegistrosController::class,'vistaRetorno'])->name('admin.retorno.registro.index');
+Route::get('/admin/retornos/tabla', [RegistrosController::class,'tablaRetorno']);
+Route::post('/admin/retornos/informacion',  [RegistrosController::class,'informacionRetorno']);
+Route::post('/admin/retornos/registrar',  [RegistrosController::class,'registrarRetorno']);
 
 
 
