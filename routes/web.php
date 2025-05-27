@@ -9,6 +9,7 @@ use App\Http\Controllers\Backend\Perfil\PerfilController;
 use App\Http\Controllers\Backend\Config\ConfiguracionController;
 use App\Http\Controllers\Backend\Materiales\MaterialesController;
 use App\Http\Controllers\Backend\Materiales\RegistrosController;
+use App\Http\Controllers\Backend\Materiales\HistorialController;
 
 
 
@@ -140,6 +141,11 @@ Route::post('/admin/retornos/informacion',  [RegistrosController::class,'informa
 Route::post('/admin/retornos/registrar',  [RegistrosController::class,'registrarRetorno']);
 Route::post('/admin/retornos/descartar/registrar',  [RegistrosController::class,'registrarDescarte']);
 Route::post('/admin/retornos/borrar',  [RegistrosController::class,'borrarRetornoDescarte']);
+
+
+// HISTORIAL - SALIDAS
+Route::get('/admin/historial/salidas/index', [HistorialController::class,'indexHistorialSalidas'])->name('sidebar.historial.salidas');
+Route::get('/admin/historial/salidas/tabla', [HistorialController::class,'tablaHistorialSalidas']);
 
 
 
