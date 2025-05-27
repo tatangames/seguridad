@@ -15,7 +15,13 @@ return new class extends Migration
             $table->id();
             $table->bigInteger('id_entradas')->unsigned();
             $table->bigInteger('id_material')->unsigned();
+
+            // ESTO BAJARA CUANDO SE DESCARTE
             $table->integer('cantidad');
+            // HISTORIAL DE QUE ENTRO LA PRIMERA VEZ
+            $table->integer('cantidad_inicial');
+
+
 
             // SE IRA SUMANDO LA CANTIDAD ENTREGADA / RESTANDO CUANDO ENTRE DE NUEVO
             // QUEDARA UN REGISTRO POR CADA ITEM RECIBIDO

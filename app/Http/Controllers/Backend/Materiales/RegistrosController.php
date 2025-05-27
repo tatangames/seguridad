@@ -121,8 +121,9 @@ class RegistrosController extends Controller
                 $detalle = new EntradasDetalle();
                 $detalle->id_entradas = $registro->id;
                 $detalle->id_material = $filaArray['idMaterial'];
-                $detalle->cantidad = $filaArray['infoCantidad'];
+                $detalle->cantidad = $filaArray['infoCantidad']; // ESTO PODRA MODIFICARSE POR DESCARTADO
                 $detalle->cantidad_entregada = 0;
+                $detalle->cantidad_inicial = $filaArray['infoCantidad'];
                 $detalle->save();
             }
 
@@ -329,8 +330,7 @@ class RegistrosController extends Controller
                 $detalle->id_salida = $reg->id;
                 $detalle->id_entrada_detalle = $infoFilaEntradaDetalle->id;
                 $detalle->cantidad_salida = $filaArray['infoCantidad'];
-                $detalle->cantidad_salidainicial = $filaArray['infoCantidad'];
-                $detalle->regresa = $filaArray['infoRetorno'];
+                $detalle->tipo_regresa = $filaArray['infoRetorno'];
                 $detalle->save();
 
                 // ACTUALIZAR CANTIDADES DE SALIDA
@@ -367,7 +367,7 @@ class RegistrosController extends Controller
             ->join('entradas_detalle AS deta', 'sa.id_entrada_detalle', '=', 'deta.id')
             ->select('sa.cantidad_salida', 'deta.id_material', 'sa.id', 'sa.id_salida', 'deta.id_entradas')
             ->where('sa.cantidad_salida', '>', 0) // SOLO CANTIDAD FUERA MAYOR A 0
-            ->where('sa.regresa', 1) // VERIFICAR LOS QUE REGRESARAN A BODEGA
+            ->where('sa.tipo_regresa', 1) // VERIFICAR LOS QUE REGRESARAN A BODEGA
             ->get();
 
         foreach ($lista as $fila){
@@ -440,6 +440,7 @@ class RegistrosController extends Controller
             $nuevo->observacion = $request->descripcion;
             $nuevo->tipo_retorno = 0; // 0: Retorno 1: Descarte
             $nuevo->cantidad_reingreso = $request->retorno;
+            $nuevo->cantidad_descarto = 0; // SOLO CUANDO SE DESCARTA
             $nuevo->save();
 
             $infoSalidaDetalle = SalidasDetalle::where('id', $request->id)->first();
@@ -477,6 +478,82 @@ class RegistrosController extends Controller
             return ['success' => 99];
         }
     }
+
+
+
+    public function registrarDescarte(Request $request)
+    {
+        $regla = array(
+            'id' => 'required', // salidas_detalle
+            'fecha' => 'required',
+            'descarto' => 'required',
+            'descripcion' => 'required',
+        );
+
+        $validar = Validator::make($request->all(), $regla);
+
+        if ($validar->fails()){ return ['success' => 0];}
+
+        DB::beginTransaction();
+
+        try {
+
+            // REGISTRAR RETORNO
+            $nuevo = new Retorno();
+            $nuevo->fecha = $request->fecha;
+            $nuevo->id_encargado = null;
+            $nuevo->observacion = $request->descripcion;
+            $nuevo->tipo_retorno = 1; // 0: Retorno 1: Descarte
+            $nuevo->cantidad_reingreso = 0; // SOLO PARA REINGRESO
+            $nuevo->cantidad_descarto = $request->descarto;
+            $nuevo->save();
+
+            // SE DEBERA ACTUALIZAR SALIDAS DETALLE
+            $infoSalidaDetalle = SalidasDetalle::where('id', $request->id)->first();
+            $resta = $infoSalidaDetalle->cantidad_salida - $request->descarto;
+
+            if($resta < 0){
+                // ERROR NO DEBERIA SER MENOR
+                return ['success' => 99];
+            }
+
+            // SE RESTARA LA CANTIDAD ENTREGADA
+            SalidasDetalle::where('id', $request->id)->update([
+                'cantidad_salida' => $resta
+            ]);
+
+            $infoEntradaDeta = EntradasDetalle::where('id', $infoSalidaDetalle->id_entrada_detalle)->first();
+            // SE RESTARA TAMBIEN CANTIDAD DESCARTAR
+            $restaEntradaDeta = $infoEntradaDeta->cantidad_entregada - $request->descarto;
+            $restaCantidad = $infoEntradaDeta->cantidad - $request->descarto;
+
+            if($restaEntradaDeta < 0){
+                // ERROR NO DEBERIA SER MENOR
+                return ['success' => 99];
+            }
+
+            if($restaCantidad < 0){
+                // ERROR NO DEBERIA SER MENOR
+                return ['success' => 99];
+            }
+
+            EntradasDetalle::where('id', $infoEntradaDeta->id)->update([
+                'cantidad_entregada' => $restaEntradaDeta,
+                'cantidad' => $restaCantidad, // SE BAJARA LA CANTIDAD ACTUAL DE ESE PRODUCTO - ENTRADA
+            ]);
+
+
+            DB::commit();
+            return ['success' => 1];
+        }catch(\Throwable $e){
+            Log::info('error ' . $e);
+            DB::rollback();
+            return ['success' => 99];
+        }
+
+
+    }
+
 
 
 }

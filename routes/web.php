@@ -134,6 +134,7 @@ Route::get('/admin/retornos/index', [RegistrosController::class,'vistaRetorno'])
 Route::get('/admin/retornos/tabla', [RegistrosController::class,'tablaRetorno']);
 Route::post('/admin/retornos/informacion',  [RegistrosController::class,'informacionRetorno']);
 Route::post('/admin/retornos/registrar',  [RegistrosController::class,'registrarRetorno']);
+Route::post('/admin/retornos/descartar/registrar',  [RegistrosController::class,'registrarDescarte']);
 
 
 

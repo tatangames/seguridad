@@ -15,11 +15,14 @@ return new class extends Migration
             $table->id();
             $table->date('fecha');
             // PERSONA QUE DEVOLVIO
-            $table->bigInteger('id_encargado')->unsigned();
+            $table->bigInteger('id_encargado')->unsigned()->nullable();
             $table->string('observacion', 800)->nullable();
 
             // CANTIDAD REINGRESO
             $table->integer('cantidad_reingreso');
+
+            // CANTIDAD DESCARTO
+            $table->integer('cantidad_descarto');
 
             // TIPO DE RETORNO
             // 0: retorno

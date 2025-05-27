@@ -54,7 +54,7 @@
 
 
     <div class="modal fade" id="modalAgregar">
-        <div class="modal-dialog modal-xl">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <h4 class="modal-title">Retorno de Material</h4>
@@ -112,6 +112,63 @@
                 <div class="modal-footer justify-content-between">
                     <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
                     <button type="button" style="font-weight: bold; background-color: #2156af; color: white !important;" class="button button-rounded button-pill button-small" onclick="registrarRetorno()">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+    <div class="modal fade" id="modalDescartar">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Descartar Material</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="formulario-descartar">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-12">
+
+                                    <div class="form-group">
+                                        <input type="hidden" id="id-editar-descarte">
+                                    </div>
+
+                                    <div class="form-group col-md-4">
+                                        <label>Cantidad que puede Descartar</label>
+                                        <input type="text" disabled class="form-control" id="cantidadFueraDescartar" autocomplete="off">
+                                    </div>
+
+                                    <div class="form-group col-md-3">
+                                        <label>Fecha</label>
+                                        <input type="date" class="form-control" id="fechadescarte-nuevo" autocomplete="off">
+                                    </div>
+
+                                    <div class="form-group col-md-3">
+                                        <label>Cantidad Descartar</label>
+                                        <input type="number" min="1"  class="form-control" id="cantidadDescartar-nuevo" autocomplete="off">
+                                    </div>
+
+                                    <br>
+
+                                    <div class="form-group">
+                                        <label>Descripción</label>
+                                        <input type="text" maxlength="800" class="form-control" id="descripcion-descartar" autocomplete="off">
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+                    <button type="button" style="font-weight: bold; background-color: #2156af; color: white !important;" class="button button-rounded button-pill button-small" onclick="registrarRetornoDescarte()">Guardar</button>
                 </div>
             </div>
         </div>
@@ -274,6 +331,116 @@
                 });
         }
 
+
+
+
+
+        function informacionDescartar(id){
+            openLoading();
+            document.getElementById("formulario-descartar").reset();
+
+            axios.post(url+'/retornos/informacion',{
+                'id': id
+            })
+                .then((response) => {
+                    closeLoading();
+                    if(response.data.success === 1){
+                        $('#modalDescartar').modal('show');
+                        $('#id-editar-descarte').val(id);
+
+                        const cantidadSalida = response.data.info.cantidad_salida;
+                        $('#cantidadFueraDescartar').val(cantidadSalida);
+
+                        // Establece el valor máximo permitido dinámicamente
+                        const inputCantidadRetorno = document.getElementById('cantidadDescartar-nuevo');
+                        inputCantidadRetorno.max = cantidadSalida;
+
+                        // Llama a la función para validar el valor actual (en caso de que ya tenga algo)
+                        validateCantidadSalida(inputCantidadRetorno, cantidadSalida);
+
+                        // También puedes vincularlo al evento input, por si el usuario edita manualmente
+                        inputCantidadRetorno.addEventListener('input', function () {
+                            validateCantidadSalida(this, cantidadSalida);
+                        });
+
+                    }else{
+                        toastr.error('Información no encontrada');
+                    }
+                })
+                .catch((error) => {
+                    closeLoading();
+                    toastr.error('Información no encontrada');
+                });
+        }
+
+
+
+
+        function registrarRetornoDescarte(){
+            var id = document.getElementById('id-editar-descarte').value;
+            var cantidadDescarto = document.getElementById('cantidadDescartar-nuevo').value;
+            var fecha = document.getElementById('fechadescarte-nuevo').value;
+            var descripcion = document.getElementById('descripcion-descartar').value;
+
+            var reglaNumeroEntero = /^[0-9]\d*$/;
+
+            if(cantidadDescarto === ''){
+                toastr.error('Cantidad descarto es requerido');
+                return;
+            }
+
+            if(!cantidadDescarto.match(reglaNumeroEntero)) {
+                toastr.error('Cantidad descarto debe ser número entero y no Negativo');
+                return;
+            }
+
+            if(cantidadDescarto <= 0){
+                toastr.error('Cantidad descarto no debe ser negativo o cero');
+                return;
+            }
+
+            if(cantidadDescarto > 1000000){
+                toastr.error('Cantidad descarto máximo 1 millón');
+                return;
+            }
+
+            if(fecha === ''){
+                toastr.error('Fecha es requerido');
+                return;
+            }
+
+            if(descripcion === ''){
+                toastr.error('Descripción es requerido');
+                return;
+            }
+
+            openLoading();
+            var formData = new FormData();
+            formData.append('id', id);
+            formData.append('descarto', cantidadDescarto);
+            formData.append('fecha', fecha);
+            formData.append('descripcion', descripcion);
+
+            axios.post(url+'/retornos/descartar/registrar', formData, {
+            })
+                .then((response) => {
+                    closeLoading();
+
+                    if(response.data.success === 1){
+                        toastr.success('Descartado correctamente');
+                        $('#modalDescartar').modal('hide');
+                        recargar();
+                    }
+                    else {
+                        toastr.error('Error al actualizar');
+                    }
+
+                })
+                .catch((error) => {
+                    toastr.error('Error al actualizar');
+                    closeLoading();
+                });
+        }
 
 
         function validateCantidadSalida(input, maxCantidad) {

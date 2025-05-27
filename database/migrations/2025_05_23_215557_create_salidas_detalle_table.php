@@ -20,7 +20,7 @@ return new class extends Migration
 
             // SABER SI ESTE MATERIAL REGRESARA DE NUEVO A BODEGA,
             // PARA QUE SALGA EN PENDIENTES DE REGRESO
-            $table->boolean('regresa');
+            $table->boolean('tipo_regresa');
 
 
             $table->foreign('id_salida')->references('id')->on('salidas');
