@@ -10,9 +10,15 @@
 @stop
 
 <style>
-    table{
-        /*Ajustar tablas*/
-        table-layout:fixed;
+    .dataTables_wrapper .dataTables_info {
+        float: left !important;
+        text-align: left;
+    }
+
+    .dataTables_wrapper .dataTables_paginate {
+        float: left !important;
+        text-align: left;
+        padding-left: 10px;
     }
 </style>
 
@@ -22,7 +28,7 @@
         <div class="container-fluid">
             <div class="card card-gray-dark">
                 <div class="card-header">
-                    <h3 class="card-title">Listado de Proyectos</h3>
+                    <h3 class="card-title">Listado de Devolución</h3>
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -54,9 +60,8 @@
     <script type="text/javascript">
         $(document).ready(function(){
 
-
             openLoading()
-            var ruta = "{{ URL::to('/admin/historial/entrada/tabla') }}";
+            var ruta = "{{ URL::to('/admin/historial/retornos/tabla') }}";
             $('#tablaDatatable').load(ruta);
 
             document.getElementById("divcontenedor").style.display = "block";
@@ -67,18 +72,15 @@
 
 
         function recargar(){
-            var ruta = "{{ URL::to('/admin/historial/entrada/tabla') }}";
+            var ruta = "{{ URL::to('/admin/historial/retornos/tabla') }}";
             $('#tablaDatatable').load(ruta);
         }
 
-        function vistaDetalle(idsolicitud){
-            window.location.href="{{ url('/admin/historial/entradadetalle/index') }}/" + idsolicitud;
-        }
 
         function infoBorrar(id){
             Swal.fire({
                 title: 'ADVERTENCIA',
-                text: "Esto eliminará todo el ingreso de productos, sus salidas y movimientos",
+                text: "Esto eliminará el registro (RETORNO / DESCARTE)",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#28a745',
@@ -92,36 +94,32 @@
             })
         }
 
-        // BORRAR LOTE DE ENTRADA COMPLETO
+
         function borrarRegistro(id){
 
             openLoading();
             var formData = new FormData();
             formData.append('id', id);
 
-            axios.post(url+'/historial/entrada/borrarlote', formData, {
+            axios.post(url+'/retornos/borrar', formData, {
             })
                 .then((response) => {
                     closeLoading();
-
                     if(response.data.success === 1){
                         toastr.success('Borrado correctamente');
                         recargar();
                     }
                     else {
-                        toastr.error('Error al borrar');
+                        toastr.error('Error al registrar');
                     }
                 })
                 .catch((error) => {
-                    toastr.error('Error al borrar');
+                    toastr.error('Error al registrar');
                     closeLoading();
                 });
         }
 
 
-        function infoNuevoIngreso(id){
-            window.location.href="{{ url('/admin/historial/nuevoingresoentradadetalle/index') }}/" + id;
-        }
 
     </script>
 

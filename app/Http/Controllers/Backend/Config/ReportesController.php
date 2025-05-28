@@ -5,7 +5,9 @@ namespace App\Http\Controllers\backend\config;
 use App\Http\Controllers\Controller;
 use App\Models\Entradas;
 use App\Models\EntradasDetalle;
+use App\Models\Marca;
 use App\Models\Materiales;
+use App\Models\Normativa;
 use App\Models\UnidadMedida;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -24,24 +26,48 @@ class ReportesController extends Controller
 
     public function reporteExistencias()
     {
+
+
+        // 1. Obtener detalles de entrada con diferencia entre cantidad entregada y total
         $arrayInfo = EntradasDetalle::whereColumn('cantidad_entregada', '<', 'cantidad')->get();
 
+        // 2. Procesar cada fila para agregar info adicional y calcular cantidad actual
         foreach ($arrayInfo as $fila) {
-            $infoEntrada = Entradas::where('id', $fila->id_entradas)->first();
             $infoMaterial = Materiales::where('id', $fila->id_material)->first();
-
             $infoUnidad = UnidadMedida::where('id', $infoMaterial->id_medida)->first();
+
+            $infoMarca = Marca::where('id', $infoMaterial->id_marca)->first();
+            $infoNormativa = Normativa::where('id', $infoMaterial->id_normativa)->first();
+
 
             $fila->unidadMedida = $infoUnidad->nombre;
             $fila->nombreMaterial = $infoMaterial->nombre;
-            $fila->lote = $infoEntrada->lote;
+            $fila->nombreMarca = $infoMarca->nombre;
+            $fila->nombreNormativa = $infoNormativa->nombre;
 
             $resta = $fila->cantidad - $fila->cantidad_entregada;
             $fila->cantidadActual = $resta;
+
+            // Ya no se necesita el lote, así que no lo incluimos
         }
 
-        $arrayDetalle = $arrayInfo->sortBy('nombreMaterial');
+        // 3. Agrupar por material y sumar cantidadActual
+        $arrayAgrupado = $arrayInfo->groupBy('id_material')->map(function ($items) {
+            $primer = $items->first(); // Conservamos datos comunes como nombre y unidad
+
+            return (object)[
+                'id_material'     => $primer->id_material,
+                'nombreMaterial'  => $primer->nombreMaterial,
+                'unidadMedida'    => $primer->unidadMedida,
+                'nombreMarca'    => $primer->nombreMarca,
+                'nombreNormativa'    => $primer->nombreNormativa,
+                'cantidadTotal'   => $items->sum('cantidadActual'),
+            ];
+        })->sortBy('nombreMaterial')->values();
+
+        // 4. Fecha formateada para mostrar si la necesitas
         $fechaFormat = date("d-m-Y", strtotime(Carbon::now('America/El_Salvador')));
+
 
 
 
@@ -89,21 +115,24 @@ class ReportesController extends Controller
         $tabla .= "<table id='tablaFor' style='width: 100%; border-collapse: collapse; margin-top: 35px'>
         <tbody>
             <tr>
-                <th style='text-align: center; font-size:10px; width: 8%; font-weight: bold; border: 1px solid black;'>Lote</th>
                 <th style='text-align: center; font-size:10px; width: 12%; font-weight: bold; border: 1px solid black;'>Producto</th>
                  <th style='text-align: center; font-size:10px; width: 12%; font-weight: bold; border: 1px solid black;'>U.M</th>
+                 <th style='text-align: center; font-size:10px; width: 12%; font-weight: bold; border: 1px solid black;'>Marca</th>
+                 <th style='text-align: center; font-size:10px; width: 12%; font-weight: bold; border: 1px solid black;'>Normativa</th>
                 <th style='text-align: center; font-size:10px; width: 10%; font-weight: bold; border: 1px solid black;'>Cantidad</th>
             </tr>
         ";
 
-        foreach ($arrayDetalle as $fila) {
+        foreach ($arrayAgrupado as $fila) {
             $tabla .= "<tr>
-                    <td style='text-align: center; font-size:10px; border: 1px solid black;'>$fila->lote</td>
-                    <td style='text-align: center; font-size:10px; border: 1px solid black;'>$fila->nombreMaterial</td>
-                    <td style='text-align: center; font-size:10px; border: 1px solid black;'>$fila->unidadMedida</td>
-                    <td style='text-align: center; font-size:10px; border: 1px solid black;'>$fila->cantidadActual</td>
-                </tr> ";
+                <td style='text-align: center; font-size:10px; border: 1px solid black;'>$fila->nombreMaterial</td>
+                <td style='text-align: center; font-size:10px; border: 1px solid black;'>$fila->unidadMedida</td>
+                <td style='text-align: center; font-size:10px; border: 1px solid black;'>$fila->nombreMarca</td>
+                <td style='text-align: center; font-size:10px; border: 1px solid black;'>$fila->nombreNormativa</td>
+                <td style='text-align: center; font-size:10px; border: 1px solid black;'>$fila->cantidadTotal</td>
+            </tr>";
         }
+
 
 
         $tabla .= "</tbody></table>";

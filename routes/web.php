@@ -170,6 +170,12 @@ Route::post('/admin/historial/entrada/borrarlote', [HistorialController::class, 
 Route::post('/admin/historial/entradadetalle/borraritem', [HistorialController::class, 'historialEntradaDetalleBorrarItem']);
 
 
+// RETORNOS
+Route::get('/admin/historial/retornos/index', [HistorialController::class,'indexHistorialRetornos'])->name('sidebar.historial.retornos');
+Route::get('/admin/historial/retornos/tabla', [HistorialController::class,'tablaHistorialRetornos']);
+
+
+
 
 // REPORTES
 Route::get('/admin/reprotes/general/index', [ReportesController::class,'indexGeneralReportes'])->name('admin.historial.general.index');

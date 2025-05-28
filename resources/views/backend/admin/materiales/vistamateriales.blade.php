@@ -302,7 +302,13 @@
             document.getElementById("formulario-nuevo").reset();
             document.getElementById('res-caracter-nuevo').innerHTML = '0/300 ';
 
+
+
             $('#select-unidad-nuevo').prop('selectedIndex', 0).change();
+            $('#select-marca-nuevo').prop('selectedIndex', 0).change();
+            $('#select-normativa-nuevo').prop('selectedIndex', 0).change();
+
+
             $('#modalAgregar').modal({backdrop: 'static', keyboard: false})
         }
 

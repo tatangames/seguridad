@@ -359,10 +359,9 @@
                         validateCantidadSalida(inputCantidadRetorno, cantidadSalida);
 
                         // También puedes vincularlo al evento input, por si el usuario edita manualmente
-                        inputCantidadRetorno.addEventListener('input', function () {
+                        inputCantidadRetorno.oninput = function () {
                             validateCantidadSalida(this, cantidadSalida);
-                        });
-
+                        };
                     }else{
                         toastr.error('Información no encontrada');
                     }

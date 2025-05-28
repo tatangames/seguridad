@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->date('fecha');
             $table->bigInteger('id_entrada_detalle')->unsigned()->nullable();
+            $table->bigInteger('id_salida_detalle')->unsigned()->nullable();
+
 
 
             // PERSONA QUE DEVOLVIO
@@ -34,6 +36,7 @@ return new class extends Migration
 
             $table->foreign('id_entrada_detalle')->references('id')->on('entradas_detalle');
             $table->foreign('id_encargado')->references('id')->on('encargado');
+            $table->foreign('id_salida_detalle')->references('id')->on('salidas_detalle');
         });
     }
 

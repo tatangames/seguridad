@@ -1,17 +1,30 @@
+
+
 <section class="content">
     <div class="container-fluid">
         <div class="row">
+
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
+                        <div style="overflow-x: auto; width: 100%">
                         <table id="tabla" class="table table-bordered table-striped">
                             <thead>
                             <tr>
-                                <th style="width: 3%">Fecha Ingreso</th>
-                                <th style="width: 3%">LOTE</th>
-                                <th style="width: 3%">Descripción</th>
-                                <th style="width: 4%">Cantidad Actual (Toma en cuenta las salidas)</th>
-                                <th style="width: 2%">Opciones</th>
+                                <th style="width: 5%">Fecha Registro</th>
+                                <th style="width: 6%">LOTE</th>
+                                <th style="width: 12%">Material</th>
+
+                                <th style="width: 6%">U/M</th>
+                                <th style="width: 6%">Marca</th>
+                                <th style="width: 6%">Normativa</th>
+
+                                <th style="width: 6%">Tipo</th>
+                                <th style="width: 6%">Cantidad Reingreso</th>
+                                <th style="width: 6%">Cantidad Descarto</th>
+
+                                <th style="width: 12%">Observación</th>
+                                <th style="width: 6%">Opciones</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -20,19 +33,41 @@
                                 <tr>
                                     <td>{{ $dato->fechaFormat }}</td>
                                     <td>{{ $dato->lote }}</td>
-                                    <td>{{ $dato->descripcion }}</td>
-                                    <td>{{ $dato->cantidadDisponible }}</td>
+                                    <td>{{ $dato->nombreMaterial }}</td>
+
+                                    <td>{{ $dato->nombreMedida }}</td>
+                                    <td>{{ $dato->nombreMarca }}</td>
+                                    <td>{{ $dato->nombreNormativa }}</td>
+
                                     <td>
+                                        @if($dato->tipo_retorno == 1)
+                                            <span class="badge bg-danger">DESCARTADO</span>
+                                        @else
+                                            <span class="badge bg-success">Reingreso</span>
+                                        @endif
+                                    </td>
 
-                                        <button type="button" class="btn btn-primary btn-xs" onclick="movimientos({{ $dato->id }})">
-                                            <i class="fas fa-edit" title="Movimientos"></i>&nbsp; Movimientos
+                                    <td>{{ $dato->cantidad_reingreso }}</td>
+                                    <td>{{ $dato->cantidad_descarto }}</td>
+
+                                    <td>{{ $dato->observacion }}</td>
+                                    <td>
+                                        <button type="button" class="btn btn-danger btn-xs" onclick="infoBorrar({{ $dato->id }})">
+                                            <i class="fas fa-trash" title="Borrar"></i>&nbsp; BORRAR
                                         </button>
-
                                     </td>
                                 </tr>
                             @endforeach
+
+                            <script>
+                                setTimeout(function () {
+                                    closeLoading();
+                                }, 500);
+                            </script>
+
                             </tbody>
                         </table>
+                        </div>
                     </div>
                 </div>
             </div>

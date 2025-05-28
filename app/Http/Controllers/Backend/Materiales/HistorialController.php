@@ -7,7 +7,9 @@ use App\Models\Distrito;
 use App\Models\Encargado;
 use App\Models\Entradas;
 use App\Models\EntradasDetalle;
+use App\Models\Marca;
 use App\Models\Materiales;
+use App\Models\Normativa;
 use App\Models\Retorno;
 use App\Models\Salidas;
 use App\Models\SalidasDetalle;
@@ -241,7 +243,7 @@ class HistorialController extends Controller
                 Entradas::where('id', $request->id)->delete();
 
                 DB::commit();
-                return ['success' => 2];
+                return ['success' => 1];
 
             } catch (\Throwable $e) {
                 Log::info('ee ' . $e);
@@ -273,7 +275,7 @@ class HistorialController extends Controller
             try {
 
                 // BORRAR MOVIMIENTOS
-                Retorno::where('id_entradas_detalle', $infoEntradaDeta->id)->delete();
+                Retorno::where('id_entrada_detalle', $infoEntradaDeta->id)->delete();
 
                 // BORRAR SALIDAS DETALLE
                 SalidasDetalle::where('id_entrada_detalle', $infoEntradaDeta->id)->delete();
@@ -350,6 +352,50 @@ class HistorialController extends Controller
             DB::rollback();
             return ['success' => 99];
         }
+    }
+
+
+
+
+
+
+    public function indexHistorialRetornos()
+    {
+        return view('backend.admin.historial.retornos.vistahistorialretornos');
+    }
+
+    public function tablaHistorialRetornos()
+    {
+
+        $listado = Retorno::orderBy('fecha', 'asc')->get();
+
+        foreach ($listado as $fila) {
+            $fila->fechaFormat = date("d-m-Y", strtotime($fila->fecha));
+
+            $infoEntradaDetalle = EntradasDetalle::where('id', $fila->id_entrada_detalle)->first();
+            $infoEntrada = Entradas::where('id', $infoEntradaDetalle->id_entradas)->first();
+            $infoMaterial = Materiales::where('id', $infoEntradaDetalle->id_material)->first();
+
+            $infoEncargado = Encargado::where('id', $fila->id_encargado)->first();
+            $infoSalidaDetalle = SalidasDetalle::where('id', $fila->id_salida_detalle)->first();
+
+            $infoUnidadMedida = UnidadMedida::where('id', $infoMaterial->id_medida)->first();
+            $fila->nombreMedida = $infoUnidadMedida->nombre;
+
+            $infoMarca = Marca::where('id', $infoMaterial->id_marca)->first();
+            $fila->nombreMarca = $infoMarca->nombre;
+
+            $infoNormativa = Normativa::where('id', $infoMaterial->id_normativa)->first();
+            $fila->nombreNormativa = $infoNormativa->nombre;
+
+
+
+
+            $fila->lote = $infoEntrada->lote;
+            $fila->nombreMaterial = $infoMaterial->nombre;
+        }
+
+        return view('backend.admin.historial.retornos.tablahistorialretornos', compact('listado'));
     }
 
 

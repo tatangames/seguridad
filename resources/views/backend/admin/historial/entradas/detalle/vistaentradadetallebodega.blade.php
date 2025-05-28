@@ -88,7 +88,7 @@
         function infoBorrar(id){
             Swal.fire({
                 title: 'ADVERTENCIA',
-                text: "Esto eliminará todo el ingreso de este producto. Si hubo salidas de producto también se eliminarán. Las solicitudes pueden pasar a pendiente, ya que si tuvo salidas, este se eliminará",
+                text: "Esto eliminará todo el ingreso de este producto, salidas y movimientos",
                 icon: 'info',
                 showCancelButton: true,
                 confirmButtonColor: '#28a745',
@@ -113,9 +113,6 @@
                     closeLoading();
 
                     if(response.data.success === 1){
-                        toastr.error('Proyecto ya esta Finalizado');
-                    }
-                    else if(response.data.success === 2){
                         toastr.success('Borrado correctamente');
                         recargar();
                     }

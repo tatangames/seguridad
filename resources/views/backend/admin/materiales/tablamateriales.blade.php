@@ -12,7 +12,7 @@
                                 <th style="width: 7%">Medida</th>
                                 <th style="width: 7%">Marca</th>
                                 <th style="width: 7%">Normativa</th>
-                                <th style="width: 7%">Cantidad Actual</th>
+                                <th style="width: 7%">Cantidad Actual (toma en cuenta las salidas)</th>
                                 <th style="width: 7%">Opciones</th>
                             </tr>
                             </thead>
