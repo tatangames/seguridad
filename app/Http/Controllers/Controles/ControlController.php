@@ -29,7 +29,7 @@ class ControlController extends Controller
             $ruta = 'no.permisos.index';
         }
 
-        $titulo = "Seguridad Ocupacional";
+        $titulo = "SALUD Y SEGURIDAD OCUPACIONAL";
 
         return view('backend.index', compact( 'ruta', 'user', 'titulo'));
     }
