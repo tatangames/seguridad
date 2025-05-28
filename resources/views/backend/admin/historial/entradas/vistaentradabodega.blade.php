@@ -5,6 +5,8 @@
     <link href="{{ asset('css/dataTables.bootstrap4.css') }}" type="text/css" rel="stylesheet" />
     <link href="{{ asset('css/toastr.min.css') }}" type="text/css" rel="stylesheet" />
     <link href="{{ asset('css/buttons_estilo.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/select2.min.css') }}" type="text/css" rel="stylesheet">
+    <link href="{{ asset('css/select2-bootstrap-5-theme.min.css') }}" type="text/css" rel="stylesheet">
 @stop
 
 <style>
@@ -16,31 +18,15 @@
 
 <div id="divcontenedor" style="display: none">
 
-    <section class="content-header">
-        <div class="row mb-2">
-            <div class="col-sm-6">
-
-            </div>
-
-            <div class="col-sm-6">
-                <ol class="breadcrumb float-sm-right">
-                    <li class="breadcrumb-item">Bodega</li>
-                    <li class="breadcrumb-item active">Detalle - Historial Salidas</li>
-                </ol>
-            </div>
-        </div>
-    </section>
-
-    <section class="content">
+    <section class="content" style="margin-top: 15px">
         <div class="container-fluid">
             <div class="card card-gray-dark">
                 <div class="card-header">
-                    <h3 class="card-title">Listado</h3>
+                    <h3 class="card-title">Listado de Proyectos</h3>
                 </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-12">
-
                             <div id="tablaDatatable">
                             </div>
                         </div>
@@ -63,13 +49,14 @@
     <script src="{{ asset('js/axios.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('js/sweetalert2.all.min.js') }}"></script>
     <script src="{{ asset('js/alertaPersonalizada.js') }}"></script>
+    <script src="{{ asset('js/select2.min.js') }}" type="text/javascript"></script>
 
     <script type="text/javascript">
         $(document).ready(function(){
 
 
-            let id = {{ $id }};
-            var ruta = "{{ URL::to('/admin/historial/salidadetalle/tabla') }}/" + id;
+            openLoading()
+            var ruta = "{{ URL::to('/admin/historial/entrada/tabla') }}";
             $('#tablaDatatable').load(ruta);
 
             document.getElementById("divcontenedor").style.display = "block";
@@ -78,24 +65,21 @@
 
     <script>
 
+
         function recargar(){
-            let id = {{ $id }};
-            var ruta = "{{ URL::to('/admin/historial/salidadetalle/tabla') }}/" + id;
+            var ruta = "{{ URL::to('/admin/historial/entrada/tabla') }}";
             $('#tablaDatatable').load(ruta);
         }
 
-
-        function infoMovimientos(id){
-            // id salida_detalle
-            window.location.href="{{ url('/admin/historial/salidadetalle/movimientos/index') }}/" + id;
+        function vistaDetalle(idsolicitud){
+            window.location.href="{{ url('/admin/historial/entradadetalle/index') }}/" + idsolicitud;
         }
-
 
         function infoBorrar(id){
             Swal.fire({
                 title: 'ADVERTENCIA',
-                text: "Esto eliminará la salida de este producto y sus movimientos.",
-                icon: 'info',
+                text: "Esto eliminará todo el ingreso de productos. Si hubo salidas de producto también se eliminarán. Las solicitudes pueden pasar a pendiente, ya que si tuvo salidas, este se eliminará",
+                icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#28a745',
                 cancelButtonColor: '#d33',
@@ -108,12 +92,14 @@
             })
         }
 
+        // BORRAR LOTE DE ENTRADA COMPLETO
         function borrarRegistro(id){
+
             openLoading();
             var formData = new FormData();
             formData.append('id', id);
 
-            axios.post(url+'/historial/salidadetalle/borraritem', formData, {
+            axios.post(url+'/historial/entrada/borrarlote', formData, {
             })
                 .then((response) => {
                     closeLoading();
@@ -130,6 +116,11 @@
                     toastr.error('Error al borrar');
                     closeLoading();
                 });
+        }
+
+
+        function infoNuevoIngreso(id){
+            window.location.href="{{ url('/admin/historial/nuevoingresoentradadetalle/index') }}/" + id;
         }
 
     </script>

@@ -146,6 +146,38 @@ Route::post('/admin/retornos/borrar',  [RegistrosController::class,'borrarRetorn
 // HISTORIAL - SALIDAS
 Route::get('/admin/historial/salidas/index', [HistorialController::class,'indexHistorialSalidas'])->name('sidebar.historial.salidas');
 Route::get('/admin/historial/salidas/tabla', [HistorialController::class,'tablaHistorialSalidas']);
+Route::get('/admin/historial/salidadetalle/index/{id}', [HistorialController::class,'indexHistorialSalidasDetalle']);
+Route::get('/admin/historial/salidadetalle/tabla/{id}', [HistorialController::class,'tablaHistorialSalidasDetalle']);
+// index movimientos salidas detalle
+Route::get('/admin/historial/salidadetalle/movimientos/index/{id}', [HistorialController::class,'indexHistorialSalidasDetalleMovimientos']);
+Route::get('/admin/historial/salidadetalle/movimientos/tabla/{id}', [HistorialController::class,'tablaHistorialSalidasDetalleMovimientos']);
+
+// borra salidas_detalle y sus movimientos
+Route::post('/admin/historial/salidadetalle/borraritem', [HistorialController::class,'salidaDetalleBorrarItem']);
+
+
+
+// HISTORIAL - ENTRADAS
+Route::get('/admin/historial/entrada/index', [HistorialController::class,'indexHistorialEntradas'])->name('sidebar.historial.entradas');
+Route::get('/admin/historial/entrada/tabla', [HistorialController::class,'tablaHistorialEntradas']);
+
+// - Detalle
+Route::get('/admin/historial/entradadetalle/index/{id}', [HistorialController::class,'indexHistorialEntradasDetalle']);
+Route::get('/admin/historial/entradadetalle/tabla/{id}', [HistorialController::class,'tablaHistorialEntradasDetalle']);
+
+// vista para ingresar nuevo producto al lote existente
+Route::get('/admin/historial/nuevoingresoentradadetalle/index/{id}', [HistorialController::class,'indexNuevoIngresoEntradaDetalle']);
+Route::post('/admin/registrar/productosextras',  [HistorialController::class,'registrarProductosExtras']);
+
+// BORRAR ENTRADA COMPLETA DE PRODUCTOS -> ELIMINARA SALIDAS SI HUBIERON
+Route::post('/admin/historial/entrada/borrarlote', [HistorialController::class, 'historialEntradaBorrarLote']);
+Route::post('/admin/historial/entradadetalle/borraritem', [HistorialController::class, 'historialEntradaDetalleBorrarItem']);
+
+
+
+
+
+
 
 
 

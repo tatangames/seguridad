@@ -86,12 +86,19 @@
                     <ul class="nav nav-treeview">
 
                         <li class="nav-item">
+                            <a href="{{ route('sidebar.historial.entradas') }}" target="frameprincipal" class="nav-link">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Entradas</p>
+                            </a>
+                        </li>
+
+
+                        <li class="nav-item">
                             <a href="{{ route('sidebar.historial.salidas') }}" target="frameprincipal" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Salidas</p>
                             </a>
                         </li>
-
                     </ul>
                 </li>
 

@@ -10,10 +10,9 @@
                         <table id="tabla" class="table table-bordered table-striped">
                             <thead>
                             <tr>
-                                <th style="width: 4%">Fecha Salida</th>
-                                <th style="width: 10%">Persona Recibe</th>
-                                <th style="width: 15%">Distrito</th>
-                                <th style="width: 20%">Descripción</th>
+                                <th style="width: 5%">Fecha Ingreso</th>
+                                <th style="width: 12%">Observación</th>
+                                <th style="width: 8%">LOTE</th>
                                 <th style="width: 6%">Opciones</th>
                             </tr>
                             </thead>
@@ -22,16 +21,23 @@
                             @foreach($listado as $dato)
                                 <tr>
                                     <td>{{ $dato->fechaFormat }}</td>
-                                    <td>{{ $dato->nombreRecibe }}</td>
-                                    <td>{{ $dato->nombreDistrito }}</td>
-                                    <td>{{ $dato->descripcion }}</td>
-
+                                    <td>{{ $dato->observacion }}</td>
+                                    <td>{{ $dato->lote }}</td>
                                     <td>
                                         <button type="button" class="btn btn-info btn-xs"
                                                 onclick="vistaDetalle({{ $dato->id }})">
                                             <i class="fas fa-eye" title="Detalle"></i>&nbsp; Detalle
                                         </button>
 
+                                        <button style="margin: 3px" type="button" class="btn btn-warning btn-xs"
+                                                onclick="infoNuevoIngreso({{ $dato->id }})">
+                                            <i class="fas fa-plus" title="Nuevo Ingreso"></i>&nbsp; Nuevo Ingreso
+                                        </button>
+
+                                        <button style="margin: 3px" type="button" class="btn btn-danger btn-xs"
+                                                onclick="infoBorrar({{ $dato->id }})">
+                                            <i class="fas fa-trash" title="Borrar"></i>&nbsp; Borrar
+                                        </button>
                                     </td>
                                 </tr>
                             @endforeach

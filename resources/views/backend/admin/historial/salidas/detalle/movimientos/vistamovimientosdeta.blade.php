@@ -1,10 +1,11 @@
+
 @extends('backend.menus.superior')
 
 @section('content-admin-css')
     <link href="{{ asset('css/adminlte.min.css') }}" type="text/css" rel="stylesheet" />
     <link href="{{ asset('css/dataTables.bootstrap4.css') }}" type="text/css" rel="stylesheet" />
     <link href="{{ asset('css/toastr.min.css') }}" type="text/css" rel="stylesheet" />
-    <link href="{{ asset('css/buttons_estilo.css') }}" rel="stylesheet">
+
 @stop
 
 <style>
@@ -16,31 +17,15 @@
 
 <div id="divcontenedor" style="display: none">
 
-    <section class="content-header">
-        <div class="row mb-2">
-            <div class="col-sm-6">
-
-            </div>
-
-            <div class="col-sm-6">
-                <ol class="breadcrumb float-sm-right">
-                    <li class="breadcrumb-item">Bodega</li>
-                    <li class="breadcrumb-item active">Detalle - Historial Salidas</li>
-                </ol>
-            </div>
-        </div>
-    </section>
-
     <section class="content">
         <div class="container-fluid">
             <div class="card card-gray-dark">
                 <div class="card-header">
-                    <h3 class="card-title">Listado</h3>
+                    <h3 class="card-title">Detalle - Movimientos</h3>
                 </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-12">
-
                             <div id="tablaDatatable">
                             </div>
                         </div>
@@ -66,36 +51,28 @@
 
     <script type="text/javascript">
         $(document).ready(function(){
-
-
             let id = {{ $id }};
-            var ruta = "{{ URL::to('/admin/historial/salidadetalle/tabla') }}/" + id;
+            var ruta = "{{ URL::to('/admin/historial/salidadetalle/movimientos/tabla') }}/" + id;
             $('#tablaDatatable').load(ruta);
-
             document.getElementById("divcontenedor").style.display = "block";
         });
+
     </script>
 
     <script>
 
         function recargar(){
             let id = {{ $id }};
-            var ruta = "{{ URL::to('/admin/historial/salidadetalle/tabla') }}/" + id;
+            var ruta = "{{ URL::to('/admin/historial/salidadetalle/movimientos/tabla') }}/" + id;
             $('#tablaDatatable').load(ruta);
-        }
-
-
-        function infoMovimientos(id){
-            // id salida_detalle
-            window.location.href="{{ url('/admin/historial/salidadetalle/movimientos/index') }}/" + id;
         }
 
 
         function infoBorrar(id){
             Swal.fire({
                 title: 'ADVERTENCIA',
-                text: "Esto eliminará la salida de este producto y sus movimientos.",
-                icon: 'info',
+                text: "Esto eliminará el registro (RETORNO / DESCARTE)",
+                icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#28a745',
                 cancelButtonColor: '#d33',
@@ -108,29 +85,32 @@
             })
         }
 
+
         function borrarRegistro(id){
+
             openLoading();
             var formData = new FormData();
             formData.append('id', id);
 
-            axios.post(url+'/historial/salidadetalle/borraritem', formData, {
+            axios.post(url+'/retornos/borrar', formData, {
             })
                 .then((response) => {
                     closeLoading();
-
                     if(response.data.success === 1){
                         toastr.success('Borrado correctamente');
                         recargar();
                     }
                     else {
-                        toastr.error('Error al borrar');
+                        toastr.error('Error al registrar');
                     }
                 })
                 .catch((error) => {
-                    toastr.error('Error al borrar');
+                    toastr.error('Error al registrar');
                     closeLoading();
                 });
         }
+
+
 
     </script>
 

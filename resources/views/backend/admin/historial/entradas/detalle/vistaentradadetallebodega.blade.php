@@ -20,12 +20,15 @@
         <div class="row mb-2">
             <div class="col-sm-6">
 
+
+                <br>
+
             </div>
 
             <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-right">
                     <li class="breadcrumb-item">Bodega</li>
-                    <li class="breadcrumb-item active">Detalle - Historial Salidas</li>
+                    <li class="breadcrumb-item active">Detalle - Historial Entradas</li>
                 </ol>
             </div>
         </div>
@@ -35,7 +38,7 @@
         <div class="container-fluid">
             <div class="card card-gray-dark">
                 <div class="card-header">
-                    <h3 class="card-title">Listado</h3>
+                    <h3 class="card-title">Listado De Entradas</h3>
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -66,10 +69,8 @@
 
     <script type="text/javascript">
         $(document).ready(function(){
-
-
             let id = {{ $id }};
-            var ruta = "{{ URL::to('/admin/historial/salidadetalle/tabla') }}/" + id;
+            var ruta = "{{ URL::to('/admin/historial/entradadetalle/tabla') }}/" + id;
             $('#tablaDatatable').load(ruta);
 
             document.getElementById("divcontenedor").style.display = "block";
@@ -80,21 +81,14 @@
 
         function recargar(){
             let id = {{ $id }};
-            var ruta = "{{ URL::to('/admin/historial/salidadetalle/tabla') }}/" + id;
+            var ruta = "{{ URL::to('/admin/historial/entradadetalle/tabla') }}/" + id;
             $('#tablaDatatable').load(ruta);
         }
-
-
-        function infoMovimientos(id){
-            // id salida_detalle
-            window.location.href="{{ url('/admin/historial/salidadetalle/movimientos/index') }}/" + id;
-        }
-
 
         function infoBorrar(id){
             Swal.fire({
                 title: 'ADVERTENCIA',
-                text: "Esto eliminará la salida de este producto y sus movimientos.",
+                text: "Esto eliminará todo el ingreso de este producto. Si hubo salidas de producto también se eliminarán. Las solicitudes pueden pasar a pendiente, ya que si tuvo salidas, este se eliminará",
                 icon: 'info',
                 showCancelButton: true,
                 confirmButtonColor: '#28a745',
@@ -113,12 +107,15 @@
             var formData = new FormData();
             formData.append('id', id);
 
-            axios.post(url+'/historial/salidadetalle/borraritem', formData, {
+            axios.post(url+'/historial/entradadetalle/borraritem', formData, {
             })
                 .then((response) => {
                     closeLoading();
 
                     if(response.data.success === 1){
+                        toastr.error('Proyecto ya esta Finalizado');
+                    }
+                    else if(response.data.success === 2){
                         toastr.success('Borrado correctamente');
                         recargar();
                     }
@@ -131,6 +128,8 @@
                     closeLoading();
                 });
         }
+
+
 
     </script>
 

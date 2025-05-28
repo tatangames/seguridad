@@ -1,20 +1,19 @@
-
-
 <section class="content">
     <div class="container-fluid">
         <div class="row">
-
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
                         <table id="tabla" class="table table-bordered table-striped">
                             <thead>
                             <tr>
-                                <th style="width: 4%">Fecha Salida</th>
-                                <th style="width: 10%">Persona Recibe</th>
-                                <th style="width: 15%">Distrito</th>
-                                <th style="width: 20%">Descripción</th>
-                                <th style="width: 6%">Opciones</th>
+                                <th style="width: 3%">Fecha Registro</th>
+                                <th style="width: 4%">Tipo Retorno</th>
+                                <th style="width: 4%">Persona Entrego</th>
+                                <th style="width: 4%">Cantidad Reingreso</th>
+                                <th style="width: 4%">Cantidad Descartada</th>
+                                <th style="width: 6%">Observación</th>
+                                <th style="width: 3%">Opciones</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -22,26 +21,27 @@
                             @foreach($listado as $dato)
                                 <tr>
                                     <td>{{ $dato->fechaFormat }}</td>
-                                    <td>{{ $dato->nombreRecibe }}</td>
-                                    <td>{{ $dato->nombreDistrito }}</td>
-                                    <td>{{ $dato->descripcion }}</td>
-
                                     <td>
-                                        <button type="button" class="btn btn-info btn-xs"
-                                                onclick="vistaDetalle({{ $dato->id }})">
-                                            <i class="fas fa-eye" title="Detalle"></i>&nbsp; Detalle
+                                        @if($dato->tipo_retorno == 1)
+                                            <span class="badge bg-danger">DESCARTADO</span>
+                                        @else
+                                            <span class="badge bg-success">Reingreso</span>
+                                        @endif
+                                    </td>
+
+                                    <td>{{ $dato->personaEntrego }}</td>
+                                    <td>{{ $dato->cantidad_reingreso }}</td>
+                                    <td>{{ $dato->cantidad_descarto }}</td>
+                                    <td>{{ $dato->observacion }}</td>
+                                    <td>
+
+                                        <button type="button" class="btn btn-danger btn-xs" onclick="infoBorrar({{ $dato->id }})">
+                                            <i class="fas fa-trash" title="Borrar"></i>&nbsp; BORRAR
                                         </button>
 
                                     </td>
                                 </tr>
                             @endforeach
-
-                            <script>
-                                setTimeout(function () {
-                                    closeLoading();
-                                }, 500);
-                            </script>
-
                             </tbody>
                         </table>
                     </div>
