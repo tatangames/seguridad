@@ -10,10 +10,10 @@ use App\Http\Controllers\Backend\Config\ConfiguracionController;
 use App\Http\Controllers\Backend\Materiales\MaterialesController;
 use App\Http\Controllers\Backend\Materiales\RegistrosController;
 use App\Http\Controllers\Backend\Materiales\HistorialController;
+use App\Http\Controllers\Backend\Config\ReportesController;
 
 
 
-use App\Http\Controllers\Backend\Dashboard\DashboardController;
 
 
 // --- LOGIN ---
@@ -56,10 +56,6 @@ Route::post('/admin/editar-perfil/actualizar', [PerfilController::class, 'editar
 
 // --- SIN PERMISOS VISTA 403 ---
 Route::get('sin-permisos', [ControlController::class,'indexSinPermiso'])->name('no.permisos.index');
-
-
-// DASHBOARD
-Route::get('/admin/dashboard', [DashboardController::class,'vistaDashboard'])->name('admin.dashboard.index');
 
 
 // UNIDAD DE MEDIDA
@@ -175,6 +171,9 @@ Route::post('/admin/historial/entradadetalle/borraritem', [HistorialController::
 
 
 
+// REPORTES
+Route::get('/admin/reprotes/general/index', [ReportesController::class,'indexGeneralReportes'])->name('admin.historial.general.index');
+Route::get('/admin/reportes/pdf-existencias', [ReportesController::class,'reporteExistencias']);
 
 
 
