@@ -378,6 +378,8 @@ class ConfiguracionController extends Controller
             'nombre' => 'required'
         );
 
+        // telefono, dui, puesto
+
         $validar = Validator::make($request->all(), $regla);
 
         if ($validar->fails()) {
@@ -388,6 +390,9 @@ class ConfiguracionController extends Controller
         try {
             $dato = new Encargado();
             $dato->nombre = $request->nombre;
+            $dato->telefono = $request->telefono;
+            $dato->dui = $request->dui;
+            $dato->puesto = $request->puesto;
             $dato->save();
 
             DB::commit();
@@ -424,6 +429,8 @@ class ConfiguracionController extends Controller
             'nombre' => 'required'
         );
 
+        // telefono, dui, puesto
+
         $validar = Validator::make($request->all(), $regla);
 
         if ($validar->fails()) {
@@ -431,7 +438,10 @@ class ConfiguracionController extends Controller
         }
 
         Encargado::where('id', $request->id)->update([
-            'nombre' => $request->nombre
+            'nombre' => $request->nombre,
+            'telefono' => $request->telefono,
+            'puesto' => $request->puesto,
+            'dui' => $request->dui,
         ]);
 
         return ['success' => 1];

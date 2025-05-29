@@ -22,6 +22,9 @@ return new class extends Migration
             $table->integer('cantidad_inicial');
 
 
+            // 4 DECIMALES PARA PRECIO UNITARIO
+            $table->decimal('precio', 10,4);
+
 
             // SE IRA SUMANDO LA CANTIDAD ENTREGADA / RESTANDO CUANDO ENTRE DE NUEVO
             // QUEDARA UN REGISTRO POR CADA ITEM RECIBIDO

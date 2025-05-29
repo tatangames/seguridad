@@ -73,6 +73,21 @@
                                         <input type="text" maxlength="100" class="form-control" id="nombre-nuevo" autocomplete="off">
                                     </div>
 
+                                    <div class="form-group">
+                                        <label>Puesto</label>
+                                        <input type="text" maxlength="200" class="form-control" id="puesto-nuevo" autocomplete="off">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Teléfono</label>
+                                        <input type="text" maxlength="8" class="form-control" id="telefono-nuevo" autocomplete="off">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>DUI</label>
+                                        <input type="text" maxlength="10" class="form-control" id="dui-nuevo" autocomplete="off">
+                                    </div>
+
                                 </div>
                             </div>
                         </div>
@@ -107,8 +122,23 @@
                                     </div>
 
                                     <div class="form-group">
-                                        <label>Marca</label>
+                                        <label>Encargado</label>
                                         <input type="text" maxlength="100" class="form-control" id="nombre-editar" autocomplete="off">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Puesto</label>
+                                        <input type="text" maxlength="200" class="form-control" id="puesto-editar" autocomplete="off">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Teléfono</label>
+                                        <input type="text" maxlength="8" class="form-control" id="telefono-editar" autocomplete="off">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>DUI</label>
+                                        <input type="text" maxlength="10" class="form-control" id="dui-editar" autocomplete="off">
                                     </div>
 
                                 </div>
@@ -161,6 +191,9 @@
 
         function nuevo(){
             var nombre = document.getElementById('nombre-nuevo').value;
+            var puesto = document.getElementById('puesto-nuevo').value;
+            var telefono = document.getElementById('telefono-nuevo').value;
+            var dui = document.getElementById('dui-nuevo').value;
 
             if(nombre === ''){
                 toastr.error('Encargado es requerido');
@@ -170,6 +203,9 @@
             openLoading();
             var formData = new FormData();
             formData.append('nombre', nombre);
+            formData.append('puesto', puesto);
+            formData.append('telefono', telefono);
+            formData.append('dui', dui);
 
             axios.post(url+'/encargado/nuevo', formData, {
             })
@@ -203,6 +239,9 @@
                         $('#modalEditar').modal('show');
                         $('#id-editar').val(id);
                         $('#nombre-editar').val(response.data.info.nombre);
+                        $('#puesto-editar').val(response.data.info.puesto);
+                        $('#telefono-editar').val(response.data.info.telefono);
+                        $('#dui-editar').val(response.data.info.dui);
 
                     }else{
                         toastr.error('Información no encontrada');
@@ -217,6 +256,9 @@
         function editar(){
             var id = document.getElementById('id-editar').value;
             var nombre = document.getElementById('nombre-editar').value;
+            var puesto = document.getElementById('puesto-editar').value;
+            var telefono = document.getElementById('telefono-editar').value;
+            var dui = document.getElementById('dui-editar').value;
 
             if(nombre === ''){
                 toastr.error('Encargado es requerido');
@@ -227,6 +269,9 @@
             var formData = new FormData();
             formData.append('id', id);
             formData.append('nombre', nombre);
+            formData.append('puesto', puesto);
+            formData.append('telefono', telefono);
+            formData.append('dui', dui);
 
             axios.post(url+'/encargado/editar', formData, {
             })

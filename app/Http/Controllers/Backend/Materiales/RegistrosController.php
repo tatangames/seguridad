@@ -93,6 +93,8 @@ class RegistrosController extends Controller
 
         // descripcion, lote
 
+        // idMaterial, infoCantidad, infoPrecio
+
         $validator = Validator::make($request->all(), $rules);
         if ( $validator->fails()){
             return ['success' => 0];
@@ -124,6 +126,7 @@ class RegistrosController extends Controller
                 $detalle->cantidad = $filaArray['infoCantidad']; // ESTO PODRA MODIFICARSE POR DESCARTADO
                 $detalle->cantidad_entregada = 0;
                 $detalle->cantidad_inicial = $filaArray['infoCantidad'];
+                $detalle->precio = $filaArray['infoPrecio'];
                 $detalle->save();
             }
 

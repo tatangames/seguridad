@@ -7,13 +7,17 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * PERSONAS
      */
     public function up(): void
     {
         Schema::create('encargado', function (Blueprint $table) {
             $table->id();
             $table->string('nombre', 100);
+
+            $table->string('telefono', 8)->nullable();
+            $table->string('puesto', 200)->nullable();
+            $table->string('dui',10)->nullable();
         });
     }
 

@@ -7,8 +7,11 @@
                         <table id="tabla" class="table table-bordered table-striped">
                             <thead>
                             <tr>
-                                <th  style="width: 50%">Nombre</th>
-                                <th  style="width: 8%">Opciones</th>
+                                <th  style="width: 30%">Nombre</th>
+                                <th  style="width: 15%">Puesto</th>
+                                <th  style="width: 10%">Teléfono</th>
+                                <th  style="width: 10%">DUI</th>
+                                <th  style="width: 12%">Opciones</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -16,6 +19,9 @@
                             @foreach($lista as $dato)
                                 <tr>
                                     <td>{{ $dato->nombre }}</td>
+                                    <td>{{ $dato->puesto }}</td>
+                                    <td>{{ $dato->telefono }}</td>
+                                    <td>{{ $dato->dui }}</td>
                                     <td>
                                         <button type="button" style="font-weight: bold; color: white !important;"
                                                 class="button button-primary button-rounded button-pill button-small" onclick="informacion({{ $dato->id }})">
