@@ -7,6 +7,7 @@ use App\Models\Distrito;
 use App\Models\Encargado;
 use App\Models\Entradas;
 use App\Models\EntradasDetalle;
+use App\Models\Marca;
 use App\Models\Materiales;
 use App\Models\Normativa;
 use App\Models\Retorno;
@@ -46,22 +47,30 @@ class RegistrosController extends Controller
             foreach($arrayMateriales as $row){
 
                 $medida = "";
-                $code = "";
+                $marca = "";
+                $normativa = "";
 
                 if($info = UnidadMedida::where('id', $row->id_medida)->first()){
-                    $medida = "- " . $info->nombre;
+                    $medida = "(" . $info->nombre . ")";
                 }
 
-                if($row->codigo != null){
-                    $code = "- " . $row->codigo;
+                if($info = Marca::where('id', $row->id_marca)->first()){
+                    $marca = "(" . $info->nombre . ")";
                 }
+
+                if($info = Normativa::where('id', $row->id_normativa)->first()){
+                    $normativa = "(" . $info->nombre . ")";
+                }
+
+                $nombreCompleto = $row->nombre . '  ' .$medida . '  ' .$marca . '  ' .$normativa;
+
 
                 // si solo hay 1 fila, No mostrara el hr, salto de linea
                 if(count($arrayMateriales) == 1){
                     if(!empty($row)){
                         $tiene = false;
                         $output .= '
-                 <li class="cursor-pointer" onclick="modificarValor(this)" id="'.$row->id.'"><a href="#" style="margin-left: 3px; color: black">'.$row->nombre . '  ' .$medida . ' ' .$code .'</a></li>
+                 <li class="cursor-pointer" onclick="modificarValor(this)" id="'.$row->id.'"><a href="#" style="margin-left: 3px; color: black">'.$nombreCompleto .'</a></li>
                 ';
                     }
                 }
@@ -70,7 +79,7 @@ class RegistrosController extends Controller
                     if(!empty($row)){
                         $tiene = false;
                         $output .= '
-                 <li class="cursor-pointer" onclick="modificarValor(this)" id="'.$row->id.'"><a href="#" style="margin-left: 3px; color: black">'.$row->nombre . ' ' .$medida . ' ' .$code .'</a></li>
+                 <li class="cursor-pointer" onclick="modificarValor(this)" id="'.$row->id.'"><a href="#" style="margin-left: 3px; color: black">'.$nombreCompleto .'</a></li>
                    <hr>
                 ';
                     }
@@ -193,10 +202,11 @@ class RegistrosController extends Controller
             foreach ($listado as $row) {
 
                 $infoMaterial = Materiales::where('id', $row->id_material)->first();
+                $infoMarca = Marca::where('id', $infoMaterial->id_marca)->first();
                 $infoMedida = UnidadMedida::where('id', $infoMaterial->id_medida)->first();
                 $infoNormativa = Normativa::where('id', $infoMaterial->id_normativa)->first();
 
-                $nombreCompleto = $infoMaterial->nombre . " (" . $infoMedida->nombre . ")" . " (" . $infoNormativa->nombre . ")";
+                $nombreCompleto = $infoMaterial->nombre . " (" . $infoMedida->nombre . ")" .  " (" . $infoMarca->nombre . ")" . " (" . $infoNormativa->nombre . ")";
 
                 // si solo hay 1 fila, No mostrara el hr, salto de linea
                 if (count($listado) == 1) {
@@ -239,6 +249,11 @@ class RegistrosController extends Controller
         $infoEntradaDeta = EntradasDetalle::where('id', $request->id)->first();
         $infoMaterial = Materiales::where('id', $infoEntradaDeta->id_material)->first();
 
+        $infoMedida = UnidadMedida::where('id', $infoMaterial->id_medida)->first();
+        $infoMarca = Marca::where('id', $infoMaterial->id_marca)->first();
+        $infoNormativa = Normativa::where('id', $infoMaterial->id_normativa)->first();
+
+
 
         // BUSCAR SOLO DE LAS 'ENTRADAS' DEL PROYECTO
         $pilaArrayIdEntradas = array();
@@ -270,7 +285,12 @@ class RegistrosController extends Controller
         }
 
         return ['success' => 1, 'nombreMaterial' => $infoMaterial->nombre,
-            'arrayIngreso' => $listado, 'disponible' => $disponible];
+            'nombreMarca' => $infoMarca->nombre,
+            'nombreNormativa' => $infoNormativa->nombre,
+            'nombreMedida' => $infoMedida->nombre,
+            'arrayIngreso' => $listado,
+            'disponible' => $disponible
+        ];
     }
 
 

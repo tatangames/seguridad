@@ -166,7 +166,7 @@
                         <div class="card-body">
 
                             <div class="form-group">
-                                <label class="control-label">Material (Regresa: Nombre - Medida - Normativa) (SOLO REGRESA MATERIAL CON INVENTARIO)</label>
+                                <label class="control-label" style="font-size: 14px">Material (Regresa: Nombre - Medida - Marca - Normativa) (SOLO REGRESA MATERIAL CON INVENTARIO)</label>
 
                                 <table class="table" id="matriz-busqueda" data-toggle="table">
                                     <tbody>
@@ -224,6 +224,23 @@
                                     <div class="form-group">
                                         <label>Material</label>
                                         <input type="text" disabled class="form-control" id="info-material">
+                                    </div>
+
+                                    <div class="form-row">
+                                        <div class="form-group col-md-6">
+                                            <label>U/M</label>
+                                            <input type="text" disabled class="form-control" id="info-medida">
+                                        </div>
+
+                                        <div class="form-group col-md-6">
+                                            <label>Marca</label>
+                                            <input type="text" disabled class="form-control" id="info-marca">
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Normativa</label>
+                                        <input type="text" disabled class="form-control" id="info-normativa">
                                     </div>
 
                                     <hr>
@@ -381,6 +398,9 @@
 
                         $('#id-entradadetalle').val(edrop.id);
                         $('#info-material').val(response.data.nombreMaterial);
+                        $('#info-medida').val(response.data.nombreMedida);
+                        $('#info-marca').val(response.data.nombreMarca);
+                        $('#info-normativa').val(response.data.nombreNormativa);
 
                         $.each(response.data.arrayIngreso, function( key, val ){
 

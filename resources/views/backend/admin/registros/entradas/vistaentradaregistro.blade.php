@@ -100,7 +100,7 @@
 
                             <div class="form-group">
                                 <label class="control-label">Repuesto</label>
-                                <p>La busqueda regresa Material - Medida - Código</p>
+                                <p>La busqueda regresa: Material - Medida - Marca - Normativa</p>
                                 <table class="table" id="matriz-busqueda" data-toggle="table">
                                     <tbody>
                                     <tr>
@@ -121,7 +121,7 @@
                             </div>
 
 
-                            <div class="form-group col-md-2" style="margin-top: 5px">
+                            <div class="form-group col-md-4" style="margin-top: 5px">
                                 <label class="control-label" style="color: #686868">Precio (4 decimales máximo): </label>
                                 <div>
                                     <input type="number" min="0" max="1000000" autocomplete="off" class="form-control" id="precio-producto" placeholder="0.00">
