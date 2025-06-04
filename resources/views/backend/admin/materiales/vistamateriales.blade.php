@@ -66,7 +66,7 @@
                         <div class="card-body">
 
                             <div class="form-group">
-                                <label>Nombre:</label>
+                                <label>Nombre del Material:</label>
                                 <input type="text" class="form-control" autocomplete="off" onpaste="contarcaracteresIngreso();" onkeyup="contarcaracteresIngreso();" maxlength="300" id="nombre-nuevo">
                                 <div id="res-caracter-nuevo" style="float: right">0/300</div>
                             </div>
@@ -153,7 +153,7 @@
 
 
                                     <div class="form-group">
-                                        <label>Nombre:</label>
+                                        <label>Nombre del Material:</label>
                                         <input type="text" class="form-control" autocomplete="off" onpaste="contarcaracteresEditar();" onkeyup="contarcaracteresEditar();" maxlength="300" id="nombre-editar" >
                                         <div id="res-caracter-editar" style="float: right">0/300</div>
                                     </div>
