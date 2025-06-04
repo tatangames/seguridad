@@ -120,6 +120,36 @@
                                 </div>
                             </div>
 
+
+                            <div class="col-md-5">
+                                <div class="form-group">
+                                    <label>Color:</label>
+                                    <br>
+                                    <select width="70%"  class="form-control" id="select-color-nuevo">
+                                        <option value="" selected>Seleccione una opción</option>
+                                        @foreach($arrayColor as $sel)
+                                            <option value="{{ $sel->id }}">{{ $sel->nombre }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+
+
+                            <div class="col-md-5">
+                                <div class="form-group">
+                                    <label>Talla:</label>
+                                    <br>
+                                    <select width="70%"  class="form-control" id="select-talla-nuevo">
+                                        <option value="" selected>Seleccione una opción</option>
+                                        @foreach($arrayTalla as $sel)
+                                            <option value="{{ $sel->id }}">{{ $sel->nombre }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+
+
+
                         </div>
                     </form>
                 </div>
@@ -194,6 +224,30 @@
                                         </div>
                                     </div>
 
+
+
+                                    <div class="col-md-5">
+                                        <div class="form-group">
+                                            <label>Color:</label>
+                                            <br>
+                                            <select style="width: 70%; height: 45px"  class="form-control" id="select-color-editar">
+                                            </select>
+                                        </div>
+                                    </div>
+
+
+                                    <div class="col-md-5">
+                                        <div class="form-group">
+                                            <label>Talla:</label>
+                                            <br>
+                                            <select style="width: 70%; height: 45px"  class="form-control" id="select-talla-editar">
+                                            </select>
+                                        </div>
+                                    </div>
+
+
+
+
                                 </div>
                             </div>
                         </div>
@@ -256,6 +310,34 @@
                 },
             });
 
+            $('#select-color-nuevo').select2({
+                theme: "bootstrap-5",
+                "language": {
+                    "noResults": function(){
+                        return "Busqueda no encontrada";
+                    }
+                },
+            });
+
+            $('#select-talla-nuevo').select2({
+                theme: "bootstrap-5",
+                "language": {
+                    "noResults": function(){
+                        return "Busqueda no encontrada";
+                    }
+                },
+            });
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -287,6 +369,27 @@
                 },
             });
 
+
+            $('#select-color-editar').select2({
+                theme: "bootstrap-5",
+                "language": {
+                    "noResults": function(){
+                        return "Busqueda no encontrada";
+                    }
+                },
+            });
+
+
+            $('#select-talla-editar').select2({
+                theme: "bootstrap-5",
+                "language": {
+                    "noResults": function(){
+                        return "Busqueda no encontrada";
+                    }
+                },
+            });
+
+
             document.getElementById("divcontenedor").style.display = "block";
         });
     </script>
@@ -303,11 +406,11 @@
             document.getElementById('res-caracter-nuevo').innerHTML = '0/300 ';
 
 
-
             $('#select-unidad-nuevo').prop('selectedIndex', 0).change();
             $('#select-marca-nuevo').prop('selectedIndex', 0).change();
             $('#select-normativa-nuevo').prop('selectedIndex', 0).change();
-
+            $('#select-color-nuevo').prop('selectedIndex', 0).change();
+            $('#select-talla-nuevo').prop('selectedIndex', 0).change();
 
             $('#modalAgregar').modal({backdrop: 'static', keyboard: false})
         }
@@ -319,6 +422,8 @@
             var unidad = document.getElementById('select-unidad-nuevo').value;
             var marca = document.getElementById('select-marca-nuevo').value;
             var normativa = document.getElementById('select-normativa-nuevo').value;
+            var color = document.getElementById('select-color-nuevo').value;
+            var talla = document.getElementById('select-talla-nuevo').value;
 
             if(nombre === ''){
                 toastr.error('Nombre es requerido');
@@ -340,6 +445,8 @@
                 return
             }
 
+            // COLOR Y TALLA OPCIONAL
+
             openLoading();
             var formData = new FormData();
             formData.append('nombre', nombre);
@@ -347,6 +454,8 @@
             formData.append('unidad', unidad);
             formData.append('marca', marca);
             formData.append('normativa', marca);
+            formData.append('color', color);
+            formData.append('talla', talla);
 
             axios.post(url+'/materiales/nuevo', formData, {
             })
@@ -388,6 +497,8 @@
                         document.getElementById("select-unidad-editar").options.length = 0;
                         document.getElementById("select-marca-editar").options.length = 0;
                         document.getElementById("select-normativa-editar").options.length = 0;
+                        document.getElementById("select-color-editar").options.length = 0;
+                        document.getElementById("select-talla-editar").options.length = 0;
 
                         // unidad de medida
                         $.each(response.data.unidad, function( key, val ){
@@ -416,6 +527,32 @@
                             }
                         });
 
+
+                        $('#select-color-editar').append('<option value="">Seleccionar opción</option>');
+
+                        // color
+                        $.each(response.data.color, function( key, val ){
+                            if(response.data.material.id_color == val.id){
+                                $('#select-color-editar').append('<option value="' +val.id +'" selected="selected">'+ val.nombre +'</option>');
+                            }else{
+                                $('#select-color-editar').append('<option value="' +val.id +'">'+ val.nombre +'</option>');
+                            }
+                        });
+
+
+                        $('#select-talla-editar').append('<option value="">Seleccionar opción</option>');
+
+                        // talla
+                        $.each(response.data.talla, function( key, val ){
+                            if(response.data.material.id_talla == val.id){
+                                $('#select-talla-editar').append('<option value="' +val.id +'" selected="selected">'+ val.nombre +'</option>');
+                            }else{
+                                $('#select-talla-editar').append('<option value="' +val.id +'">'+ val.nombre +'</option>');
+                            }
+                        });
+
+
+
                     }else{
                         toastr.error('Información no encontrada');
                     }
@@ -434,6 +571,8 @@
             var unidad = document.getElementById('select-unidad-editar').value;
             var marca = document.getElementById('select-marca-editar').value;
             var normativa = document.getElementById('select-normativa-editar').value;
+            var color = document.getElementById('select-color-editar').value;
+            var talla = document.getElementById('select-talla-editar').value;
 
             if(nombre === ''){
                 toastr.error('Nombre es requerido');
@@ -455,6 +594,8 @@
                 return
             }
 
+            // COLOR Y TALLA ES OPCIONAL
+
             openLoading();
             var formData = new FormData();
             formData.append('id', id);
@@ -463,6 +604,8 @@
             formData.append('unidad', unidad);
             formData.append('marca', marca);
             formData.append('normativa', normativa);
+            formData.append('color', color);
+            formData.append('talla', talla);
 
             axios.post(url+'/materiales/editar', formData, {
             })

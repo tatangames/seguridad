@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\backend\materiales;
 
 use App\Http\Controllers\Controller;
+use App\Models\Color;
 use App\Models\Distrito;
 use App\Models\Encargado;
 use App\Models\Entradas;
@@ -13,6 +14,7 @@ use App\Models\Normativa;
 use App\Models\Retorno;
 use App\Models\Salidas;
 use App\Models\SalidasDetalle;
+use App\Models\Talla;
 use App\Models\UnidadMedida;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -72,7 +74,36 @@ class HistorialController extends Controller
 
             $infoMedida = UnidadMedida::where('id', $infoMaterial->id_medida)->first();
             $fila->nombreUnidad = $infoMedida->nombre;
+
+
+            $marca = "";
+            $normativa = "";
+            $color = "";
+            $talla = "";
+
+            if($info = Marca::where('id', $infoMaterial->id_marca)->first()){
+                $marca = $info->nombre;
+            }
+
+            if($info = Normativa::where('id', $infoMaterial->id_normativa)->first()){
+                $normativa = $info->nombre;
+            }
+
+            if($info = Color::where('id', $infoMaterial->id_color)->first()){
+                $color = $info->nombre;
+            }
+
+            if($info = Talla::where('id', $infoMaterial->id_talla)->first()){
+                $talla = $info->nombre;
+            }
+
+            $fila->marca = $marca;
+            $fila->normativa = $normativa;
+            $fila->color = $color;
+            $fila->talla = $talla;
         }
+
+
 
         return view('backend.admin.historial.salidas.detalle.tablasalidadetallebodega', compact('listado', 'infoSalida'));
     }
@@ -195,10 +226,39 @@ class HistorialController extends Controller
         $listado = DB::table('entradas_detalle AS bo')
             ->join('materiales AS bm', 'bo.id_material', '=', 'bm.id')
             ->join('unidad_medida AS uni', 'bm.id_medida', '=', 'uni.id')
-            ->select('bo.id', 'bo.cantidad', 'bm.nombre', 'uni.nombre AS nombreUnidad', 'bo.id_entradas')
+            ->select('bo.id', 'bo.cantidad', 'bm.nombre', 'uni.nombre AS nombreUnidad',
+                'bo.id_entradas', 'bm.id_marca', 'bm.id_normativa', 'bm.id_color', 'bm.id_talla')
             ->where('bo.id_entradas', $id)
             ->get();
 
+        foreach ($listado as $fila) {
+
+            $marca = "";
+            $normativa = "";
+            $color = "";
+            $talla = "";
+
+            if($info = Marca::where('id', $fila->id_marca)->first()){
+                $marca = $info->nombre;
+            }
+
+            if($info = Normativa::where('id', $fila->id_normativa)->first()){
+                $normativa = $info->nombre;
+            }
+
+            if($info = Color::where('id', $fila->id_color)->first()){
+                $color = $info->nombre;
+            }
+
+            if($info = Talla::where('id', $fila->id_talla)->first()){
+                $talla = $info->nombre;
+            }
+
+           $fila->marca = $marca;
+           $fila->normativa = $normativa;
+           $fila->color = $color;
+           $fila->talla = $talla;
+        }
 
         return view('backend.admin.historial.entradas.detalle.tablaentradadetallebodega', compact('listado'));
     }
@@ -376,8 +436,8 @@ class HistorialController extends Controller
             $infoEntrada = Entradas::where('id', $infoEntradaDetalle->id_entradas)->first();
             $infoMaterial = Materiales::where('id', $infoEntradaDetalle->id_material)->first();
 
-            $infoEncargado = Encargado::where('id', $fila->id_encargado)->first();
-            $infoSalidaDetalle = SalidasDetalle::where('id', $fila->id_salida_detalle)->first();
+           // $infoEncargado = Encargado::where('id', $fila->id_encargado)->first();
+            //$infoSalidaDetalle = SalidasDetalle::where('id', $fila->id_salida_detalle)->first();
 
             $infoUnidadMedida = UnidadMedida::where('id', $infoMaterial->id_medida)->first();
             $fila->nombreMedida = $infoUnidadMedida->nombre;
@@ -387,6 +447,20 @@ class HistorialController extends Controller
 
             $infoNormativa = Normativa::where('id', $infoMaterial->id_normativa)->first();
             $fila->nombreNormativa = $infoNormativa->nombre;
+
+            $color = "";
+            if($info = Color::where('id', $infoMaterial->id_color)->first()){
+                $color = $info->color;
+            }
+            $fila->nombreColor = $color;
+
+
+            $talla = "";
+            if($info = Talla::where('id', $infoMaterial->id_talla)->first()){
+                $talla = $info->talla;
+            }
+            $fila->nombreTalla = $talla;
+
 
 
 

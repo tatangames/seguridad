@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Backend\Materiales;
 
 use App\Http\Controllers\Controller;
+use App\Models\Color;
 use App\Models\Encargado;
 use App\Models\Entradas;
 use App\Models\EntradasDetalle;
@@ -10,6 +11,7 @@ use App\Models\Marca;
 use App\Models\Materiales;
 use App\Models\Normativa;
 use App\Models\Retorno;
+use App\Models\Talla;
 use App\Models\UnidadMedida;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -28,8 +30,11 @@ class MaterialesController extends Controller
         $arrayUnidades = UnidadMedida::orderBy('nombre', 'ASC')->get();
         $arrayMarcas = Marca::orderBy('nombre', 'ASC')->get();
         $arrayNormativa = Normativa::orderBy('nombre', 'ASC')->get();
+        $arrayColor = Color::orderBy('nombre', 'ASC')->get();
+        $arrayTalla = Talla::orderBy('nombre', 'ASC')->get();
 
-        return view('backend.admin.materiales.vistamateriales', compact('arrayUnidades', 'arrayMarcas', 'arrayNormativa'));
+        return view('backend.admin.materiales.vistamateriales', compact('arrayUnidades',
+            'arrayMarcas', 'arrayNormativa', 'arrayColor', 'arrayTalla'));
     }
 
     public function tablaMateriales(){
@@ -46,6 +51,22 @@ class MaterialesController extends Controller
 
             $infoNormativa = Normativa::where('id', $fila->id_normativa)->first();
             $fila->normativa = $infoNormativa->nombre;
+
+
+            $talla = "";
+            $color = "";
+            if($infoColor = Color::where('id', $fila->id_color)->first()){
+                $color = $infoColor->nombre;
+            }
+
+            if($infoTalla = Talla::where('id', $fila->id_talla)->first()){
+                $talla = $infoTalla->nombre;
+            }
+
+            $fila->color = $color;
+            $fila->talla = $talla;
+
+
 
 
             // CANTIDAD GLOBAL QUE TENGO DE ESE PRODUCTO
@@ -101,9 +122,12 @@ class MaterialesController extends Controller
             $arrayUnidad = UnidadMedida::orderBy('nombre', 'ASC')->get();
             $arrayMarca = Marca::orderBy('nombre', 'ASC')->get();
             $arrayNormativa = Normativa::orderBy('nombre', 'ASC')->get();
+            $arrayColor = Color::orderBy('nombre', 'ASC')->get();
+            $arrayTalla = Talla::orderBy('nombre', 'ASC')->get();
 
             return ['success' => 1, 'material' => $lista, 'unidad' => $arrayUnidad,
-                'marca' => $arrayMarca, 'normativa' => $arrayNormativa];
+                'marca' => $arrayMarca, 'normativa' => $arrayNormativa,
+                'color' => $arrayColor, 'talla' => $arrayTalla];
         }else{
             return ['success' => 2];
         }
@@ -118,7 +142,7 @@ class MaterialesController extends Controller
             'normativa' => 'required',
         );
 
-        // codigo
+        // codigo, COLOR Y TALLA
 
         $validar = Validator::make($request->all(), $regla);
 
@@ -128,6 +152,8 @@ class MaterialesController extends Controller
             'id_medida' => $request->unidad,
             'id_marca' => $request->marca,
             'id_normativa' => $request->normativa,
+            'id_color' => $request->color,
+            'id_talla' => $request->talla,
             'nombre' => $request->nombre,
             'codigo' => $request->codigo
         ]);

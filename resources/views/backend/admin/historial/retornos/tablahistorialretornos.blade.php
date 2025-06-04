@@ -18,6 +18,8 @@
                                 <th style="width: 6%">U/M</th>
                                 <th style="width: 6%">Marca</th>
                                 <th style="width: 6%">Normativa</th>
+                                <th style="width: 6%">Color</th>
+                                <th style="width: 6%">Talla</th>
 
                                 <th style="width: 6%">Tipo</th>
                                 <th style="width: 6%">Cantidad Reingreso</th>
@@ -38,6 +40,9 @@
                                     <td>{{ $dato->nombreMedida }}</td>
                                     <td>{{ $dato->nombreMarca }}</td>
                                     <td>{{ $dato->nombreNormativa }}</td>
+
+                                    <td>{{ $dato->nombreColor }}</td>
+                                    <td>{{ $dato->nombreTalla }}</td>
 
                                     <td>
                                         @if($dato->tipo_retorno == 1)

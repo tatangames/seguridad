@@ -166,7 +166,7 @@
                         <div class="card-body">
 
                             <div class="form-group">
-                                <label class="control-label" style="font-size: 14px">Material (Regresa: Nombre - Medida - Marca - Normativa) (SOLO REGRESA MATERIAL CON INVENTARIO)</label>
+                                <label class="control-label" style="font-size: 14px">Material (Regresa: Nombre - Medida - Marca - Normativa - Color - Talla) (SOLO REGRESA MATERIAL CON INVENTARIO)</label>
 
                                 <table class="table" id="matriz-busqueda" data-toggle="table">
                                     <tbody>
@@ -407,6 +407,13 @@
                             /*var nFilas = $('#matrizM >tbody >tr').length;
                             nFilas += 1;*/
 
+                            var nombreLote = "";
+                            if(val.lote != null){
+                                nombreLote = val.lote
+                            }
+
+                            console.log(val.cantidadActual)
+
                             var markup = "<tr>" +
 
                                 "<td>" +
@@ -414,7 +421,7 @@
                                 "</td>" +
 
                                 "<td>" +
-                                "<input disabled value='" + val.lote + "' class='form-control' type='text'>" +
+                                "<input disabled value='" + nombreLote + "' class='form-control' type='text'>" +
                                 "</td>" +
 
                                 "<td>" +

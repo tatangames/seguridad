@@ -95,6 +95,20 @@ Route::post('/admin/encargado/informacion', [ConfiguracionController::class,'inf
 Route::post('/admin/encargado/editar', [ConfiguracionController::class,'actualizarEncargado']);
 
 
+// COLOR
+Route::get('/admin/color/index', [ConfiguracionController::class,'vistaColor'])->name('admin.color.index');
+Route::get('/admin/color/tabla', [ConfiguracionController::class,'tablaColor']);
+Route::post('/admin/color/nuevo', [ConfiguracionController::class,'nuevoColor']);
+Route::post('/admin/color/informacion', [ConfiguracionController::class,'infoColor']);
+Route::post('/admin/color/editar', [ConfiguracionController::class,'actualizarColor']);
+
+
+// TALLA
+Route::get('/admin/talla/index', [ConfiguracionController::class,'vistaTalla'])->name('admin.talla.index');
+Route::get('/admin/talla/tabla', [ConfiguracionController::class,'tablaTalla']);
+Route::post('/admin/talla/nuevo', [ConfiguracionController::class,'nuevoTalla']);
+Route::post('/admin/talla/informacion', [ConfiguracionController::class,'infoTalla']);
+Route::post('/admin/talla/editar', [ConfiguracionController::class,'actualizarTalla']);
 
 
 

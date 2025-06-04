@@ -16,6 +16,8 @@ return new class extends Migration
             $table->bigInteger('id_medida')->unsigned();
             $table->bigInteger('id_marca')->unsigned();
             $table->bigInteger('id_normativa')->unsigned();
+            $table->bigInteger('id_color')->unsigned();
+            $table->bigInteger('id_talla')->unsigned();
 
             $table->string('nombre', 300);
             $table->string('codigo', 100)->nullable();

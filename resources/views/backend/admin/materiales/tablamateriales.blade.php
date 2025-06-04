@@ -12,6 +12,8 @@
                                 <th style="width: 7%">Medida</th>
                                 <th style="width: 7%">Marca</th>
                                 <th style="width: 7%">Normativa</th>
+                                <th style="width: 7%">Talla</th>
+                                <th style="width: 7%">Color</th>
                                 <th style="width: 7%">Cantidad Actual (toma en cuenta las salidas)</th>
                                 <th style="width: 7%">Opciones</th>
                             </tr>
@@ -25,6 +27,8 @@
                                     <td>{{ $dato->unidadMedida }}</td>
                                     <td>{{ $dato->marca }}</td>
                                     <td>{{ $dato->normativa }}</td>
+                                    <td>{{ $dato->talla }}</td>
+                                    <td>{{ $dato->color }}</td>
                                     <td>{{ $dato->cantidadGlobal }}</td>
                                     <td>
 

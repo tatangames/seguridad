@@ -88,7 +88,7 @@
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title">Agregar Repuesto</h4>
+                    <h4 class="modal-title">Agregar Material</h4>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -100,7 +100,7 @@
 
                             <div class="form-group">
                                 <label class="control-label">Repuesto</label>
-                                <p>La busqueda regresa: Material - Medida - Marca - Normativa</p>
+                                <p>La busqueda regresa: Material - Medida - Marca - Normativa - Color - Talla</p>
                                 <table class="table" id="matriz-busqueda" data-toggle="table">
                                     <tbody>
                                     <tr>

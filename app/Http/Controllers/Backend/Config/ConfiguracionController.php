@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Backend\Config;
 
 use App\Http\Controllers\Controller;
+use App\Models\Color;
 use App\Models\Distrito;
 use App\Models\Encargado;
 use App\Models\Marca;
 use App\Models\Normativa;
+use App\Models\Talla;
 use App\Models\UnidadMedida;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -446,6 +448,181 @@ class ConfiguracionController extends Controller
 
         return ['success' => 1];
     }
+
+
+
+
+
+
+
+    //******************** COLOR *************************************************************
+
+
+    public function vistaColor()
+    {
+        return view('backend.admin.config.color.vistacolor');
+    }
+
+    public function tablaColor()
+    {
+        $lista = Color::orderBy('nombre', 'ASC')->get();
+
+        return view('backend.admin.config.color.tablacolor', compact('lista'));
+    }
+
+
+    public function nuevoColor(Request $request)
+    {
+        $regla = array(
+            'nombre' => 'required'
+        );
+
+        $validar = Validator::make($request->all(), $regla);
+
+        if ($validar->fails()) {
+            return ['success' => 0];
+        }
+        DB::beginTransaction();
+
+        try {
+            $dato = new Color();
+            $dato->nombre = $request->nombre;
+            $dato->save();
+
+            DB::commit();
+            return ['success' => 1];
+        } catch (\Throwable $e) {
+            Log::info('error ' . $e);
+            DB::rollback();
+            return ['success' => 99];
+        }
+    }
+
+
+    public function infoColor(Request $request)
+    {
+        $regla = array(
+            'id' => 'required'
+        );
+
+        $validar = Validator::make($request->all(), $regla);
+
+        if ($validar->fails()) {
+            return ['success' => 0];
+        }
+
+        $info = Color::where('id', $request->id)->first();
+
+        return ['success' => 1, 'info' => $info];
+    }
+
+    public function actualizarColor(Request $request)
+    {
+        $regla = array(
+            'id' => 'required',
+            'nombre' => 'required'
+        );
+
+        $validar = Validator::make($request->all(), $regla);
+
+        if ($validar->fails()) {
+            return ['success' => 0];
+        }
+
+        Color::where('id', $request->id)->update([
+            'nombre' => $request->nombre
+        ]);
+
+        return ['success' => 1];
+    }
+
+
+
+
+
+//******************** TALLA *************************************************************
+
+
+    public function vistaTalla()
+    {
+        return view('backend.admin.config.talla.vistatalla');
+    }
+
+    public function tablaTalla()
+    {
+        $lista = Talla::orderBy('nombre', 'ASC')->get();
+
+        return view('backend.admin.config.talla.tablatalla', compact('lista'));
+    }
+
+
+    public function nuevoTalla(Request $request)
+    {
+        $regla = array(
+            'nombre' => 'required'
+        );
+
+        $validar = Validator::make($request->all(), $regla);
+
+        if ($validar->fails()) {
+            return ['success' => 0];
+        }
+        DB::beginTransaction();
+
+        try {
+            $dato = new Talla();
+            $dato->nombre = $request->nombre;
+            $dato->save();
+
+            DB::commit();
+            return ['success' => 1];
+        } catch (\Throwable $e) {
+            Log::info('error ' . $e);
+            DB::rollback();
+            return ['success' => 99];
+        }
+    }
+
+
+    public function infoTalla(Request $request)
+    {
+        $regla = array(
+            'id' => 'required'
+        );
+
+        $validar = Validator::make($request->all(), $regla);
+
+        if ($validar->fails()) {
+            return ['success' => 0];
+        }
+
+        $info = Talla::where('id', $request->id)->first();
+
+        return ['success' => 1, 'info' => $info];
+    }
+
+    public function actualizarTalla(Request $request)
+    {
+        $regla = array(
+            'id' => 'required',
+            'nombre' => 'required'
+        );
+
+        $validar = Validator::make($request->all(), $regla);
+
+        if ($validar->fails()) {
+            return ['success' => 0];
+        }
+
+        Talla::where('id', $request->id)->update([
+            'nombre' => $request->nombre
+        ]);
+
+        return ['success' => 1];
+    }
+
+
+
 
 
 

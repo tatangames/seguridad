@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\backend\materiales;
 
 use App\Http\Controllers\Controller;
+use App\Models\Color;
 use App\Models\Distrito;
 use App\Models\Encargado;
 use App\Models\Entradas;
@@ -13,6 +14,7 @@ use App\Models\Normativa;
 use App\Models\Retorno;
 use App\Models\Salidas;
 use App\Models\SalidasDetalle;
+use App\Models\Talla;
 use App\Models\UnidadMedida;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -49,6 +51,8 @@ class RegistrosController extends Controller
                 $medida = "";
                 $marca = "";
                 $normativa = "";
+                $color = "";
+                $talla = "";
 
                 if($info = UnidadMedida::where('id', $row->id_medida)->first()){
                     $medida = "(" . $info->nombre . ")";
@@ -62,7 +66,17 @@ class RegistrosController extends Controller
                     $normativa = "(" . $info->nombre . ")";
                 }
 
-                $nombreCompleto = $row->nombre . '  ' .$medida . '  ' .$marca . '  ' .$normativa;
+                if($info = Color::where('id', $row->id_color)->first()){
+                    $color = "(" . $info->nombre . ")";
+                }
+
+                if($info = Talla::where('id', $row->id_talla)->first()){
+                    $talla = "(" . $info->nombre . ")";
+                }
+
+
+
+                $nombreCompleto = $row->nombre . '  ' .$medida . '  ' .$marca . '  ' .$normativa . '  ' .$color . '  ' .$talla;
 
 
                 // si solo hay 1 fila, No mostrara el hr, salto de linea
@@ -206,7 +220,20 @@ class RegistrosController extends Controller
                 $infoMedida = UnidadMedida::where('id', $infoMaterial->id_medida)->first();
                 $infoNormativa = Normativa::where('id', $infoMaterial->id_normativa)->first();
 
-                $nombreCompleto = $infoMaterial->nombre . " (" . $infoMedida->nombre . ")" .  " (" . $infoMarca->nombre . ")" . " (" . $infoNormativa->nombre . ")";
+
+                $color = "";
+                $talla = "";
+                if($info = Color::where('id', $infoMaterial->id_color)->first()){
+                    $color = $info->nombre;
+                }
+                if($info = Talla::where('id', $infoMaterial->id_talla)->first()){
+                    $talla = $info->nombre;
+                }
+
+                $nombreCompleto = $infoMaterial->nombre . " (" . $infoMedida->nombre . ")" .
+                    " (" . $infoMarca->nombre . ")" . " (" . $infoNormativa->nombre . ")" .
+                    " (" . $color . ")" . " (" . $talla . ")"
+                ;
 
                 // si solo hay 1 fila, No mostrara el hr, salto de linea
                 if (count($listado) == 1) {
@@ -252,6 +279,7 @@ class RegistrosController extends Controller
         $infoMedida = UnidadMedida::where('id', $infoMaterial->id_medida)->first();
         $infoMarca = Marca::where('id', $infoMaterial->id_marca)->first();
         $infoNormativa = Normativa::where('id', $infoMaterial->id_normativa)->first();
+
 
 
 

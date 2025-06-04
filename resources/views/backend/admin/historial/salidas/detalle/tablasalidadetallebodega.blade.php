@@ -9,9 +9,16 @@
                             <tr>
                                 <th style="width: 16%">Material</th>
                                 <th style="width: 8%">Unidad</th>
+
+                                <th style="width: 11%">Marca</th>
+                                <th style="width: 11%">Normativa</th>
+                                <th style="width: 11%">Color</th>
+                                <th style="width: 11%">Talla</th>
+
+
                                 <th style="width: 8%">Cantidad Salida</th>
                                 <th style="width: 8%">Regresaba a Bodega</th>
-                                <th style="width: 4%">Opciones</th>
+                                <th style="width: 6%">Opciones</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -20,6 +27,13 @@
                                 <tr>
                                     <td>{{ $dato->nombreMaterial }}</td>
                                     <td>{{ $dato->nombreUnidad }}</td>
+
+                                    <td>{{ $dato->marca }}</td>
+                                    <td>{{ $dato->normativa }}</td>
+                                    <td>{{ $dato->color }}</td>
+                                    <td>{{ $dato->talla }}</td>
+
+
                                     <td>{{ $dato->cantidad_salida }}</td>
                                     <td>
                                         @if($dato->tipo_regresa == 0)
