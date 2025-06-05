@@ -4,18 +4,20 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
-                        <table id="tabla" class="table table-bordered table-striped">
+                        <div style="overflow-x: auto; width: 100%">
+                            <table id="tabla" class="table table-bordered table-striped">
                             <thead>
                             <tr>
-                                <th style="width: 4%">Código</th>
-                                <th style="width: 20%">Nombre</th>
-                                <th style="width: 7%">Medida</th>
-                                <th style="width: 7%">Marca</th>
-                                <th style="width: 7%">Normativa</th>
-                                <th style="width: 7%">Talla</th>
-                                <th style="width: 7%">Color</th>
-                                <th style="width: 7%">Cantidad Actual (toma en cuenta las salidas)</th>
-                                <th style="width: 7%">Opciones</th>
+                                <th style="width: 6%">Código</th>
+                                <th style="width: 25%">Nombre</th>
+                                <th style="width: 8%">Medida</th>
+                                <th style="width: 8%">Marca</th>
+                                <th style="width: 8%">Normativa</th>
+                                <th style="width: 8%">Talla</th>
+                                <th style="width: 8%">Color</th>
+                                <th style="width: 15%">Otros</th>
+                                <th style="width: 10%">Cantidad Actual (toma en cuenta las salidas)</th>
+                                <th style="width: 13%">Opciones</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -29,6 +31,7 @@
                                     <td>{{ $dato->normativa }}</td>
                                     <td>{{ $dato->talla }}</td>
                                     <td>{{ $dato->color }}</td>
+                                    <td>{{ $dato->otros }}</td>
                                     <td>{{ $dato->cantidadGlobal }}</td>
                                     <td>
 
@@ -52,6 +55,7 @@
 
                             </tbody>
                         </table>
+                        </div>
                     </div>
                 </div>
             </div>

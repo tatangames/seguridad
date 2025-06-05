@@ -4,7 +4,8 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
-                        <table id="tabla" class="table table-bordered table-striped">
+                        <div style="overflow-x: auto; width: 100%">
+                            <table id="tabla" class="table table-bordered table-striped">
                             <thead>
                             <tr>
                                 <th  style="width: 6%">Fecha Salida</th>
@@ -13,6 +14,13 @@
                                 <th  style="width: 6%">Recibio</th>
                                 <th  style="width: 15%">Material</th>
                                 <th  style="width: 6%">U/M</th>
+
+                                <th  style="width: 8%">Marca</th>
+                                <th  style="width: 8%">Normativa</th>
+                                <th  style="width: 8%">Color</th>
+                                <th  style="width: 8%">Talla</th>
+                                <th  style="width: 8%">Otros</th>
+
                                 <th  style="width: 10%">Cantidad Retornar</th>
                                 <th  style="width: 8%">Opciones</th>
                             </tr>
@@ -27,6 +35,14 @@
                                     <td>{{ $dato->nombreEncargado }}</td>
                                     <td>{{ $dato->nombreMaterial }}</td>
                                     <td>{{ $dato->nombreMedida }}</td>
+
+                                    <td>{{ $dato->nombreMarca }}</td>
+                                    <td>{{ $dato->nombreNormativa }}</td>
+                                    <td>{{ $dato->nombreColor }}</td>
+                                    <td>{{ $dato->nombreTalla }}</td>
+
+                                    <td>{{ $dato->nombreOtros }}</td>
+
                                     <td>{{ $dato->cantidad_salida }}</td>
                                     <td>
                                         <button type="button" style="font-weight: bold; color: white !important;"
@@ -44,6 +60,7 @@
 
                             </tbody>
                         </table>
+                        </div>
                     </div>
                 </div>
             </div>

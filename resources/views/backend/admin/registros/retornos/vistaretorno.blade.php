@@ -14,6 +14,17 @@
         /*Ajustar tablas*/
         table-layout:fixed;
     }
+
+    .dataTables_wrapper .dataTables_info {
+        float: left !important;
+        text-align: left;
+    }
+
+    .dataTables_wrapper .dataTables_paginate {
+        float: left !important;
+        text-align: left;
+        padding-left: 10px;
+    }
 </style>
 
 <div id="divcontenedor" style="display: none">

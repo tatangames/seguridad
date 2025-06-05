@@ -1,14 +1,11 @@
-
-
 <section class="content">
     <div class="container-fluid">
         <div class="row">
-
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
                         <div style="overflow-x: auto; width: 100%">
-                        <table id="tabla" class="table table-bordered table-striped">
+                            <table id="tabla" class="table table-bordered table-striped">
                             <thead>
                             <tr>
                                 <th style="width: 5%">Fecha Registro</th>

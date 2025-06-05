@@ -451,6 +451,28 @@ class RegistrosController extends Controller
 
             $infoMedida = UnidadMedida::where('id', $infoMaterial->id_medida)->first();
             $fila->nombreMedida = $infoMedida->nombre;
+
+
+            $fila->nombreOtros = $infoMaterial->otros;
+
+
+            $infoMarca = Marca::where('id', $infoMaterial->id_marca)->first();
+            $fila->nombreMarca = $infoMarca->nombre;
+
+            $infoNormativa = Normativa::where('id', $infoMaterial->id_normativa)->first();
+            $fila->nombreNormativa = $infoNormativa->nombre;
+
+            $color = "";
+            $talla = "";
+            if($info = Color::where('id', $infoMaterial->id_color)->first()){
+                $color = $info->nombre;
+            }
+            if($info = Talla::where('id', $infoMaterial->id_talla)->first()){
+                $talla = $info->nombre;
+            }
+
+            $fila->nombreColor = $color;
+            $fila->nombreTalla = $talla;
         }
 
         return view('backend.admin.registros.retornos.tablaretorno', compact('lista'));

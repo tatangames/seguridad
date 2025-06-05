@@ -88,7 +88,7 @@ class MaterialesController extends Controller
             'normativa' => 'required',
         );
 
-        // codigo
+        // codigo, otros
 
         $validar = Validator::make($request->all(), $regla);
 
@@ -100,6 +100,7 @@ class MaterialesController extends Controller
         $registro->id_normativa = $request->normativa;
         $registro->nombre = $request->nombre;
         $registro->codigo = $request->codigo;
+        $registro->otros = $request->otros;
 
         if($registro->save()){
             return ['success' => 1];
@@ -142,7 +143,7 @@ class MaterialesController extends Controller
             'normativa' => 'required',
         );
 
-        // codigo, COLOR Y TALLA
+        // codigo, COLOR Y TALLA, otros
 
         $validar = Validator::make($request->all(), $regla);
 
@@ -155,7 +156,8 @@ class MaterialesController extends Controller
             'id_color' => $request->color,
             'id_talla' => $request->talla,
             'nombre' => $request->nombre,
-            'codigo' => $request->codigo
+            'codigo' => $request->codigo,
+            'otros' => $request->otros
         ]);
 
         return ['success' => 1];

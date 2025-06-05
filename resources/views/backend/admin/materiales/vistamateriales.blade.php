@@ -17,7 +17,16 @@
         height: 30px !important;
     }
 
+    .dataTables_wrapper .dataTables_info {
+        float: left !important;
+        text-align: left;
+    }
 
+    .dataTables_wrapper .dataTables_paginate {
+        float: left !important;
+        text-align: left;
+        padding-left: 10px;
+    }
 </style>
 
 <div id="divcontenedor" style="display: none">
@@ -34,11 +43,11 @@
         </div>
     </section>
 
-    <section class="content">
+    <section class="content" style="margin-top: 15px">
         <div class="container-fluid">
             <div class="card card-gray-dark">
                 <div class="card-header">
-                    <h3 class="card-title">Listado Catálogo de Materiales</h3>
+                    <h3 class="card-title">Listado de Materiales</h3>
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -123,7 +132,7 @@
 
                             <div class="col-md-5">
                                 <div class="form-group">
-                                    <label>Color:</label>
+                                    <label>Color (Opcional):</label>
                                     <br>
                                     <select width="70%"  class="form-control" id="select-color-nuevo">
                                         <option value="" selected>Seleccione una opción</option>
@@ -137,7 +146,7 @@
 
                             <div class="col-md-5">
                                 <div class="form-group">
-                                    <label>Talla:</label>
+                                    <label>Talla (Opcional):</label>
                                     <br>
                                     <select width="70%"  class="form-control" id="select-talla-nuevo">
                                         <option value="" selected>Seleccione una opción</option>
@@ -148,6 +157,14 @@
                                 </div>
                             </div>
 
+                            <br>
+
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label>Otros (Opcional):</label>
+                                    <input type="text" class="form-control" autocomplete="off" id="otros-nuevo" maxlength="500">
+                                </div>
+                            </div>
 
 
                         </div>
@@ -228,7 +245,7 @@
 
                                     <div class="col-md-5">
                                         <div class="form-group">
-                                            <label>Color:</label>
+                                            <label>Color (Opcional):</label>
                                             <br>
                                             <select style="width: 70%; height: 45px"  class="form-control" id="select-color-editar">
                                             </select>
@@ -238,14 +255,21 @@
 
                                     <div class="col-md-5">
                                         <div class="form-group">
-                                            <label>Talla:</label>
+                                            <label>Talla (Opcional):</label>
                                             <br>
                                             <select style="width: 70%; height: 45px"  class="form-control" id="select-talla-editar">
                                             </select>
                                         </div>
                                     </div>
 
+                                    <br>
 
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label>Otros (Opcional):</label>
+                                            <input type="text" class="form-control" autocomplete="off" id="otros-editar" maxlength="500">
+                                        </div>
+                                    </div>
 
 
                                 </div>
@@ -424,6 +448,7 @@
             var normativa = document.getElementById('select-normativa-nuevo').value;
             var color = document.getElementById('select-color-nuevo').value;
             var talla = document.getElementById('select-talla-nuevo').value;
+            var otros = document.getElementById('otros-nuevo').value;
 
             if(nombre === ''){
                 toastr.error('Nombre es requerido');
@@ -456,6 +481,7 @@
             formData.append('normativa', marca);
             formData.append('color', color);
             formData.append('talla', talla);
+            formData.append('otros', otros);
 
             axios.post(url+'/materiales/nuevo', formData, {
             })
@@ -491,6 +517,7 @@
                         $('#id-editar').val(id);
                         $('#nombre-editar').val(response.data.material.nombre);
                         $('#codigo-editar').val(response.data.material.codigo);
+                        $('#otros-editar').val(response.data.material.otros);
 
                         contarcaracteresEditar();
 
@@ -573,6 +600,7 @@
             var normativa = document.getElementById('select-normativa-editar').value;
             var color = document.getElementById('select-color-editar').value;
             var talla = document.getElementById('select-talla-editar').value;
+            var otros = document.getElementById('otros-editar').value;
 
             if(nombre === ''){
                 toastr.error('Nombre es requerido');
@@ -606,6 +634,7 @@
             formData.append('normativa', normativa);
             formData.append('color', color);
             formData.append('talla', talla);
+            formData.append('otros', otros);
 
             axios.post(url+'/materiales/editar', formData, {
             })
