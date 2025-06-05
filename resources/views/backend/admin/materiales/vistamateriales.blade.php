@@ -478,7 +478,7 @@
             formData.append('codigo', codigo);
             formData.append('unidad', unidad);
             formData.append('marca', marca);
-            formData.append('normativa', marca);
+            formData.append('normativa', normativa);
             formData.append('color', color);
             formData.append('talla', talla);
             formData.append('otros', otros);
