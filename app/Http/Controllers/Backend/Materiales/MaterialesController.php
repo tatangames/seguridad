@@ -88,7 +88,7 @@ class MaterialesController extends Controller
             'normativa' => 'required',
         );
 
-        // codigo, otros
+        // codigo, otros, color, talla
 
         $validar = Validator::make($request->all(), $regla);
 
@@ -98,6 +98,8 @@ class MaterialesController extends Controller
         $registro->id_medida = $request->unidad;
         $registro->id_marca = $request->marca;
         $registro->id_normativa = $request->normativa;
+        $registro->id_color = $request->color;
+        $registro->id_talla = $request->talla;
         $registro->nombre = $request->nombre;
         $registro->codigo = $request->codigo;
         $registro->otros = $request->otros;
