@@ -280,7 +280,15 @@ class RegistrosController extends Controller
         $infoMarca = Marca::where('id', $infoMaterial->id_marca)->first();
         $infoNormativa = Normativa::where('id', $infoMaterial->id_normativa)->first();
 
+        $color = "";
+        $talla = "";
+        if($info = Color::where('id', $infoMaterial->id_color)->first()){
+            $color = $info->nombre;
+        }
 
+        if($info = Talla::where('id', $infoMaterial->id_talla)->first()){
+            $talla = $info->nombre;
+        }
 
 
         // BUSCAR SOLO DE LAS 'ENTRADAS' DEL PROYECTO
@@ -316,6 +324,9 @@ class RegistrosController extends Controller
             'nombreMarca' => $infoMarca->nombre,
             'nombreNormativa' => $infoNormativa->nombre,
             'nombreMedida' => $infoMedida->nombre,
+            'nombreColor' => $color,
+            'nombreTalla' => $talla,
+
             'arrayIngreso' => $listado,
             'disponible' => $disponible
         ];
