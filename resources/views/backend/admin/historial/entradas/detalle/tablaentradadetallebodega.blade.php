@@ -13,9 +13,9 @@
                                 <th style="width: 11%">Normativa</th>
                                 <th style="width: 11%">Color</th>
                                 <th style="width: 11%">Talla</th>
-
                                 <th style="width: 8%">Cantidad Ingresada</th>
-                                <th style="width: 4%">Opciones</th>
+                                <th style="width: 10%">Precio U.</th>
+                                <th style="width: 6%">Opción</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -28,9 +28,8 @@
                                     <td>{{ $dato->normativa }}</td>
                                     <td>{{ $dato->color }}</td>
                                     <td>{{ $dato->talla }}</td>
-
-
                                     <td>{{ $dato->cantidad }}</td>
+                                    <td>{{ $dato->precioFormat }}</td>
                                     <td>
                                         <button style="margin: 3px" type="button" class="btn btn-danger btn-xs"
                                                 onclick="infoBorrar({{ $dato->id }})">

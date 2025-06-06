@@ -227,7 +227,7 @@ class HistorialController extends Controller
             ->join('materiales AS bm', 'bo.id_material', '=', 'bm.id')
             ->join('unidad_medida AS uni', 'bm.id_medida', '=', 'uni.id')
             ->select('bo.id', 'bo.cantidad', 'bm.nombre', 'uni.nombre AS nombreUnidad',
-                'bo.id_entradas', 'bm.id_marca', 'bm.id_normativa', 'bm.id_color', 'bm.id_talla')
+                'bo.id_entradas', 'bm.id_marca', 'bm.id_normativa', 'bm.id_color', 'bm.id_talla', 'bo.precio')
             ->where('bo.id_entradas', $id)
             ->get();
 
@@ -258,6 +258,8 @@ class HistorialController extends Controller
            $fila->normativa = $normativa;
            $fila->color = $color;
            $fila->talla = $talla;
+
+           $fila->precioFormat = '$' . number_format((float)$fila->precio, 2, '.', ',');
         }
 
         return view('backend.admin.historial.entradas.detalle.tablaentradadetallebodega', compact('listado'));
@@ -400,6 +402,7 @@ class HistorialController extends Controller
                 $detalle->id_material = $filaArray['infoIdProducto'];
                 $detalle->cantidad = $filaArray['infoCantidad'];
                 $detalle->cantidad_inicial = $filaArray['infoCantidad'];
+                $detalle->precio = $filaArray['infoPrecio'];
                 $detalle->cantidad_entregada = 0;
                 $detalle->save();
             }

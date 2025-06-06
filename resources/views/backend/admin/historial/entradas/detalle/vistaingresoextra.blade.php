@@ -41,7 +41,7 @@
                                 <div class="container-fluid">
                                     <div class="row">
                                         <div class="form-group col-md-5" style="margin-top: 5px">
-                                            <p>La busqueda regresa Material - Medida - Código</p>
+                                            <p>La busqueda regresa: Material - Medida - Marca - Normativa - Color - Talla</p>
                                             <h3 class="card-title" style="color: #005eab; font-weight: bold">Buscar Producto</h3>
                                             <div>
                                             </div>
@@ -79,6 +79,15 @@
                                             <label class="control-label" style="color: #686868">Cantidad: </label>
                                             <div>
                                                 <input id="cantidad" min="0" max="1000000"  class='form-control' autocomplete="off" type="number" placeholder="0">
+                                            </div>
+                                        </div>
+
+
+
+                                        <div class="form-group col-md-4" style="margin-top: 5px">
+                                            <label class="control-label" style="color: #686868">Precio (4 decimales máximo): </label>
+                                            <div>
+                                                <input type="number" min="0" max="1000000" autocomplete="off" class="form-control" id="precio-producto" placeholder="0.00">
                                             </div>
                                         </div>
 
@@ -128,6 +137,7 @@
                             <th style="width: 3%">#</th>
                             <th style="width: 10%">Producto</th>
                             <th style="width: 6%">Cantidad</th>
+                            <th style="width: 6%">Precio</th>
                             <th style="width: 5%">Opciones</th>
                         </tr>
                         </thead>
@@ -229,12 +239,14 @@
             var repuesto = document.querySelector('#repuesto');
             var nomRepuesto = document.getElementById('repuesto').value;
             var cantidad = document.getElementById('cantidad').value;
+            var precioProducto = document.getElementById('precio-producto').value;
 
             if(repuesto.dataset.info == 0){
                 toastr.error("Material es requerido");
                 return;
             }
 
+            var reglaNumeroDiesDecimal = /^([0-9]+\.?[0-9]{0,10})$/;
             var reglaNumeroEntero = /^[0-9]\d*$/;
 
             //*************
@@ -261,6 +273,31 @@
 
             //**************
 
+            if(precioProducto === ''){
+                toastr.error('Precio Producto es requerido');
+                return;
+            }
+
+            if(!precioProducto.match(reglaNumeroDiesDecimal)) {
+                toastr.error('Precio Producto debe ser número Decimal (10 decimales)');
+                return;
+            }
+
+            if(precioProducto < 0){
+                toastr.error('Precio Producto no debe ser negativo');
+                return;
+            }
+
+            if(precioProducto > 9000000){
+                toastr.error('Precio Producto debe ser máximo 9 millones');
+                return;
+            }
+
+
+
+
+
+
             var nFilas = $('#matriz >tbody >tr').length;
             nFilas += 1;
 
@@ -277,6 +314,11 @@
                 "<td>" +
                 "<input name='cantidadArray[]' disabled value='" + cantidad + "' class='form-control' type='number'>" +
                 "</td>" +
+
+                "<td>" +
+                "<input name='arrayPrecio[]' data-precio='" + precioProducto + "' disabled value='$" + precioProducto + "' class='form-control' type='text'>" +
+                "</td>" +
+
 
                 "<td>" +
                 "<button type='button' class='btn btn-block btn-danger' onclick='borrarFila(this)'>Borrar</button>" +
@@ -296,6 +338,8 @@
 
             $(txtContenedorGlobal).attr('data-info', '0');
             document.getElementById("formulario-repuesto").reset();
+
+            document.getElementById('precio-producto').value = '';
         }
 
         function borrarFila(elemento){
@@ -348,11 +392,16 @@
 
             var descripcionAtributo = $("input[name='descripcionArray[]']").map(function(){return $(this).attr("data-info");}).get();
             var cantidad = $("input[name='cantidadArray[]']").map(function(){return $(this).val();}).get();
+            var arrayPrecio = $("input[name='arrayPrecio[]']").map(function(){return $(this).attr("data-precio");}).get();
+
+            var reglaNumeroDiesDecimal = /^([0-9]+\.?[0-9]{0,10})$/;
 
             for(var a = 0; a < cantidad.length; a++){
 
                 let detalle = descripcionAtributo[a];
                 let datoCantidad = cantidad[a];
+                let precioProducto = arrayPrecio[a];
+
 
                 // identifica si el 0 es tipo number o texto
                 if(detalle == 0){
@@ -385,6 +434,34 @@
                     toastr.error('Fila #' + (a + 1) + ' Cantidad máximo 1 millón');
                     return;
                 }
+
+
+
+                // **** VALIDAR PRECIO DE PRODUCTO
+
+                if (precioProducto === '') {
+                    colorRojoTabla(a);
+                    toastr.error('Fila #' + (a + 1) + ' Precio de producto es requerida. Por favor borrar la Fila y buscar de nuevo el Producto');
+                    return;
+                }
+
+                if (!precioProducto.match(reglaNumeroDiesDecimal)) {
+                    colorRojoTabla(a);
+                    toastr.error('Fila #' + (a + 1) + ' Precio debe ser decimal (10 decimales) y no negativo. Por favor borrar la Fila y buscar de nuevo el Producto');
+                    return;
+                }
+
+                if (precioProducto < 0) {
+                    colorRojoTabla(a);
+                    toastr.error('Fila #' + (a + 1) + ' Precio no debe ser negativo. Por favor borrar la Fila y buscar de nuevo el Producto');
+                    return;
+                }
+
+                if (precioProducto > 9000000) {
+                    colorRojoTabla(a);
+                    toastr.error('Fila #' + (a + 1) + ' Precio máximo 9 millones. Por favor borrar la Fila y buscar de nuevo el Producto');
+                    return;
+                }
             }
 
 
@@ -399,8 +476,9 @@
 
                 let infoIdProducto = descripcionAtributo[p];
                 let infoCantidad = cantidad[p];
+                let infoPrecio = arrayPrecio[p];
 
-                contenedorArray.push({ infoIdProducto, infoCantidad });
+                contenedorArray.push({ infoIdProducto, infoCantidad, infoPrecio });
             }
 
             openLoading();
