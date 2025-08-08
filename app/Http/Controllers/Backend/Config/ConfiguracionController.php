@@ -4,8 +4,7 @@ namespace App\Http\Controllers\Backend\Config;
 
 use App\Http\Controllers\Controller;
 use App\Models\Color;
-use App\Models\Distrito;
-use App\Models\Encargado;
+use App\Models\Empleado;
 use App\Models\Marca;
 use App\Models\Normativa;
 use App\Models\Talla;
@@ -270,191 +269,6 @@ class ConfiguracionController extends Controller
 
 
 
-
-
-
-    //******************** DISTRITO *************************************************************
-
-
-    public function vistaDistrito()
-    {
-        return view('backend.admin.config.distrito.vistadistrito');
-    }
-
-    public function tablaDistrito()
-    {
-        $lista = Distrito::orderBy('nombre', 'ASC')->get();
-
-        return view('backend.admin.config.distrito.tabladistrito', compact('lista'));
-    }
-
-
-    public function nuevoDistrito(Request $request)
-    {
-        $regla = array(
-            'nombre' => 'required'
-        );
-
-        $validar = Validator::make($request->all(), $regla);
-
-        if ($validar->fails()) {
-            return ['success' => 0];
-        }
-        DB::beginTransaction();
-
-        try {
-            $dato = new Distrito();
-            $dato->nombre = $request->nombre;
-            $dato->save();
-
-            DB::commit();
-            return ['success' => 1];
-        } catch (\Throwable $e) {
-            Log::info('error ' . $e);
-            DB::rollback();
-            return ['success' => 99];
-        }
-    }
-
-
-    public function infoDistrito(Request $request)
-    {
-        $regla = array(
-            'id' => 'required'
-        );
-
-        $validar = Validator::make($request->all(), $regla);
-
-        if ($validar->fails()) {
-            return ['success' => 0];
-        }
-
-        $info = Distrito::where('id', $request->id)->first();
-
-        return ['success' => 1, 'info' => $info];
-    }
-
-    public function actualizarDistrito(Request $request)
-    {
-        $regla = array(
-            'id' => 'required',
-            'nombre' => 'required'
-        );
-
-        $validar = Validator::make($request->all(), $regla);
-
-        if ($validar->fails()) {
-            return ['success' => 0];
-        }
-
-        Distrito::where('id', $request->id)->update([
-            'nombre' => $request->nombre
-        ]);
-
-        return ['success' => 1];
-    }
-
-
-
-
-
-    //******************** ENCARGADO *************************************************************
-
-
-    public function vistaEncargado()
-    {
-        return view('backend.admin.config.encargado.vistaencargado');
-    }
-
-    public function tablaEncargado()
-    {
-        $lista = Encargado::orderBy('nombre', 'ASC')->get();
-
-        return view('backend.admin.config.encargado.tablaencargado', compact('lista'));
-    }
-
-
-    public function nuevoEncargado(Request $request)
-    {
-        $regla = array(
-            'nombre' => 'required'
-        );
-
-        // telefono, dui, puesto
-
-        $validar = Validator::make($request->all(), $regla);
-
-        if ($validar->fails()) {
-            return ['success' => 0];
-        }
-        DB::beginTransaction();
-
-        try {
-            $dato = new Encargado();
-            $dato->nombre = $request->nombre;
-            $dato->telefono = $request->telefono;
-            $dato->dui = $request->dui;
-            $dato->puesto = $request->puesto;
-            $dato->save();
-
-            DB::commit();
-            return ['success' => 1];
-        } catch (\Throwable $e) {
-            Log::info('error ' . $e);
-            DB::rollback();
-            return ['success' => 99];
-        }
-    }
-
-
-    public function infoEncargado(Request $request)
-    {
-        $regla = array(
-            'id' => 'required'
-        );
-
-        $validar = Validator::make($request->all(), $regla);
-
-        if ($validar->fails()) {
-            return ['success' => 0];
-        }
-
-        $info = Encargado::where('id', $request->id)->first();
-
-        return ['success' => 1, 'info' => $info];
-    }
-
-    public function actualizarEncargado(Request $request)
-    {
-        $regla = array(
-            'id' => 'required',
-            'nombre' => 'required'
-        );
-
-        // telefono, dui, puesto
-
-        $validar = Validator::make($request->all(), $regla);
-
-        if ($validar->fails()) {
-            return ['success' => 0];
-        }
-
-        Encargado::where('id', $request->id)->update([
-            'nombre' => $request->nombre,
-            'telefono' => $request->telefono,
-            'puesto' => $request->puesto,
-            'dui' => $request->dui,
-        ]);
-
-        return ['success' => 1];
-    }
-
-
-
-
-
-
-
     //******************** COLOR *************************************************************
 
 
@@ -620,6 +434,100 @@ class ConfiguracionController extends Controller
 
         return ['success' => 1];
     }
+
+
+
+
+    //******************** EMPLEADOS *************************************************************
+
+
+    public function vistaEmpleado()
+    {
+        return view('backend.admin.config.empleados.vistaempleados');
+    }
+
+    public function tablaEmpleado()
+    {
+        $lista = Empleado::orderBy('nombre', 'ASC')->get();
+
+        return view('backend.admin.config.empleados.tablaempleados', compact('lista'));
+    }
+
+
+    public function nuevoEmpleado(Request $request)
+    {
+        $regla = array(
+            'nombre' => 'required'
+        );
+
+        $validar = Validator::make($request->all(), $regla);
+
+        if ($validar->fails()) {
+            return ['success' => 0];
+        }
+        DB::beginTransaction();
+
+        try {
+            $dato = new Empleado();
+            $dato->nombre = $request->nombre;
+            $dato->unidad = $request->unidad;
+            $dato->cargo = $request->cargo;
+            $dato->save();
+
+            DB::commit();
+            return ['success' => 1];
+        } catch (\Throwable $e) {
+            Log::info('error ' . $e);
+            DB::rollback();
+            return ['success' => 99];
+        }
+    }
+
+
+    public function infoEmpleado(Request $request)
+    {
+        $regla = array(
+            'id' => 'required'
+        );
+
+        $validar = Validator::make($request->all(), $regla);
+
+        if ($validar->fails()) {
+            return ['success' => 0];
+        }
+
+        $info = Empleado::where('id', $request->id)->first();
+
+        return ['success' => 1, 'info' => $info];
+    }
+
+    public function actualizarEmpleado(Request $request)
+    {
+        $regla = array(
+            'id' => 'required',
+            'nombre' => 'required'
+        );
+
+        $validar = Validator::make($request->all(), $regla);
+
+        if ($validar->fails()) {
+            return ['success' => 0];
+        }
+
+        Empleado::where('id', $request->id)->update([
+            'nombre' => $request->nombre,
+            'unidad' => $request->unidad,
+            'cargo' => $request->cargo,
+        ]);
+
+        return ['success' => 1];
+    }
+
+
+
+
+
+
 
 
 

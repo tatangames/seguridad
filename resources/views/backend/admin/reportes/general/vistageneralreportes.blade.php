@@ -37,29 +37,26 @@
         <div class="container-fluid">
             <div class="card card-gray-dark">
                 <div class="card-header">
-                    <h3 class="card-title">REPORTE ENTREGAS A ENCARGADO</h3>
+                    <h3 class="card-title">REPORTE ENTREGAS</h3>
                 </div>
                 <div class="card-body">
                     <section class="content" style="margin-left: 30px">
                         <div class="container-fluid">
 
-
-
-                            <!-- Fechas -->
-                            <div class="form-group col-md-4">
-                                <label>Encargado</label>
-                                <select class="form-control" id="select-encargado">
-                                    @foreach($arrayEncargados as $item)
-                                        <option value="{{$item->id}}">{{$item->nombre}}</option>
+                            <div class="form-group col-md-8">
+                                <label>Empleado</label>
+                                <select class="form-control" id="select-empleado">
+                                    @foreach($arrayEmpleados as $item)
+                                        <option value="{{$item->id}}">{{$item->nombreFull}}</option>
                                     @endforeach
                                 </select>
                             </div>
 
 
-                            <div class="form-group" style="margin-top: 5px">
+                            <div class="form-group" style="margin-top: 20px">
                                 <label for="checkbox-todos" class="checkbox-label">
                                     <input type="checkbox" class="checkbox" id="checkbox-recibe">
-                                    Entregas Separadas?
+                                    Entregas por Bloque
                                 </label>
                             </div>
 
@@ -95,7 +92,7 @@
         $(document).ready(function () {
 
 
-            $('#select-encargado').select2({
+            $('#select-empleado').select2({
                 theme: "bootstrap-5",
                 "language": {
                     "noResults": function(){

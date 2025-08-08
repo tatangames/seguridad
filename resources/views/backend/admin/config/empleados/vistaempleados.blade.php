@@ -22,14 +22,14 @@
                 <button type="button" style="font-weight: bold; background-color: #2156af; color: white !important;" onclick="modalAgregar()"
                         class="button button-3d button-rounded button-pill button-small">
                     <i class="fas fa-pencil-alt"></i>
-                    Nuevo Encargado
+                    Nuevo Empleado
                 </button>
             </div>
 
             <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-right">
-                    <li class="breadcrumb-item">Encargado</li>
-                    <li class="breadcrumb-item active">Listado de Encargado</li>
+                    <li class="breadcrumb-item">Marca</li>
+                    <li class="breadcrumb-item active">Listado de Empleados</li>
                 </ol>
             </div>
         </div>
@@ -57,7 +57,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title">Nuevo Encargado</h4>
+                    <h4 class="modal-title">Nuevo Empleado</h4>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -69,23 +69,18 @@
                                 <div class="col-md-12">
 
                                     <div class="form-group">
-                                        <label>Encargado</label>
-                                        <input type="text" maxlength="100" class="form-control" id="nombre-nuevo" autocomplete="off">
+                                        <label>Empleado</label>
+                                        <input type="text" maxlength="200" class="form-control" id="nombre-nuevo" autocomplete="off">
                                     </div>
 
                                     <div class="form-group">
-                                        <label>Puesto</label>
-                                        <input type="text" maxlength="200" class="form-control" id="puesto-nuevo" autocomplete="off">
+                                        <label>Unidad</label>
+                                        <input type="text" maxlength="200" class="form-control" id="unidad-nuevo" autocomplete="off">
                                     </div>
 
                                     <div class="form-group">
-                                        <label>Teléfono</label>
-                                        <input type="text" maxlength="8" class="form-control" id="telefono-nuevo" autocomplete="off">
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label>DUI</label>
-                                        <input type="text" maxlength="10" class="form-control" id="dui-nuevo" autocomplete="off">
+                                        <label>Cargo</label>
+                                        <input type="text" maxlength="200" class="form-control" id="cargo-nuevo" autocomplete="off">
                                     </div>
 
                                 </div>
@@ -106,7 +101,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title">Editar Encargado</h4>
+                    <h4 class="modal-title">Editar Empleado</h4>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -122,23 +117,18 @@
                                     </div>
 
                                     <div class="form-group">
-                                        <label>Encargado</label>
-                                        <input type="text" maxlength="100" class="form-control" id="nombre-editar" autocomplete="off">
+                                        <label>Empleado</label>
+                                        <input type="text" maxlength="200" class="form-control" id="nombre-editar" autocomplete="off">
                                     </div>
 
                                     <div class="form-group">
-                                        <label>Puesto</label>
-                                        <input type="text" maxlength="200" class="form-control" id="puesto-editar" autocomplete="off">
+                                        <label>Unidad</label>
+                                        <input type="text" maxlength="200" class="form-control" id="unidad-editar" autocomplete="off">
                                     </div>
 
                                     <div class="form-group">
-                                        <label>Teléfono</label>
-                                        <input type="text" maxlength="8" class="form-control" id="telefono-editar" autocomplete="off">
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label>DUI</label>
-                                        <input type="text" maxlength="10" class="form-control" id="dui-editar" autocomplete="off">
+                                        <label>Cargo</label>
+                                        <input type="text" maxlength="200" class="form-control" id="cargo-editar" autocomplete="off">
                                     </div>
 
                                 </div>
@@ -169,18 +159,17 @@
 
     <script type="text/javascript">
         $(document).ready(function(){
-            var ruta = "{{ URL::to('/admin/encargado/tabla') }}";
+            var ruta = "{{ URL::to('/admin/empleado/tabla') }}";
             $('#tablaDatatable').load(ruta);
 
             document.getElementById("divcontenedor").style.display = "block";
-
         });
     </script>
 
     <script>
 
         function recargar(){
-            var ruta = "{{ url('/admin/encargado/tabla') }}";
+            var ruta = "{{ url('/admin/empleado/tabla') }}";
             $('#tablaDatatable').load(ruta);
         }
 
@@ -191,23 +180,21 @@
 
         function nuevo(){
             var nombre = document.getElementById('nombre-nuevo').value;
-            var puesto = document.getElementById('puesto-nuevo').value;
-            var telefono = document.getElementById('telefono-nuevo').value;
-            var dui = document.getElementById('dui-nuevo').value;
+            var unidad = document.getElementById('unidad-nuevo').value;
+            var cargo = document.getElementById('cargo-nuevo').value;
 
             if(nombre === ''){
-                toastr.error('Encargado es requerido');
+                toastr.error('Nombre es requerido');
                 return;
             }
 
             openLoading();
             var formData = new FormData();
             formData.append('nombre', nombre);
-            formData.append('puesto', puesto);
-            formData.append('telefono', telefono);
-            formData.append('dui', dui);
+            formData.append('unidad', unidad);
+            formData.append('cargo', cargo);
 
-            axios.post(url+'/encargado/nuevo', formData, {
+            axios.post(url+'/empleado/nuevo', formData, {
             })
                 .then((response) => {
                     closeLoading();
@@ -230,7 +217,7 @@
             openLoading();
             document.getElementById("formulario-editar").reset();
 
-            axios.post(url+'/encargado/informacion',{
+            axios.post(url+'/empleado/informacion',{
                 'id': id
             })
                 .then((response) => {
@@ -239,9 +226,8 @@
                         $('#modalEditar').modal('show');
                         $('#id-editar').val(id);
                         $('#nombre-editar').val(response.data.info.nombre);
-                        $('#puesto-editar').val(response.data.info.puesto);
-                        $('#telefono-editar').val(response.data.info.telefono);
-                        $('#dui-editar').val(response.data.info.dui);
+                        $('#unidad-editar').val(response.data.info.unidad);
+                        $('#cargo-editar').val(response.data.info.cargo);
 
                     }else{
                         toastr.error('Información no encontrada');
@@ -256,12 +242,11 @@
         function editar(){
             var id = document.getElementById('id-editar').value;
             var nombre = document.getElementById('nombre-editar').value;
-            var puesto = document.getElementById('puesto-editar').value;
-            var telefono = document.getElementById('telefono-editar').value;
-            var dui = document.getElementById('dui-editar').value;
+            var unidad = document.getElementById('unidad-editar').value;
+            var cargo = document.getElementById('cargo-editar').value;
 
             if(nombre === ''){
-                toastr.error('Encargado es requerido');
+                toastr.error('Nombre es requerido');
                 return;
             }
 
@@ -269,11 +254,10 @@
             var formData = new FormData();
             formData.append('id', id);
             formData.append('nombre', nombre);
-            formData.append('puesto', puesto);
-            formData.append('telefono', telefono);
-            formData.append('dui', dui);
+            formData.append('unidad', unidad);
+            formData.append('cargo', cargo);
 
-            axios.post(url+'/encargado/editar', formData, {
+            axios.post(url+'/empleado/editar', formData, {
             })
                 .then((response) => {
                     closeLoading();

@@ -61,23 +61,7 @@
                                                 </div>
                                             </div>
 
-                                            <div class="form-group col-md-4">
-                                                <label>Persona que Recibe:</label>
-                                                <select id="select-encargado" class="form-control">
-                                                    @foreach($arrayEncargado as $item)
-                                                        <option value="{{$item->id}}">{{ $item->nombre }}</option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
 
-                                            <div class="form-group col-md-4">
-                                                <label>Distrito:</label>
-                                                <select id="select-distrito" class="form-control">
-                                                    @foreach($arrayDistrito as $item)
-                                                        <option value="{{$item->id}}">{{ $item->nombre }}</option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
 
                                             <div class="form-group">
                                                 <label>Descripción (Opcional):</label>

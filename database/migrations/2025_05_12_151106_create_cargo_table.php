@@ -7,11 +7,11 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * CARGO DEL EMPLEADO
      */
     public function up(): void
     {
-        Schema::create('distrito', function (Blueprint $table) {
+        Schema::create('cargo', function (Blueprint $table) {
             $table->id();
             $table->string('nombre', 100);
         });
@@ -22,6 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('distrito');
+        Schema::dropIfExists('cargo');
     }
 };

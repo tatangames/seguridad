@@ -7,13 +7,14 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * NORMATIVAS
+     * Run the migrations.
      */
     public function up(): void
     {
-        Schema::create('normativa', function (Blueprint $table) {
+        Schema::create('proveedor', function (Blueprint $table) {
             $table->id();
             $table->string('nombre', 100);
+            $table->string('telefono', 100);
         });
     }
 
@@ -22,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('normativa');
+        Schema::dropIfExists('proveedor');
     }
 };

@@ -177,10 +177,8 @@ class RegistrosController extends Controller
 
     public function indexRegistroSalida(){
 
-        $arrayEncargado = Encargado::orderBy('nombre')->get();
-        $arrayDistrito = Distrito::orderBy('nombre')->get();
 
-        return view('backend.admin.registros.salidas.vistasalidaregistro', compact('arrayEncargado', 'arrayDistrito'));
+        return view('backend.admin.registros.salidas.vistasalidaregistro');
     }
 
     public function buscadorMaterialDisponible(Request $request){

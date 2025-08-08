@@ -3,8 +3,7 @@
 namespace App\Http\Controllers\backend\config;
 
 use App\Http\Controllers\Controller;
-use App\Models\Distrito;
-use App\Models\Encargado;
+use App\Models\Empleado;
 use App\Models\Entradas;
 use App\Models\EntradasDetalle;
 use App\Models\Marca;
@@ -25,8 +24,15 @@ class ReportesController extends Controller
 
     public function indexGeneralReportes()
     {
-        $arrayEncargados = Encargado::orderBy('nombre', 'asc')->get();
-        return view('backend.admin.reportes.general.vistageneralreportes', compact('arrayEncargados'));
+        $arrayEmpleados = Empleado::orderBy('nombre', 'asc')->get();
+
+        foreach ($arrayEmpleados as $item) {
+
+            $item->nombreFull = $item->nombre . " (" . $item->unidad . ")";
+        }
+
+
+        return view('backend.admin.reportes.general.vistageneralreportes', compact('arrayEmpleados'));
     }
 
 

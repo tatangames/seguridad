@@ -149,18 +149,12 @@
                         </li>
 
                         <li class="nav-item">
-                            <a href="{{ route('admin.distrito.index') }}" target="frameprincipal" class="nav-link">
+                            <a href="{{ route('admin.empleado.index') }}" target="frameprincipal" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
-                                <p>Distrito</p>
+                                <p>Empleados</p>
                             </a>
                         </li>
 
-                        <li class="nav-item">
-                            <a href="{{ route('admin.encargado.index') }}" target="frameprincipal" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Encargado</p>
-                            </a>
-                        </li>
 
 
                         <li class="nav-item">

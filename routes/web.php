@@ -80,19 +80,13 @@ Route::post('/admin/normativa/nuevo', [ConfiguracionController::class,'nuevoNorm
 Route::post('/admin/normativa/informacion', [ConfiguracionController::class,'infoNormativa']);
 Route::post('/admin/normativa/editar', [ConfiguracionController::class,'actualizarNormativa']);
 
-// DISTRITO
-Route::get('/admin/distrito/index', [ConfiguracionController::class,'vistaDistrito'])->name('admin.distrito.index');
-Route::get('/admin/distrito/tabla', [ConfiguracionController::class,'tablaDistrito']);
-Route::post('/admin/distrito/nuevo', [ConfiguracionController::class,'nuevoDistrito']);
-Route::post('/admin/distrito/informacion', [ConfiguracionController::class,'infoDistrito']);
-Route::post('/admin/distrito/editar', [ConfiguracionController::class,'actualizarDistrito']);
+// EMPLEADO
+Route::get('/admin/empleado/index', [ConfiguracionController::class,'vistaEmpleado'])->name('admin.empleado.index');
+Route::get('/admin/empleado/tabla', [ConfiguracionController::class,'tablaEmpleado']);
+Route::post('/admin/empleado/nuevo', [ConfiguracionController::class,'nuevoEmpleado']);
+Route::post('/admin/empleado/informacion', [ConfiguracionController::class,'infoEmpleado']);
+Route::post('/admin/empleado/editar', [ConfiguracionController::class,'actualizarEmpleado']);
 
-// ENCARGADO
-Route::get('/admin/encargado/index', [ConfiguracionController::class,'vistaEncargado'])->name('admin.encargado.index');
-Route::get('/admin/encargado/tabla', [ConfiguracionController::class,'tablaEncargado']);
-Route::post('/admin/encargado/nuevo', [ConfiguracionController::class,'nuevoEncargado']);
-Route::post('/admin/encargado/informacion', [ConfiguracionController::class,'infoEncargado']);
-Route::post('/admin/encargado/editar', [ConfiguracionController::class,'actualizarEncargado']);
 
 
 // COLOR
