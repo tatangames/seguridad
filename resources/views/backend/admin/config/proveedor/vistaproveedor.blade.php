@@ -5,8 +5,6 @@
     <link href="{{ asset('css/dataTables.bootstrap4.css') }}" type="text/css" rel="stylesheet" />
     <link href="{{ asset('css/toastr.min.css') }}" type="text/css" rel="stylesheet" />
     <link href="{{ asset('css/buttons_estilo.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/select2.min.css') }}" type="text/css" rel="stylesheet">
-    <link href="{{ asset('css/select2-bootstrap-5-theme.min.css') }}" type="text/css" rel="stylesheet">
 @stop
 
 <style>
@@ -18,11 +16,30 @@
 
 <div id="divcontenedor" style="display: none">
 
-    <section class="content" style="margin-top: 15px">
+    <section class="content-header">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <button type="button" style="font-weight: bold; background-color: #2156af; color: white !important;" onclick="modalAgregar()"
+                        class="button button-3d button-rounded button-pill button-small">
+                    <i class="fas fa-pencil-alt"></i>
+                    Nuevo Proveedor
+                </button>
+            </div>
+
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item">Proveedor</li>
+                    <li class="breadcrumb-item active">Listado de Proveedores</li>
+                </ol>
+            </div>
+        </div>
+    </section>
+
+    <section class="content">
         <div class="container-fluid">
-            <div class="card card-gray-dark">
+            <div class="card card-blue">
                 <div class="card-header">
-                    <h3 class="card-title">Listado de Proyectos</h3>
+                    <h3 class="card-title">Listado</h3>
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -36,13 +53,50 @@
         </div>
     </section>
 
+    <div class="modal fade" id="modalAgregar">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Nuevo Proveedor</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="formulario-nuevo">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-12">
+
+                                    <div class="form-group">
+                                        <label>Nombre</label>
+                                        <input type="text" maxlength="100" class="form-control" id="nombre-nuevo" autocomplete="off">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Teléfono</label>
+                                        <input type="text" maxlength="100" class="form-control" id="telefono-nuevo" autocomplete="off">
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+                    <button type="button" style="font-weight: bold; background-color: #2156af; color: white !important;" class="button button-rounded button-pill button-small" onclick="nuevo()">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- modal editar -->
     <div class="modal fade" id="modalEditar">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title">Editar</h4>
+                    <h4 class="modal-title">Editar Proveedor</h4>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -58,29 +112,14 @@
                                     </div>
 
                                     <div class="form-group">
-                                        <label>Fecha</label>
-                                        <input type="date" class="form-control" id="fecha-editar" autocomplete="off">
+                                        <label>Proveedor</label>
+                                        <input type="text" maxlength="100" class="form-control" id="nombre-editar" autocomplete="off">
                                     </div>
 
                                     <div class="form-group">
-                                        <label>Descripción</label>
-                                        <input type="text" maxlength="800" class="form-control" id="descripcion-editar" autocomplete="off">
+                                        <label>Teléfono</label>
+                                        <input type="text" maxlength="100" class="form-control" id="telefono-editar" autocomplete="off">
                                     </div>
-
-                                    <div class="form-group">
-                                        <label>Factura</label>
-                                        <input type="text" maxlength="100" class="form-control" id="lote-editar" autocomplete="off">
-                                    </div>
-
-
-                                    <div class="form-group">
-                                        <label>Proveedor:</label>
-                                        <br>
-                                        <select width="100%"  class="form-control" id="select-proveedor-editar">
-                                        </select>
-                                    </div>
-
-
 
                                 </div>
                             </div>
@@ -89,13 +128,11 @@
                 </div>
                 <div class="modal-footer justify-content-between">
                     <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
-                    <button type="button" style="font-weight: bold; background-color: #28a745; color: white !important;"
-                            class="button button-rounded button-pill button-small" onclick="guardarEdicion()">Actualizar</button>
+                    <button type="button" style="font-weight: bold; background-color: #28a745; color: white !important;" class="button button-rounded button-pill button-small" onclick="editar()">Actualizar</button>
                 </div>
             </div>
         </div>
     </div>
-
 </div>
 
 
@@ -109,24 +146,11 @@
     <script src="{{ asset('js/axios.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('js/sweetalert2.all.min.js') }}"></script>
     <script src="{{ asset('js/alertaPersonalizada.js') }}"></script>
-    <script src="{{ asset('js/select2.min.js') }}" type="text/javascript"></script>
 
     <script type="text/javascript">
         $(document).ready(function(){
-
-            openLoading()
-            var ruta = "{{ URL::to('/admin/historial/entrada/tabla') }}";
+            var ruta = "{{ URL::to('/admin/proveedor/tabla') }}";
             $('#tablaDatatable').load(ruta);
-
-
-            $('#select-proveedor-editar').select2({
-                theme: "bootstrap-5",
-                "language": {
-                    "noResults": function(){
-                        return "Busqueda no encontrada";
-                    }
-                },
-            });
 
             document.getElementById("divcontenedor").style.display = "block";
         });
@@ -134,71 +158,54 @@
 
     <script>
 
-
         function recargar(){
-            var ruta = "{{ URL::to('/admin/historial/entrada/tabla') }}";
+            var ruta = "{{ url('/admin/proveedor/tabla') }}";
             $('#tablaDatatable').load(ruta);
         }
 
-        function vistaDetalle(idsolicitud){
-            window.location.href="{{ url('/admin/historial/entradadetalle/index') }}/" + idsolicitud;
+        function modalAgregar(){
+            document.getElementById("formulario-nuevo").reset();
+            $('#modalAgregar').modal('show');
         }
 
-        function infoBorrar(id){
-            Swal.fire({
-                title: 'ADVERTENCIA',
-                text: "Esto eliminará todo el ingreso de productos, sus salidas y movimientos",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#28a745',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Borrar',
-                cancelButtonText: 'Cancelar'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    borrarRegistro(id)
-                }
-            })
-        }
+        function nuevo(){
+            var nombre = document.getElementById('nombre-nuevo').value;
+            var telefono = document.getElementById('telefono-nuevo').value;
 
-        // BORRAR LOTE DE ENTRADA COMPLETO
-        function borrarRegistro(id){
+            if(nombre === ''){
+                toastr.error('Nombre es requerido');
+                return;
+            }
 
             openLoading();
             var formData = new FormData();
-            formData.append('id', id);
+            formData.append('nombre', nombre);
+            formData.append('telefono', telefono);
 
-            axios.post(url+'/historial/entrada/borrarlote', formData, {
+            axios.post(url+'/proveedor/nuevo', formData, {
             })
                 .then((response) => {
                     closeLoading();
-
                     if(response.data.success === 1){
-                        toastr.success('Borrado correctamente');
+                        toastr.success('Registrado correctamente');
+                        $('#modalAgregar').modal('hide');
                         recargar();
                     }
                     else {
-                        toastr.error('Error al borrar');
+                        toastr.error('Error al registrar');
                     }
                 })
                 .catch((error) => {
-                    toastr.error('Error al borrar');
+                    toastr.error('Error al registrar');
                     closeLoading();
                 });
         }
 
-
-        function infoNuevoIngreso(id){
-            window.location.href="{{ url('/admin/historial/nuevoingresoentradadetalle/index') }}/" + id;
-        }
-
-
-        function modalEditar(id){
-
+        function informacion(id){
             openLoading();
             document.getElementById("formulario-editar").reset();
 
-            axios.post(url+'/historial/entrada/informacion',{
+            axios.post(url+'/proveedor/informacion',{
                 'id': id
             })
                 .then((response) => {
@@ -206,20 +213,8 @@
                     if(response.data.success === 1){
                         $('#modalEditar').modal('show');
                         $('#id-editar').val(id);
-                        $('#fecha-editar').val(response.data.info.fecha);
-                        $('#descripcion-editar').val(response.data.info.descripcion);
-                        $('#lote-editar').val(response.data.info.lote);
-
-                        document.getElementById("select-proveedor-editar").options.length = 0;
-
-                        // unidad de medida
-                        $.each(response.data.arrayProveedor, function( key, val ){
-                            if(response.data.info.id_proveedor == val.id){
-                                $('#select-proveedor-editar').append('<option value="' +val.id +'" selected="selected">'+ val.nombre +'</option>');
-                            }else{
-                                $('#select-proveedor-editar').append('<option value="' +val.id +'">'+ val.nombre +'</option>');
-                            }
-                        });
+                        $('#nombre-editar').val(response.data.info.nombre);
+                        $('#telefono-editar').val(response.data.info.telefono);
 
                     }else{
                         toastr.error('Información no encontrada');
@@ -231,28 +226,23 @@
                 });
         }
 
-
-        function guardarEdicion(){
+        function editar(){
             var id = document.getElementById('id-editar').value;
-            var fecha = document.getElementById('fecha-editar').value;
-            var descripcion = document.getElementById('descripcion-editar').value;
-            var lote = document.getElementById('lote-editar').value;
-            var proveedor = document.getElementById('select-proveedor-editar').value;
+            var nombre = document.getElementById('nombre-editar').value;
+            var telefono = document.getElementById('telefono-editar').value;
 
-            if(fecha === ''){
-                toastr.error('Fecha es requerido');
+            if(nombre === ''){
+                toastr.error('Nombre es requerido');
                 return;
             }
 
             openLoading();
             var formData = new FormData();
             formData.append('id', id);
-            formData.append('fecha', fecha);
-            formData.append('descripcion', descripcion);
-            formData.append('lote', lote);
-            formData.append('proveedor', proveedor);
+            formData.append('nombre', nombre);
+            formData.append('telefono', telefono);
 
-            axios.post(url+'/historial/entrada/editar', formData, {
+            axios.post(url+'/proveedor/editar', formData, {
             })
                 .then((response) => {
                     closeLoading();
@@ -272,6 +262,7 @@
                     closeLoading();
                 });
         }
+
 
     </script>
 

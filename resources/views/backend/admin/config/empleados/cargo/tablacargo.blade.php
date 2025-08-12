@@ -8,9 +8,6 @@
                             <thead>
                             <tr>
                                 <th style="width: 30%">Nombre</th>
-                                <th style="width: 20%">Distrito</th>
-                                <th style="width: 25%">Unidad</th>
-                                <th style="width: 20%">Cargo</th>
                                 <th style="width: 8%">Opciones</th>
                             </tr>
                             </thead>
@@ -19,9 +16,6 @@
                             @foreach($listado as $dato)
                                 <tr>
                                     <td>{{ $dato->nombre }}</td>
-                                    <td>{{ $dato->distrito }}</td>
-                                    <td>{{ $dato->unidad }}</td>
-                                    <td>{{ $dato->cargo }}</td>
                                     <td>
                                         <button type="button" style="font-weight: bold; color: white !important;"
                                                 class="button button-primary button-rounded button-pill button-small" onclick="informacion({{ $dato->id }})">

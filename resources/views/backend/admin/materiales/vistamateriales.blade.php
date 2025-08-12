@@ -9,14 +9,6 @@
 @stop
 
 <style>
-    table{
-        /*Ajustar tablas*/
-        table-layout:fixed;
-    }
-    .select2-container{
-        height: 30px !important;
-    }
-
     .dataTables_wrapper .dataTables_info {
         float: left !important;
         text-align: left;

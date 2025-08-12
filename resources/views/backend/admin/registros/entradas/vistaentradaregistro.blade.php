@@ -57,12 +57,23 @@
 
                             <div class="col-md-4" style=" margin-right: 15px; margin-top: 15px;">
                                 <div class="form-group">
-                                    <label>LOTE (Opcional):</label>
+                                    <label>Factura (Opcional):</label>
                                     <input type="text" class="form-control" autocomplete="off" maxlength="100" id="lote">
                                 </div>
                             </div>
 
-                            <div style="margin-left: 8px; margin-right: 15px; margin-top: 15px;">
+                            <div class="form-group col-md-8">
+                                <label>Proveedor:</label>
+                                <br>
+                                <select class="form-control" id="select-proveedor">
+                                    @foreach($arrayProveedor as $sel)
+                                        <option value="{{ $sel->id }}">{{ $sel->nombre }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+
+                            <div style=" margin-right: 15px; margin-top: 15px;">
                                 <div class="form-group">
                                     <label>Descripción (Opcional):</label>
                                     <input type="text" class="form-control" autocomplete="off" maxlength="800" id="descripcion">
@@ -215,6 +226,15 @@
                 });
             });
 
+
+            $('#select-proveedor').select2({
+                theme: "bootstrap-5",
+                "language": {
+                    "noResults": function(){
+                        return "Busqueda no encontrada";
+                    }
+                },
+            });
 
         });
     </script>

@@ -149,12 +149,11 @@
                         </li>
 
                         <li class="nav-item">
-                            <a href="{{ route('admin.empleado.index') }}" target="frameprincipal" class="nav-link">
+                            <a href="{{ route('admin.proveedor.index') }}" target="frameprincipal" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
-                                <p>Empleados</p>
+                                <p>Proveedor</p>
                             </a>
                         </li>
-
 
 
                         <li class="nav-item">
@@ -175,6 +174,50 @@
 
                     </ul>
                 </li>
+
+                    <li class="nav-item">
+
+                        <a href="#" class="nav-link nav-">
+                            <i class="far fa-edit"></i>
+                            <p>
+                                Empleados
+                                <i class="fas fa-angle-left right"></i>
+                            </p>
+                        </a>
+
+                        <ul class="nav nav-treeview">
+
+                            <li class="nav-item">
+                                <a href="{{ route('admin.distrito.index') }}" target="frameprincipal" class="nav-link">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Distrito</p>
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a href="{{ route('admin.unidad.empleado.index') }}" target="frameprincipal" class="nav-link">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Unidad Empleado</p>
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a href="{{ route('admin.cargo.index') }}" target="frameprincipal" class="nav-link">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Cargos</p>
+                                </a>
+                            </li>
+
+
+                            <li class="nav-item">
+                                <a href="{{ route('admin.empleados.index') }}" target="frameprincipal" class="nav-link">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Empleados</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
 
 
                 <li class="nav-item">

@@ -14,12 +14,14 @@ return new class extends Migration
         Schema::create('entradas', function (Blueprint $table) {
             $table->id();
             $table->bigInteger('id_usuario')->unsigned();
+            $table->bigInteger('id_proveedor')->unsigned();
             $table->date('fecha');
             $table->string('descripcion', 800)->nullable();
 
             $table->string('lote', 100)->nullable();
 
             $table->foreign('id_usuario')->references('id')->on('usuarios');
+            $table->foreign('id_proveedor')->references('id')->on('proveedor');
         });
     }
 

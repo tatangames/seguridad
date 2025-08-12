@@ -13,9 +13,10 @@ return new class extends Migration
     {
         Schema::create('unidad_empleado', function (Blueprint $table) {
             $table->id();
+            $table->bigInteger('id_distrito')->unsigned();
             $table->string('nombre', 100);
 
-
+            $table->foreign('id_distrito')->references('id')->on('distrito');
         });
     }
 

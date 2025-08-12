@@ -24,14 +24,14 @@
                 <button type="button" style="font-weight: bold; background-color: #2156af; color: white !important;" onclick="modalAgregar()"
                         class="button button-3d button-rounded button-pill button-small">
                     <i class="fas fa-pencil-alt"></i>
-                    Nuevo Empleado
+                    Nueva Unidad
                 </button>
             </div>
 
             <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-right">
-                    <li class="breadcrumb-item">Empleados</li>
-                    <li class="breadcrumb-item active">Listado de Empleados</li>
+                    <li class="breadcrumb-item">Unidad</li>
+                    <li class="breadcrumb-item active">Listado de Unidades</li>
                 </ol>
             </div>
         </div>
@@ -59,7 +59,7 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title">Nuevo Empleado</h4>
+                    <h4 class="modal-title">Nueva Unidad</h4>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -73,34 +73,17 @@
                                     <div class="form-group">
                                         <label>Distrito:</label>
                                         <br>
-                                        <select width="100%" class="form-control" id="select-distrito" onchange="buscarUnidad(this)">
-                                            <option value="0">Seleccionar</option>
-                                            @foreach($arrayDistrito as $sel)
+                                        <select width="100%"  class="form-control" id="select-distrito">
+                                            @foreach($arrayDistritos as $sel)
                                                 <option value="{{ $sel->id }}">{{ $sel->nombre }}</option>
                                             @endforeach
                                         </select>
                                     </div>
 
-                                    <div class="form-group">
-                                        <label>Unidad:</label>
-                                        <br>
-                                        <select width="100%"  class="form-control" id="select-unidad">
-                                        </select>
-                                    </div>
 
                                     <div class="form-group">
-                                        <label>Cargo:</label>
-                                        <br>
-                                        <select width="100%"  class="form-control" id="select-cargo">
-                                            @foreach($arrayCargo as $sel)
-                                                <option value="{{ $sel->id }}">{{ $sel->nombre }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label>Empleado</label>
-                                        <input type="text" maxlength="100" class="form-control" id="nombre-nuevo" autocomplete="off">
+                                        <label>Unidad</label>
+                                        <input type="text" maxlength="100" class="form-control" id="unidad-nuevo" autocomplete="off">
                                     </div>
 
                                 </div>
@@ -121,7 +104,7 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title">Editar Empleado</h4>
+                    <h4 class="modal-title">Editar Unidad</h4>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -139,28 +122,13 @@
                                     <div class="form-group">
                                         <label>Distrito:</label>
                                         <br>
-                                        <select width="100%" class="form-control" id="select-distrito-editar" onchange="buscarUnidadEdicion(this)">
+                                        <select width="100%"  class="form-control" id="select-distrito-editar">
                                         </select>
                                     </div>
 
                                     <div class="form-group">
-                                        <label>Unidad:</label>
-                                        <br>
-                                        <select width="100%" class="form-control" id="select-unidad-editar">
-                                        </select>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label>Cargo:</label>
-                                        <br>
-                                        <select width="100%" class="form-control" id="select-cargo-editar">
-                                        </select>
-                                    </div>
-
-
-                                    <div class="form-group">
-                                        <label>Empleado</label>
-                                        <input type="text" maxlength="100" class="form-control" id="nombre-editar" autocomplete="off">
+                                        <label>Unidad</label>
+                                        <input type="text" maxlength="100" class="form-control" id="unidad-editar" autocomplete="off">
                                     </div>
 
                                 </div>
@@ -192,7 +160,7 @@
 
     <script type="text/javascript">
         $(document).ready(function(){
-            var ruta = "{{ URL::to('/admin/empleados/tabla') }}";
+            var ruta = "{{ URL::to('/admin/unidadempleado/tabla') }}";
             $('#tablaDatatable').load(ruta);
 
             $('#select-distrito').select2({
@@ -204,26 +172,6 @@
                 },
             });
 
-            $('#select-cargo').select2({
-                theme: "bootstrap-5",
-                "language": {
-                    "noResults": function(){
-                        return "Busqueda no encontrada";
-                    }
-                },
-            });
-
-            $('#select-unidad').select2({
-                theme: "bootstrap-5",
-                "language": {
-                    "noResults": function(){
-                        return "Busqueda no encontrada";
-                    }
-                },
-            });
-
-
-
             $('#select-distrito-editar').select2({
                 theme: "bootstrap-5",
                 "language": {
@@ -233,25 +181,6 @@
                 },
             });
 
-            $('#select-cargo-editar').select2({
-                theme: "bootstrap-5",
-                "language": {
-                    "noResults": function(){
-                        return "Busqueda no encontrada";
-                    }
-                },
-            });
-
-            $('#select-unidad-editar').select2({
-                theme: "bootstrap-5",
-                "language": {
-                    "noResults": function(){
-                        return "Busqueda no encontrada";
-                    }
-                },
-            });
-
-
             document.getElementById("divcontenedor").style.display = "block";
         });
     </script>
@@ -259,96 +188,18 @@
     <script>
 
         function recargar(){
-            var ruta = "{{ url('/admin/empleados/tabla') }}";
+            var ruta = "{{ url('/admin/unidadempleado/tabla') }}";
             $('#tablaDatatable').load(ruta);
-        }
-
-        function buscarUnidad(){
-            let id = document.getElementById('select-distrito').value;
-
-            if(id == '0'){
-                document.getElementById("select-unidad").options.length = 0;
-                return false;
-            }
-
-            openLoading();
-
-            axios.post(url+'/empleados/buscarunidad',{
-                'id': id
-            })
-                .then((response) => {
-                    closeLoading();
-                    if(response.data.success === 1){
-
-                        document.getElementById("select-unidad").options.length = 0;
-
-                        // unidad de medida
-                        $.each(response.data.arrayUnidad, function( key, val ){
-                            $('#select-unidad').append('<option value="' +val.id +'">'+ val.nombre +'</option>');
-                        });
-
-                    }else{
-                        toastr.error('Información no encontrada');
-                    }
-                })
-                .catch((error) => {
-                    closeLoading();
-                    toastr.error('Información no encontrada');
-                });
-        }
-
-        function buscarUnidadEdicion(){
-            let id = document.getElementById('select-distrito-editar').value;
-
-            openLoading();
-
-            axios.post(url+'/empleados/buscarunidad',{
-                'id': id
-            })
-                .then((response) => {
-                    closeLoading();
-                    if(response.data.success === 1){
-
-                        document.getElementById("select-unidad-editar").options.length = 0;
-
-                        // unidad de medida
-                        $.each(response.data.arrayUnidad, function( key, val ){
-                            $('#select-unidad-editar').append('<option value="' +val.id +'">'+ val.nombre +'</option>');
-                        });
-
-                    }else{
-                        toastr.error('Información no encontrada');
-                    }
-                })
-                .catch((error) => {
-                    closeLoading();
-                    toastr.error('Información no encontrada');
-                });
         }
 
         function modalAgregar(){
             document.getElementById("formulario-nuevo").reset();
-
-            document.getElementById("select-distrito").selectedIndex = 0;
-            $('#select-distrito').val($('#select-distrito option:first').val()).trigger('change');
             $('#modalAgregar').modal('show');
         }
 
         function nuevo(){
-
-            var unidad = document.getElementById('select-unidad').value;
-            var cargo = document.getElementById('select-cargo').value;
-            var nombre = document.getElementById('nombre-nuevo').value;
-
-            if(unidad === ''){
-                toastr.error('Unidad es requerido');
-                return;
-            }
-
-            if(cargo === ''){
-                toastr.error('Cargo es requerido');
-                return;
-            }
+            var nombre = document.getElementById('unidad-nuevo').value;
+            var unidad = document.getElementById('select-distrito').value;
 
             if(nombre === ''){
                 toastr.error('Nombre es requerido');
@@ -359,9 +210,8 @@
             var formData = new FormData();
             formData.append('nombre', nombre);
             formData.append('unidad', unidad);
-            formData.append('cargo', cargo);
 
-            axios.post(url+'/empleados/nuevo', formData, {
+            axios.post(url+'/unidadempleado/nuevo', formData, {
             })
                 .then((response) => {
                     closeLoading();
@@ -384,7 +234,7 @@
             openLoading();
             document.getElementById("formulario-editar").reset();
 
-            axios.post(url+'/empleados/informacion',{
+            axios.post(url+'/unidadempleado/informacion',{
                 'id': id
             })
                 .then((response) => {
@@ -392,37 +242,18 @@
                     if(response.data.success === 1){
                         $('#modalEditar').modal('show');
                         $('#id-editar').val(id);
-
+                        $('#unidad-editar').val(response.data.info.nombre);
 
                         document.getElementById("select-distrito-editar").options.length = 0;
-                        document.getElementById("select-unidad-editar").options.length = 0;
-                        document.getElementById("select-cargo-editar").options.length = 0;
 
+                        // distrito
                         $.each(response.data.arrayDistrito, function( key, val ){
-                            if(response.data.infoUniEmpleado.id_distrito == val.id){
+                            if(response.data.info.id_distrito == val.id){
                                 $('#select-distrito-editar').append('<option value="' +val.id +'" selected="selected">'+ val.nombre +'</option>');
                             }else{
                                 $('#select-distrito-editar').append('<option value="' +val.id +'">'+ val.nombre +'</option>');
                             }
                         });
-
-                        $.each(response.data.arrayUnidad, function( key, val ){
-                            if(response.data.info.id_unidad_empleado == val.id){
-                                $('#select-unidad-editar').append('<option value="' +val.id +'" selected="selected">'+ val.nombre +'</option>');
-                            }else{
-                                $('#select-unidad-editar').append('<option value="' +val.id +'">'+ val.nombre +'</option>');
-                            }
-                        });
-
-                        $.each(response.data.arrayCargo, function( key, val ){
-                            if(response.data.info.id_cargo == val.id){
-                                $('#select-cargo-editar').append('<option value="' +val.id +'" selected="selected">'+ val.nombre +'</option>');
-                            }else{
-                                $('#select-cargo-editar').append('<option value="' +val.id +'">'+ val.nombre +'</option>');
-                            }
-                        });
-
-                        $('#nombre-editar').val(response.data.info.nombre);
 
                     }else{
                         toastr.error('Información no encontrada');
@@ -436,9 +267,8 @@
 
         function editar(){
             var id = document.getElementById('id-editar').value;
-            var nombre = document.getElementById('nombre-editar').value;
-            var unidad = document.getElementById('select-unidad-editar').value;
-            var cargo = document.getElementById('select-cargo-editar').value;
+            var nombre = document.getElementById('unidad-editar').value;
+            var distrito = document.getElementById('select-distrito-editar').value;
 
             if(nombre === ''){
                 toastr.error('Nombre es requerido');
@@ -449,10 +279,9 @@
             var formData = new FormData();
             formData.append('id', id);
             formData.append('nombre', nombre);
-            formData.append('unidad', unidad);
-            formData.append('cargo', cargo);
+            formData.append('distrito', distrito);
 
-            axios.post(url+'/empleados/editar', formData, {
+            axios.post(url+'/unidadempleado/editar', formData, {
             })
                 .then((response) => {
                     closeLoading();

@@ -5,12 +5,12 @@ namespace App\Http\Controllers\backend\materiales;
 use App\Http\Controllers\Controller;
 use App\Models\Color;
 use App\Models\Distrito;
-use App\Models\Encargado;
 use App\Models\Entradas;
 use App\Models\EntradasDetalle;
 use App\Models\Marca;
 use App\Models\Materiales;
 use App\Models\Normativa;
+use App\Models\Proveedor;
 use App\Models\Retorno;
 use App\Models\Salidas;
 use App\Models\SalidasDetalle;
@@ -44,8 +44,8 @@ class HistorialController extends Controller
         foreach ($listado as $fila) {
             $fila->fechaFormat = date("d-m-Y", strtotime($fila->fecha));
 
-            $infoRecibe = Encargado::where('id', $fila->id_encargado)->first();
-            $fila->nombreRecibe = $infoRecibe->nombre;
+            $infoRecibe = "Revisar esto";
+           // $fila->nombreRecibe = $infoRecibe->nombre;
 
             $infoDistrito = Distrito::where('id', $fila->id_distrito)->first();
             $fila->nombreDistrito = $infoDistrito->nombre;
@@ -207,9 +207,61 @@ class HistorialController extends Controller
 
         foreach ($listado as $fila) {
             $fila->fechaFormat = date("d-m-Y", strtotime($fila->fecha));
+
+            $nombreProveedor = "";
+            if($infoProveedor = Proveedor::where('id', $fila->id_proveedor)->first()){
+                $nombreProveedor = $infoProveedor->nombre;
+            }
+            $fila->nombreProveedor = $nombreProveedor;
+
         }
 
         return view('backend.admin.historial.entradas.tablaentradabodega', compact('listado'));
+    }
+
+
+    public function informacionHistorialEntrada(Request $request)
+    {
+        $regla = array(
+            'id' => 'required',
+        );
+
+        $validar = Validator::make($request->all(), $regla);
+
+        if ($validar->fails()){ return ['success' => 0];}
+
+        if($info = Entradas::where('id', $request->id)->first()){
+
+            $arrayProveedor = Proveedor::orderBy('nombre', 'asc')->get();
+
+            return ['success' => 1, 'info' => $info, 'arrayProveedor' => $arrayProveedor];
+        }else{
+            return ['success' => 2];
+        }
+    }
+
+
+    public function editarHistorialEntrada(Request $request)
+    {
+        $regla = array(
+            'id' => 'required',
+            'fecha' => 'required'
+        );
+
+        $validar = Validator::make($request->all(), $regla);
+
+        if ($validar->fails()) {
+            return ['success' => 0];
+        }
+
+        Entradas::where('id', $request->id)->update([
+            'fecha' => $request->fecha,
+            'descripcion' => $request->descripcion,
+            'lote' => $request->lote,
+            'id_proveedor' => $request->proveedor
+        ]);
+
+        return ['success' => 1];
     }
 
 

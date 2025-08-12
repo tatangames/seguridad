@@ -80,14 +80,6 @@ Route::post('/admin/normativa/nuevo', [ConfiguracionController::class,'nuevoNorm
 Route::post('/admin/normativa/informacion', [ConfiguracionController::class,'infoNormativa']);
 Route::post('/admin/normativa/editar', [ConfiguracionController::class,'actualizarNormativa']);
 
-// EMPLEADO
-Route::get('/admin/empleado/index', [ConfiguracionController::class,'vistaEmpleado'])->name('admin.empleado.index');
-Route::get('/admin/empleado/tabla', [ConfiguracionController::class,'tablaEmpleado']);
-Route::post('/admin/empleado/nuevo', [ConfiguracionController::class,'nuevoEmpleado']);
-Route::post('/admin/empleado/informacion', [ConfiguracionController::class,'infoEmpleado']);
-Route::post('/admin/empleado/editar', [ConfiguracionController::class,'actualizarEmpleado']);
-
-
 
 // COLOR
 Route::get('/admin/color/index', [ConfiguracionController::class,'vistaColor'])->name('admin.color.index');
@@ -105,8 +97,6 @@ Route::post('/admin/talla/informacion', [ConfiguracionController::class,'infoTal
 Route::post('/admin/talla/editar', [ConfiguracionController::class,'actualizarTalla']);
 
 
-
-
 // MATERIALES
 Route::get('/admin/materiales/index', [MaterialesController::class,'indexMateriales'])->name('admin.materiales.index');
 Route::get('/admin/materiales/tabla/index', [MaterialesController::class,'tablaMateriales']);
@@ -121,6 +111,62 @@ Route::get('/admin/material/detalle/tabla/{id}', [MaterialesController::class,'t
 // Movimientos detalle
 Route::get('/admin/material/movimientos/detalle/{id}', [MaterialesController::class,'vistaMovimientosDetalleMaterial']);
 Route::get('/admin/material/movimientos/detalle/tabla/{id}', [MaterialesController::class,'tablaMovimientosDetalleMaterial']);
+
+
+// UNIDAD EMPLEADO
+Route::get('/admin/distrito/index', [ConfiguracionController::class,'vistaDistrito'])->name('admin.distrito.index');
+Route::get('/admin/distrito/tabla', [ConfiguracionController::class,'tablaDistrito']);
+Route::post('/admin/distrito/nuevo', [ConfiguracionController::class,'nuevoDistrito']);
+Route::post('/admin/distrito/informacion', [ConfiguracionController::class,'infoDistrito']);
+Route::post('/admin/distrito/editar', [ConfiguracionController::class,'actualizarDistrito']);
+
+
+// UNIDAD EMPLEADO
+Route::get('/admin/unidadempleado/index', [ConfiguracionController::class,'vistaUnidadEmpleado'])->name('admin.unidad.empleado.index');
+Route::get('/admin/unidadempleado/tabla', [ConfiguracionController::class,'tablaUnidadEmpleado']);
+Route::post('/admin/unidadempleado/nuevo', [ConfiguracionController::class,'nuevoUnidadEmpleado']);
+Route::post('/admin/unidadempleado/informacion', [ConfiguracionController::class,'infoUnidadEmpleado']);
+Route::post('/admin/unidadempleado/editar', [ConfiguracionController::class,'actualizarUnidadEmpleado']);
+
+
+// CARGOS
+Route::get('/admin/cargo/index', [ConfiguracionController::class,'vistaCargo'])->name('admin.cargo.index');
+Route::get('/admin/cargo/tabla', [ConfiguracionController::class,'tablaCargo']);
+Route::post('/admin/cargo/nuevo', [ConfiguracionController::class,'nuevoCargo']);
+Route::post('/admin/cargo/informacion', [ConfiguracionController::class,'infoCargo']);
+Route::post('/admin/cargo/editar', [ConfiguracionController::class,'actualizarCargo']);
+
+
+// UNIDAD EMPLEADO
+Route::get('/admin/empleados/index', [ConfiguracionController::class,'vistaEmpleados'])->name('admin.empleados.index');
+Route::get('/admin/empleados/tabla', [ConfiguracionController::class,'tablaEmpleados']);
+
+Route::post('/admin/empleados/buscarunidad', [ConfiguracionController::class,'buscarUnidadConDistrito']);
+
+Route::post('/admin/empleados/nuevo', [ConfiguracionController::class,'nuevoEmpleados']);
+Route::post('/admin/empleados/informacion', [ConfiguracionController::class,'infoEmpleados']);
+Route::post('/admin/empleados/editar', [ConfiguracionController::class,'actualizarEmpleados']);
+
+// PROVEEDORES
+Route::get('/admin/proveedor/index', [ConfiguracionController::class,'vistaProveedor'])->name('admin.proveedor.index');
+Route::get('/admin/proveedor/tabla', [ConfiguracionController::class,'tablaProveedor']);
+Route::post('/admin/proveedor/nuevo', [ConfiguracionController::class,'nuevoProveedor']);
+Route::post('/admin/proveedor/informacion', [ConfiguracionController::class,'infoProveedor']);
+Route::post('/admin/proveedor/editar', [ConfiguracionController::class,'actualizarProveedor']);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -164,6 +210,9 @@ Route::post('/admin/historial/salidadetalle/borraritem', [HistorialController::c
 // HISTORIAL - ENTRADAS
 Route::get('/admin/historial/entrada/index', [HistorialController::class,'indexHistorialEntradas'])->name('sidebar.historial.entradas');
 Route::get('/admin/historial/entrada/tabla', [HistorialController::class,'tablaHistorialEntradas']);
+Route::post('/admin/historial/entrada/informacion',  [HistorialController::class,'informacionHistorialEntrada']);
+Route::post('/admin/historial/entrada/editar',  [HistorialController::class,'editarHistorialEntrada']);
+
 
 // - Detalle
 Route::get('/admin/historial/entradadetalle/index/{id}', [HistorialController::class,'indexHistorialEntradasDetalle']);

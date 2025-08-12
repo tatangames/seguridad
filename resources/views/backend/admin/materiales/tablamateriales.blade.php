@@ -4,57 +4,57 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
-                        <div style="overflow-x: auto; width: 100%">
+                        <div class="table-responsive">
                             <table id="tabla" class="table table-bordered table-striped">
-                            <thead>
-                            <tr>
-                                <th style="width: 6%">Código</th>
-                                <th style="width: 25%">Nombre</th>
-                                <th style="width: 8%">Medida</th>
-                                <th style="width: 8%">Marca</th>
-                                <th style="width: 8%">Normativa</th>
-                                <th style="width: 8%">Talla</th>
-                                <th style="width: 8%">Color</th>
-                                <th style="width: 15%">Otros</th>
-                                <th style="width: 10%">Cantidad Actual (toma en cuenta las salidas)</th>
-                                <th style="width: 13%">Opciones</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-
-                            @foreach($lista as $dato)
+                                <thead>
                                 <tr>
-                                    <td>{{ $dato->codigo }}</td>
-                                    <td>{{ $dato->nombre }}</td>
-                                    <td>{{ $dato->unidadMedida }}</td>
-                                    <td>{{ $dato->marca }}</td>
-                                    <td>{{ $dato->normativa }}</td>
-                                    <td>{{ $dato->talla }}</td>
-                                    <td>{{ $dato->color }}</td>
-                                    <td>{{ $dato->otros }}</td>
-                                    <td>{{ $dato->cantidadGlobal }}</td>
-                                    <td>
+                                    <th style="width: 6%">Código</th>
+                                    <th style="width: 25%">Nombre</th>
+                                    <th style="width: 8%">Medida</th>
+                                    <th style="width: 8%">Marca</th>
+                                    <th style="width: 8%">Normativa</th>
+                                    <th style="width: 8%">Talla</th>
+                                    <th style="width: 8%">Color</th>
+                                    <th style="width: 15%">Otros</th>
+                                    <th style="width: 10%">Cantidad Actual (toma en cuenta las salidas)</th>
 
-                                        <button type="button" class="btn btn-primary btn-xs" onclick="informacion({{ $dato->id }})">
-                                            <i class="fas fa-edit" title="Editar"></i>&nbsp; Editar
-                                        </button>
-
-
-                                        <button type="button" class="btn btn-success btn-xs" onclick="infoDetalle({{ $dato->id }})">
-                                            <i class="fas fa-eye" title="Detalle"></i>&nbsp; Detalle
-                                        </button>
-                                    </td>
+                                    <th style="width: 13%">Opciones</th>
                                 </tr>
-                            @endforeach
+                                </thead>
+                                <tbody>
 
-                            <script>
-                                setTimeout(function () {
-                                    closeLoading();
-                                }, 500);
-                            </script>
+                                @foreach($lista as $dato)
+                                    <tr>
+                                        <td>{{ $dato->codigo }}</td>
+                                        <td>{{ $dato->nombre }}</td>
+                                        <td>{{ $dato->unidadMedida }}</td>
+                                        <td>{{ $dato->marca }}</td>
+                                        <td>{{ $dato->normativa }}</td>
+                                        <td>{{ $dato->talla }}</td>
+                                        <td>{{ $dato->color }}</td>
+                                        <td>{{ $dato->otros }}</td>
+                                        <td>{{ $dato->cantidadGlobal }}</td>
 
-                            </tbody>
-                        </table>
+                                        <td>
+                                            <button type="button" class="btn btn-primary btn-xs" onclick="informacion({{ $dato->id }})">
+                                                <i class="fas fa-edit" title="Editar"></i>&nbsp; Editar
+                                            </button>
+
+                                            <button type="button" class="btn btn-success btn-xs" onclick="infoDetalle({{ $dato->id }})">
+                                                <i class="fas fa-eye" title="Detalle"></i>&nbsp; Detalle
+                                            </button>
+                                        </td>
+                                    </tr>
+                                @endforeach
+
+                                <script>
+                                    setTimeout(function () {
+                                        closeLoading();
+                                    }, 500);
+                                </script>
+
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>

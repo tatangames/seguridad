@@ -11,6 +11,7 @@ use App\Models\EntradasDetalle;
 use App\Models\Marca;
 use App\Models\Materiales;
 use App\Models\Normativa;
+use App\Models\Proveedor;
 use App\Models\Retorno;
 use App\Models\Salidas;
 use App\Models\SalidasDetalle;
@@ -33,7 +34,10 @@ class RegistrosController extends Controller
     //************** REGISTRO DE INGRESO DE MATERIALES  *****************************
 
     public function indexRegistroEntrada(){
-        return view('backend.admin.registros.entradas.vistaentradaregistro');
+
+        $arrayProveedor = Proveedor::orderBy('nombre', 'ASC')->get();
+
+        return view('backend.admin.registros.entradas.vistaentradaregistro', compact('arrayProveedor'));
     }
 
     public function buscadorMaterialGlobal(Request $request){
@@ -480,13 +484,12 @@ class RegistrosController extends Controller
     public function informacionRetorno(Request $request)
     {
         $regla = array(
-            'id' => 'required', // salidas_detalle
+            'id' => 'required',
         );
 
         $validar = Validator::make($request->all(), $regla);
 
         if ($validar->fails()){ return ['success' => 0];}
-
 
         if($info = SalidasDetalle::where('id', $request->id)->first()){
             return ['success' => 1, 'info' => $info];

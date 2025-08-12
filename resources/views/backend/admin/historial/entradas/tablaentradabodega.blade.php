@@ -12,7 +12,8 @@
                             <tr>
                                 <th style="width: 5%">Fecha Ingreso</th>
                                 <th style="width: 12%">Observación</th>
-                                <th style="width: 8%">LOTE</th>
+                                <th style="width: 8%">Factura</th>
+                                <th style="width: 8%">Proveedor</th>
                                 <th style="width: 6%">Opciones</th>
                             </tr>
                             </thead>
@@ -21,9 +22,15 @@
                             @foreach($listado as $dato)
                                 <tr>
                                     <td>{{ $dato->fechaFormat }}</td>
-                                    <td>{{ $dato->observacion }}</td>
+                                    <td>{{ $dato->descripcion }}</td>
                                     <td>{{ $dato->lote }}</td>
+                                    <td>{{ $dato->nombreProveedor }}</td>
                                     <td>
+                                        <button type="button" class="btn btn-success btn-xs"
+                                                onclick="modalEditar({{ $dato->id }})">
+                                            <i class="fas fa-edit" title="Editar"></i>&nbsp; Editar
+                                        </button>
+
                                         <button type="button" class="btn btn-info btn-xs"
                                                 onclick="vistaDetalle({{ $dato->id }})">
                                             <i class="fas fa-eye" title="Detalle"></i>&nbsp; Detalle
