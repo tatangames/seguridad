@@ -11,6 +11,7 @@
                                 <th style="width: 20%">Distrito</th>
                                 <th style="width: 25%">Unidad</th>
                                 <th style="width: 20%">Cargo</th>
+                                <th style="width: 10%">Jefe</th>
                                 <th style="width: 8%">Opciones</th>
                             </tr>
                             </thead>
@@ -22,6 +23,12 @@
                                     <td>{{ $dato->distrito }}</td>
                                     <td>{{ $dato->unidad }}</td>
                                     <td>{{ $dato->cargo }}</td>
+                                    <td>
+                                        @if($dato->jefe == 1)
+                                            <span class="badge bg-success">SI</span>
+                                        @endif
+                                    </td>
+
                                     <td>
                                         <button type="button" style="font-weight: bold; color: white !important;"
                                                 class="button button-primary button-rounded button-pill button-small" onclick="informacion({{ $dato->id }})">

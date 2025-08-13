@@ -740,12 +740,46 @@ class ConfiguracionController extends Controller
     }
 
 
+    public function buscarUnidadConDistritoEmpleado(Request $request)
+    {
+        $regla = array(
+            'id' => 'required' // id unidad
+        );
+
+        $validar = Validator::make($request->all(), $regla);
+
+        if ($validar->fails()) {
+            return ['success' => 0];
+        }
+
+        $arrayEmpleados = Empleado::where('id_unidad_empleado', $request->id)->get();
+
+        $jefe = "";
+
+        // obtener el jefe de esa unidad
+        foreach ($arrayEmpleados as $item){
+            if($item->jefe == 1){
+                $jefe = $item->nombre;
+                break;
+            }
+        }
+
+        // AGREGAR LISTADO DE JEFES SI LOS HUBIERA
+        foreach ($arrayEmpleados as $item){
+            $item->jefe = $jefe;
+        }
+
+        return ['success' => 1, 'arrayEmpleados' => $arrayEmpleados];
+    }
+
+
     public function nuevoEmpleados(Request $request)
     {
         $regla = array(
             'nombre' => 'required',
             'unidad' => 'required',
-            'cargo' => 'required'
+            'cargo' => 'required',
+            'jefe' => 'required',
         );
 
         $validar = Validator::make($request->all(), $regla);
@@ -756,10 +790,20 @@ class ConfiguracionController extends Controller
         DB::beginTransaction();
 
         try {
+
+            // VERIFICAR QUE NO HAYA OTRO JEFE
+            if($request->jefe == 1){
+                Empleado::where('id_unidad_empleado', $request->unidad)->update([
+                    'jefe' => 0,
+                ]);
+            }
+
+
             $dato = new Empleado();
             $dato->nombre = $request->nombre;
             $dato->id_unidad_empleado = $request->unidad;
             $dato->id_cargo = $request->cargo;
+            $dato->jefe = $request->jefe;
             $dato->save();
 
             DB::commit();
@@ -801,7 +845,8 @@ class ConfiguracionController extends Controller
             'id' => 'required',
             'nombre' => 'required',
             'unidad' => 'required',
-            'cargo' => 'required'
+            'cargo' => 'required',
+            'jefe' => 'required',
         );
 
         $validar = Validator::make($request->all(), $regla);
@@ -810,10 +855,18 @@ class ConfiguracionController extends Controller
             return ['success' => 0];
         }
 
+        // VERIFICAR QUE NO HAYA OTRO JEFE
+        if($request->jefe == 1){
+            Empleado::where('id_unidad_empleado', $request->unidad)->update([
+                'jefe' => 0,
+            ]);
+        }
+
         Empleado::where('id', $request->id)->update([
             'nombre' => $request->nombre,
             'id_unidad_empleado' => $request->unidad,
             'id_cargo' => $request->cargo,
+            'jefe' => $request->jefe
         ]);
 
         return ['success' => 1];

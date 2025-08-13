@@ -166,6 +166,56 @@ class MaterialesController extends Controller
     }
 
 
+
+
+    public function buscadorMaterialCodigoCategoria(Request $request){
+
+        if($request->get('query')){
+            $query = $request->get('query');
+            $arrayMateriales = Materiales::where('nombre', 'LIKE', "%{$query}%")
+                ->orWhere('codigo', 'LIKE', "%{$query}%")
+                ->get();
+
+            $output = '<ul class="dropdown-menu" style="display:block; position:relative; overflow: auto; ">';
+            $tiene = true;
+            foreach($arrayMateriales as $row){
+
+
+                $nombreCompleto = "(" . $row->codigo . ") " . $row->nombre;
+
+                // si solo hay 1 fila, No mostrara el hr, salto de linea
+                if(count($arrayMateriales) == 1){
+                    if(!empty($row)){
+                        $tiene = false;
+                        $output .= '
+                 <li class="cursor-pointer" onclick="modificarValor(this)" id="'.$row->codigo.'"><a href="#" style="margin-left: 3px; color: black">'.$nombreCompleto .'</a></li>
+                ';
+                    }
+                }
+
+                else{
+                    if(!empty($row)){
+                        $tiene = false;
+                        $output .= '
+                 <li class="cursor-pointer" onclick="modificarValor(this)" id="'.$row->codigo.'"><a href="#" style="margin-left: 3px; color: black">'.$nombreCompleto .'</a></li>
+                   <hr>
+                ';
+                    }
+                }
+            }
+            $output .= '</ul>';
+            if($tiene){
+                $output = '';
+            }
+            echo $output;
+        }
+    }
+
+
+
+
+
+
     //************************************************************
 
 

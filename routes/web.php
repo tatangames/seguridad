@@ -104,6 +104,11 @@ Route::post('/admin/materiales/nuevo', [MaterialesController::class, 'nuevoMater
 Route::post('/admin/materiales/informacion', [MaterialesController::class, 'informacionMaterial']);
 Route::post('/admin/materiales/editar', [MaterialesController::class, 'editarMaterial']);
 
+// buscar material para obtener categoria codigo
+Route::post('/admin/materiales/buscarmaterial',  [MaterialesController::class,'buscadorMaterialCodigoCategoria']);
+
+
+
 // - Detalle
 Route::get('/admin/material/detalle/{id}', [MaterialesController::class,'vistaDetalleMaterial']);
 Route::get('/admin/material/detalle/tabla/{id}', [MaterialesController::class,'tablaDetalleMaterial']);
@@ -142,6 +147,7 @@ Route::get('/admin/empleados/index', [ConfiguracionController::class,'vistaEmple
 Route::get('/admin/empleados/tabla', [ConfiguracionController::class,'tablaEmpleados']);
 
 Route::post('/admin/empleados/buscarunidad', [ConfiguracionController::class,'buscarUnidadConDistrito']);
+Route::post('/admin/empleados/buscarunidad-empleado', [ConfiguracionController::class,'buscarUnidadConDistritoEmpleado']);
 
 Route::post('/admin/empleados/nuevo', [ConfiguracionController::class,'nuevoEmpleados']);
 Route::post('/admin/empleados/informacion', [ConfiguracionController::class,'infoEmpleados']);

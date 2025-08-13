@@ -74,7 +74,7 @@
                                         <label>Distrito:</label>
                                         <br>
                                         <select width="100%" class="form-control" id="select-distrito" onchange="buscarUnidad(this)">
-                                            <option value="0">Seleccionar</option>
+                                            <option value="0">Seleccionar opción</option>
                                             @foreach($arrayDistrito as $sel)
                                                 <option value="{{ $sel->id }}">{{ $sel->nombre }}</option>
                                             @endforeach
@@ -101,6 +101,16 @@
                                     <div class="form-group">
                                         <label>Empleado</label>
                                         <input type="text" maxlength="100" class="form-control" id="nombre-nuevo" autocomplete="off">
+                                    </div>
+
+
+                                    <div class="form-group">
+                                        <div class="d-flex align-items-center">
+                                            <div class="form-check ml-3">
+                                                <input class="form-check-input" type="checkbox" id="check-jefe">
+                                                <label class="form-check-label" for="check-jefe" style="font-weight: bold; font-size: 18px">ES JEFE?</label>
+                                            </div>
+                                        </div>
                                     </div>
 
                                 </div>
@@ -161,6 +171,16 @@
                                     <div class="form-group">
                                         <label>Empleado</label>
                                         <input type="text" maxlength="100" class="form-control" id="nombre-editar" autocomplete="off">
+                                    </div>
+
+
+                                    <div class="form-group">
+                                        <div class="d-flex align-items-center">
+                                            <div class="form-check ml-3">
+                                                <input class="form-check-input" type="checkbox" id="check-jefe-editar">
+                                                <label class="form-check-label" for="check-jefe-editar" style="font-weight: bold; font-size: 18px">ES JEFE?</label>
+                                            </div>
+                                        </div>
                                     </div>
 
                                 </div>
@@ -340,6 +360,9 @@
             var cargo = document.getElementById('select-cargo').value;
             var nombre = document.getElementById('nombre-nuevo').value;
 
+            var checkboxJefe = document.getElementById('check-jefe');
+            var valorCheckboxJefe = checkboxJefe.checked ? 1 : 0;
+
             if(unidad === ''){
                 toastr.error('Unidad es requerido');
                 return;
@@ -360,6 +383,7 @@
             formData.append('nombre', nombre);
             formData.append('unidad', unidad);
             formData.append('cargo', cargo);
+            formData.append('jefe', valorCheckboxJefe);
 
             axios.post(url+'/empleados/nuevo', formData, {
             })
@@ -424,6 +448,11 @@
 
                         $('#nombre-editar').val(response.data.info.nombre);
 
+
+                        let checkJefe = response.data.info.jefe
+
+                        document.getElementById('check-jefe-editar').checked = checkJefe;
+
                     }else{
                         toastr.error('Información no encontrada');
                     }
@@ -440,6 +469,9 @@
             var unidad = document.getElementById('select-unidad-editar').value;
             var cargo = document.getElementById('select-cargo-editar').value;
 
+            var checkboxJefe = document.getElementById('check-jefe-editar');
+            var valorCheckboxJefe = checkboxJefe.checked ? 1 : 0;
+
             if(nombre === ''){
                 toastr.error('Nombre es requerido');
                 return;
@@ -451,6 +483,7 @@
             formData.append('nombre', nombre);
             formData.append('unidad', unidad);
             formData.append('cargo', cargo);
+            formData.append('jefe', valorCheckboxJefe);
 
             axios.post(url+'/empleados/editar', formData, {
             })

@@ -181,8 +181,9 @@ class RegistrosController extends Controller
 
     public function indexRegistroSalida(){
 
+        $arrayDistritos = Distrito::orderBy('nombre', 'ASC')->get();
 
-        return view('backend.admin.registros.salidas.vistasalidaregistro');
+        return view('backend.admin.registros.salidas.vistasalidaregistro', compact('arrayDistritos'));
     }
 
     public function buscadorMaterialDisponible(Request $request){
@@ -309,6 +310,12 @@ class RegistrosController extends Controller
             $infoPadre = Entradas::where('id', $fila->id_entradas)->first();
             $fila->lote = $infoPadre->lote;
 
+            $proveedor = "";
+            if($infoProveedor = Proveedor::where('id', $infoPadre->id_proveedor)->first()){
+                $proveedor = $infoProveedor->nombre;
+            }
+            $fila->proveedor = $proveedor;
+
             // cantidad actual que hay
             $resta = $fila->cantidad - $fila->cantidad_entregada;
             $fila->cantidadActual = $resta;
@@ -343,11 +350,10 @@ class RegistrosController extends Controller
 
         $regla = array(
             'fecha' => 'required',
-            'idencargado' => 'required',
-            'iddistrito' => 'required',
+            'empleado' => 'required',
         );
 
-        //  descripcion, (infoIdEntradaDeta, infoCantidad, infoRetorno)
+        //  descripcion, (infoIdEntradaDeta, infoCantidad)
 
         $validar = Validator::make($request->all(), $regla);
 
@@ -367,8 +373,7 @@ class RegistrosController extends Controller
 
             $reg = new Salidas();
             $reg->fecha = $request->fecha;
-            $reg->id_encargado = $request->idencargado;
-            $reg->id_distrito = $request->iddistrito;
+            $reg->id_empleado = $request->empleado;
             $reg->descripcion = $request->descripcion;
             $reg->save();
 
@@ -394,7 +399,7 @@ class RegistrosController extends Controller
                 $detalle->id_salida = $reg->id;
                 $detalle->id_entrada_detalle = $infoFilaEntradaDetalle->id;
                 $detalle->cantidad_salida = $filaArray['infoCantidad'];
-                $detalle->tipo_regresa = $filaArray['infoRetorno'];
+                $detalle->tipo_regresa = 0;
                 $detalle->save();
 
                 // ACTUALIZAR CANTIDADES DE SALIDA

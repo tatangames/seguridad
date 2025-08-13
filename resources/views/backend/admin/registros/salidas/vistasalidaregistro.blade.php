@@ -62,8 +62,47 @@
                                             </div>
 
 
+                                            <div class="form-group col-md-6">
+                                                <label>Distrito:</label>
+                                                <br>
+                                                <select width="100%" class="form-control" id="select-distrito" onchange="buscarUnidad(this)">
+                                                    <option value="0" selected disabled>Seleccionar opción</option>
+                                                    @foreach($arrayDistritos as $sel)
+                                                        <option value="{{ $sel->id }}">{{ $sel->nombre }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
 
-                                            <div class="form-group">
+
+                                            <div class="form-group col-md-6">
+                                                <label>Unidad:</label>
+                                                <br>
+                                                <select width="100%"  class="form-control" id="select-unidad" onchange="buscarEmpleado(this)">
+                                                </select>
+                                            </div>
+
+
+                                            <div class="row">
+                                                <div class="form-group col-md-6">
+                                                    <label>Empleado:</label>
+                                                    <br>
+                                                    <select class="form-control" id="select-empleado" style="width:100%;">
+                                                    </select>
+                                                </div>
+
+                                                <div class="form-group col-md-4">
+                                                    <label>Jefe Inmediato:</label>
+                                                    <br>
+                                                    <input type="text" disabled class="form-control" autocomplete="off" id="jefe-inmediato">
+                                                </div>
+                                            </div>
+
+
+
+
+                                            <hr>
+
+                                            <div class="form-group" style="margin-top: 20px">
                                                 <label>Descripción (Opcional):</label>
                                                 <input type="text" class="form-control" autocomplete="off" maxlength="800" id="descripcion">
                                             </div>
@@ -131,7 +170,7 @@
     </section>
 
     <div class="modal-footer justify-content-between">
-        <button type="button" class="btn btn-success" onclick="preguntaGuardar()">Guardar</button>
+        <button type="button" class="btn btn-success" onclick="preguntaGuardar()">Guardar Salida</button>
     </div>
 
 
@@ -235,10 +274,10 @@
                                         <thead>
                                         <tr>
                                             <th style="width: 5%">Fecha Ingreso</th>
-                                            <th style="width: 5%">LOTE</th>
-                                            <th style="width: 5%">Cantidad Actual</th>
-                                            <th style="width: 5%">Cantidad Salida</th>
-                                            <th style="width: 5%">Retornara</th>
+                                            <th style="width: 5%">Factura</th>
+                                            <th style="width: 5%">Proveedor</th>
+                                            <th style="width: 4%">Cantidad Actual</th>
+                                            <th style="width: 4%">Cantidad Salida</th>
                                         </tr>
                                         </thead>
                                         <tbody>
@@ -298,19 +337,50 @@
             });
 
 
-            $('#select-encargado').select2({
+
+
+
+            $('#select-distrito').select2({
                 theme: "bootstrap-5",
                 "language": {
                     "noResults": function(){
-                        return "Búsqueda no encontrada";
+                        return "Busqueda no encontrada";
                     }
                 },
             });
+
+            $('#select-unidad').select2({
+                theme: "bootstrap-5",
+                "language": {
+                    "noResults": function(){
+                        return "Busqueda no encontrada";
+                    }
+                },
+            });
+
+
+
+            $('#select-empleado').select2({
+                theme: "bootstrap-5",
+                "language": {
+                    "noResults": function(){
+                        return "Busqueda no encontrada";
+                    }
+                },
+            });
+
 
         });
     </script>
 
     <script>
+
+        $('#select-empleado').on('change', function() {
+            let info = $(this).find(':selected').data('info');
+            $('#jefe-inmediato').val(info);
+        });
+
+
 
         function abrirModal(){
             document.getElementById('tablaRepuesto').innerHTML = "";
@@ -396,8 +466,6 @@
                                 nombreLote = val.lote
                             }
 
-                            console.log(val.cantidadActual)
-
                             var markup = "<tr>" +
 
                                 "<td>" +
@@ -406,6 +474,10 @@
 
                                 "<td>" +
                                 "<input disabled value='" + nombreLote + "' class='form-control' type='text'>" +
+                                "</td>" +
+
+                                "<td>" +
+                                "<input disabled value='" + val.proveedor + "' class='form-control' type='text'>" +
                                 "</td>" +
 
                                 "<td>" +
@@ -420,12 +492,6 @@
                                 "oninput=\"validateCantidadSalida(this, " + val.cantidad + ");\">" +
                                 "</td>" +
 
-                                "<td>" +
-                                "<div class='form-check d-flex align-items-center gap-2'>" +
-                                "<input class='form-check-input checkbox-lg' type='checkbox' name='arrayRetornara[]' value='0' onchange='toggleRetornaraLabel(this)'>" +
-                                "<label class='form-check-label mb-0 label-lg'>No</label>" +
-                                "</div>" +
-                                "</td>" +
 
                                 "</tr>";
 
@@ -444,10 +510,7 @@
                 });
         }
 
-        function toggleRetornaraLabel(checkbox) {
-            const label = checkbox.nextElementSibling;
-            label.textContent = checkbox.checked ? 'Sí' : 'No';
-        }
+
 
 
         // AGREGAR AL DETALLE
@@ -594,15 +657,18 @@
 
             // fecha
             var fecha = document.getElementById('fecha').value;
-            // id persona que recibe
-            var idEncargado = document.getElementById('select-encargado').value;
-            // distrito
-            var idDistrito = document.getElementById('select-distrito').value;
+            var empleado = document.getElementById('select-empleado').value;
             // descripcion
             var descripcion = document.getElementById('descripcion').value;
 
             if(fecha === ''){
                 toastr.error('Fecha es requerida');
+                return
+            }
+
+            if(empleado === ''){
+                toastr.error('Empleado es requerido');
+                return
             }
 
 
@@ -660,16 +726,14 @@
             for(var p = 0; p < salidaCantidad.length; p++){
                 let infoIdEntradaDeta = idEntradaDetalle[p];
                 let infoCantidad = salidaCantidad[p];
-                var infoRetorno = checkboxes[p];
 
-                contenedorArray.push({ infoIdEntradaDeta, infoCantidad, infoRetorno});
+                contenedorArray.push({ infoIdEntradaDeta, infoCantidad});
             }
 
             openLoading();
 
             formData.append('fecha', fecha);
-            formData.append('idencargado', idEncargado);
-            formData.append('iddistrito', idDistrito);
+            formData.append('empleado', empleado);
             formData.append('descripcion', descripcion);
             formData.append('contenedorArray', JSON.stringify(contenedorArray));
 
@@ -774,7 +838,7 @@
         function limpiar(){
             document.getElementById('descripcion').value = '';
             document.getElementById('numero-salida').value = '';
-
+            $('#jefe-inmediato').val("");
             $("#matriz tbody tr").remove();
         }
 
@@ -793,6 +857,91 @@
                 input.value = maxCantidad; // Restringe el valor al máximo permitido
             }
         }
+
+
+
+        function buscarUnidad(){
+            let id = document.getElementById('select-distrito').value;
+
+            if(id == '0'){
+                document.getElementById("select-unidad").options.length = 0;
+                document.getElementById("select-empleado").options.length = 0;
+                return false;
+            }
+
+            $('#jefe-inmediato').val("");
+
+            openLoading();
+
+            axios.post(url+'/empleados/buscarunidad',{
+                'id': id
+            })
+                .then((response) => {
+                    closeLoading();
+                    if(response.data.success === 1){
+
+                        document.getElementById("select-unidad").options.length = 0;
+
+                        $('#select-unidad').append('<option value=0 disabled selected>Seleccionar opción</option>');
+
+                        // unidad de medida
+                        $.each(response.data.arrayUnidad, function( key, val ){
+                            $('#select-unidad').append('<option value="' +val.id +'">'+ val.nombre +'</option>');
+                        });
+
+                    }else{
+                        toastr.error('Información no encontrada');
+                    }
+                })
+                .catch((error) => {
+                    closeLoading();
+                    toastr.error('Información no encontrada');
+                });
+        }
+
+        function buscarEmpleado(){
+            let id = document.getElementById('select-unidad').value;
+
+            if(id == '0'){
+                document.getElementById("select-unidad").options.length = 0;
+                document.getElementById("select-empleado").options.length = 0;
+                return false;
+            }
+
+            $('#jefe-inmediato').val("");
+
+            openLoading();
+
+            axios.post(url+'/empleados/buscarunidad-empleado',{
+                'id': id
+            })
+                .then((response) => {
+                    closeLoading();
+                    if(response.data.success === 1){
+
+                        document.getElementById("select-empleado").options.length = 0;
+
+                        $('#select-empleado').append('<option value=0 disabled selected>Seleccionar opción</option>');
+
+                        // empleado
+                        $.each(response.data.arrayEmpleados, function( key, val ){
+                            $('#select-empleado').append('<option value="' + val.id + '" data-info="' + val.jefe + '">' + val.nombre + '</option>');
+                        });
+
+                    }else{
+                        toastr.error('Información no encontrada');
+                    }
+                })
+                .catch((error) => {
+                    closeLoading();
+                    toastr.error('Información no encontrada');
+                });
+        }
+
+
+
+
+
 
 
     </script>

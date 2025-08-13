@@ -67,9 +67,17 @@
                         <div class="card-body">
 
                             <div class="form-group">
-                                <label>Nombre del Material:</label>
-                                <input type="text" class="form-control" autocomplete="off" onpaste="contarcaracteresIngreso();" onkeyup="contarcaracteresIngreso();" maxlength="300" id="nombre-nuevo">
-                                <div id="res-caracter-nuevo" style="float: right">0/300</div>
+                                <label class="control-label">Nombre</label>
+                                <table class="table" id="matriz-busqueda" data-toggle="table">
+                                    <tbody>
+                                    <tr>
+                                        <td>
+                                            <input id="repuesto" data-info='0' autocomplete="off" class='form-control' style='width:100%' onkeyup='buscarMaterial(this)' maxlength='400'  type='text'>
+                                            <div class='droplista' style='position: absolute; z-index: 9; width: 75% !important;'></div>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
                             </div>
 
                             <br>
@@ -193,8 +201,7 @@
 
                                     <div class="form-group">
                                         <label>Nombre del Material:</label>
-                                        <input type="text" class="form-control" autocomplete="off" onpaste="contarcaracteresEditar();" onkeyup="contarcaracteresEditar();" maxlength="300" id="nombre-editar" >
-                                        <div id="res-caracter-editar" style="float: right">0/300</div>
+                                        <input type="text" class="form-control" autocomplete="off" maxlength="300" id="nombre-editar" >
                                     </div>
 
                                     <br>
@@ -299,6 +306,21 @@
             var ruta = "{{ URL::to('/admin/materiales/tabla/index') }}";
             $('#tablaDatatable').load(ruta);
 
+            window.seguroBuscador = true;
+            window.txtContenedorGlobal = this;
+
+            $(document).click(function(){
+                $(".droplista").hide();
+            });
+
+            $(document).ready(function() {
+                $('[data-toggle="popover"]').popover({
+                    placement: 'top',
+                    trigger: 'hover'
+                });
+            });
+
+
             $('#select-unidad-nuevo').select2({
                 theme: "bootstrap-5",
                 "language": {
@@ -343,17 +365,6 @@
                     }
                 },
             });
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -419,7 +430,6 @@
 
         function modalAgregar(){
             document.getElementById("formulario-nuevo").reset();
-            document.getElementById('res-caracter-nuevo').innerHTML = '0/300 ';
 
 
             $('#select-unidad-nuevo').prop('selectedIndex', 0).change();
@@ -647,26 +657,60 @@
                 });
         }
 
-        function contarcaracteresIngreso(){
-            setTimeout(function(){
-                var valor = document.getElementById('nombre-nuevo');
-                var cantidad = valor.value.length;
-                document.getElementById('res-caracter-nuevo').innerHTML = cantidad + '/300 ';
-            },10);
-        }
-
-        function contarcaracteresEditar(){
-            setTimeout(function(){
-                var valor = document.getElementById('nombre-editar');
-                var cantidad = valor.value.length;
-                document.getElementById('res-caracter-editar').innerHTML = cantidad + '/300 ';
-            },10);
-        }
-
         // mostrara que materiales quedan aun
         function infoDetalle(id){
             window.location.href="{{ url('/admin/material/detalle') }}/" + id;
         }
+
+
+
+
+
+        function buscarMaterial(e){
+
+            // seguro para evitar errores de busqueda continua
+            if(seguroBuscador){
+                seguroBuscador = false;
+
+                var row = $(e).closest('tr');
+                txtContenedorGlobal = e;
+
+                let texto = e.value;
+
+                if(texto === ''){
+                    // si se limpia el input, setear el atributo id
+                    $(e).attr('data-info', 0);
+                }
+
+                axios.post(url+'/materiales/buscarmaterial', {
+                    'query' : texto
+                })
+                    .then((response) => {
+
+                        seguroBuscador = true;
+                        $(row).each(function (index, element) {
+                            $(this).find(".droplista").fadeIn();
+                            $(this).find(".droplista").html(response.data);
+                        });
+                    })
+                    .catch((error) => {
+                        seguroBuscador = true;
+                    });
+            }
+        }
+
+
+        function modificarValor(edrop){
+
+            // id del <li>
+            const codigo = edrop.id;
+
+            // Ejemplos de uso (ajusta los selectores a tus inputs reales)
+            $('#codigo-nuevo').val(codigo);
+
+        }
+
+
 
     </script>
 

@@ -40,7 +40,7 @@
                                                 <i class="fas fa-edit" title="Editar"></i>&nbsp; Editar
                                             </button>
 
-                                            <button type="button" class="btn btn-success btn-xs" onclick="infoDetalle({{ $dato->id }})">
+                                            <button type="button" style="margin: 5px" class="btn btn-success btn-xs" onclick="infoDetalle({{ $dato->id }})">
                                                 <i class="fas fa-eye" title="Detalle"></i>&nbsp; Detalle
                                             </button>
                                         </td>
