@@ -187,7 +187,14 @@ Route::post('/admin/entradas/guardar',  [RegistrosController::class,'guardarEntr
 Route::get('/admin/salidas/vista', [RegistrosController::class,'indexRegistroSalida'])->name('admin.salidas.registro.index');
 Route::post('/admin/buscar/material/disponible',  [RegistrosController::class,'buscadorMaterialDisponible']);
 Route::post('/admin/buscar/material/disponibilidad', [RegistrosController::class, 'infoBodegaMaterialDetalleFila']);
+
+
 Route::post('/admin/salida/guardar',  [RegistrosController::class,'guardarSalidaMateriales']);
+
+// TEMPORAL PARA EL REPORTE PDF
+Route::post('/admin/salida/guardar-temporal',  [RegistrosController::class,'guardarSalidaMaterialesTemporal']);
+Route::get('/admin/salidas/pdf-temporal', [RegistrosController::class,'generarPdfTemporal']);
+
 
 
 // RETORNOS
@@ -202,8 +209,15 @@ Route::post('/admin/retornos/borrar',  [RegistrosController::class,'borrarRetorn
 // HISTORIAL - SALIDAS
 Route::get('/admin/historial/salidas/index', [HistorialController::class,'indexHistorialSalidas'])->name('sidebar.historial.salidas');
 Route::get('/admin/historial/salidas/tabla', [HistorialController::class,'tablaHistorialSalidas']);
+Route::post('/admin/historial/salidas/informacion',  [HistorialController::class,'informacionHistorialSalida']);
+Route::post('/admin/historial/salidas/editar',  [HistorialController::class,'editarHistorialSalida']);
+
+
+
 Route::get('/admin/historial/salidadetalle/index/{id}', [HistorialController::class,'indexHistorialSalidasDetalle']);
 Route::get('/admin/historial/salidadetalle/tabla/{id}', [HistorialController::class,'tablaHistorialSalidasDetalle']);
+
+
 // index movimientos salidas detalle
 Route::get('/admin/historial/salidadetalle/movimientos/index/{id}', [HistorialController::class,'indexHistorialSalidasDetalleMovimientos']);
 Route::get('/admin/historial/salidadetalle/movimientos/tabla/{id}', [HistorialController::class,'tablaHistorialSalidasDetalleMovimientos']);

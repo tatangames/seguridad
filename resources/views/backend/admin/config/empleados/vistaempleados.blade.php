@@ -88,6 +88,14 @@
                                         </select>
                                     </div>
 
+
+                                    <div class="form-group">
+                                        <label>Empleado</label>
+                                        <input type="text" maxlength="100" class="form-control" id="nombre-nuevo" autocomplete="off">
+                                    </div>
+
+
+
                                     <div class="form-group">
                                         <label>Cargo:</label>
                                         <br>
@@ -97,12 +105,6 @@
                                             @endforeach
                                         </select>
                                     </div>
-
-                                    <div class="form-group">
-                                        <label>Empleado</label>
-                                        <input type="text" maxlength="100" class="form-control" id="nombre-nuevo" autocomplete="off">
-                                    </div>
-
 
                                     <div class="form-group">
                                         <div class="d-flex align-items-center">
@@ -160,19 +162,18 @@
                                         </select>
                                     </div>
 
-                                    <div class="form-group">
-                                        <label>Cargo:</label>
-                                        <br>
-                                        <select width="100%" class="form-control" id="select-cargo-editar">
-                                        </select>
-                                    </div>
-
 
                                     <div class="form-group">
                                         <label>Empleado</label>
                                         <input type="text" maxlength="100" class="form-control" id="nombre-editar" autocomplete="off">
                                     </div>
 
+                                    <div class="form-group">
+                                        <label>Cargo:</label>
+                                        <br>
+                                        <select width="100%" class="form-control" id="select-cargo-editar">
+                                        </select>
+                                    </div>
 
                                     <div class="form-group">
                                         <div class="d-flex align-items-center">
@@ -302,7 +303,6 @@
 
                         document.getElementById("select-unidad").options.length = 0;
 
-                        // unidad de medida
                         $.each(response.data.arrayUnidad, function( key, val ){
                             $('#select-unidad').append('<option value="' +val.id +'">'+ val.nombre +'</option>');
                         });
@@ -331,7 +331,6 @@
 
                         document.getElementById("select-unidad-editar").options.length = 0;
 
-                        // unidad de medida
                         $.each(response.data.arrayUnidad, function( key, val ){
                             $('#select-unidad-editar').append('<option value="' +val.id +'">'+ val.nombre +'</option>');
                         });
@@ -474,6 +473,11 @@
 
             if(nombre === ''){
                 toastr.error('Nombre es requerido');
+                return;
+            }
+
+            if(unidad === ''){
+                toastr.error('Unidad es requerido');
                 return;
             }
 

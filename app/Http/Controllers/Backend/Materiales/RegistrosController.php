@@ -5,7 +5,6 @@ namespace App\Http\Controllers\backend\materiales;
 use App\Http\Controllers\Controller;
 use App\Models\Color;
 use App\Models\Distrito;
-use App\Models\Encargado;
 use App\Models\Entradas;
 use App\Models\EntradasDetalle;
 use App\Models\Marca;
@@ -13,10 +12,13 @@ use App\Models\Materiales;
 use App\Models\Normativa;
 use App\Models\Proveedor;
 use App\Models\Retorno;
+use App\Models\SalidaDetalleTemporal;
 use App\Models\Salidas;
 use App\Models\SalidasDetalle;
+use App\Models\SalidaTemporal;
 use App\Models\Talla;
 use App\Models\UnidadMedida;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -347,7 +349,6 @@ class RegistrosController extends Controller
 
     public function guardarSalidaMateriales(Request  $request)
     {
-
         $regla = array(
             'fecha' => 'required',
             'empleado' => 'required',
@@ -416,6 +417,234 @@ class RegistrosController extends Controller
             return ['success' => 99];
         }
     }
+
+
+    //********** PARA PDF SALIDA TEMPORAL *************
+
+    public function guardarSalidaMaterialesTemporal(Request  $request)
+    {
+        $regla = array(
+            'fecha' => 'required',
+            'empleado' => 'required',
+        );
+
+        //  descripcion, (infoIdEntradaDeta, infoCantidad)
+
+        $validar = Validator::make($request->all(), $regla);
+
+        if ($validar->fails()){ return ['success' => 0];}
+
+        DB::beginTransaction();
+
+        try {
+
+            $datosContenedor = json_decode($request->contenedorArray, true);
+
+            // EVITAR QUE VENGA VACIO
+            if($datosContenedor == null){
+                return ['success' => 1];
+            }
+
+            // GUARDAR SIEMPRE EN LA MISMA POR SER TEMPORAL
+
+
+            SalidaTemporal::where('id', 1)->update([
+                'fecha' => $request->fecha,
+                'id_empleado' => $request->empleado,
+                'descripcion' => $request->descripcion
+            ]);
+
+            DB::table('salida_detalle_temporal')->delete();
+
+            foreach ($datosContenedor as $filaArray) {
+
+                $infoFilaEntradaDetalle = EntradasDetalle::where('id', $filaArray['infoIdEntradaDeta'])->first();
+
+                // GUARDAR SALIDA DETALLE
+                $detalle = new SalidaDetalleTemporal();
+                $detalle->id_salida = 1;
+                $detalle->id_entrada_detalle = $infoFilaEntradaDetalle->id;
+                $detalle->cantidad_salida = $filaArray['infoCantidad'];
+                $detalle->save();
+            }
+
+            DB::commit();
+            return ['success' => 10];
+        }catch(\Throwable $e){
+            Log::info('error ' . $e);
+            DB::rollback();
+            return ['success' => 99];
+        }
+    }
+
+
+    // **** GENERAR PDF TEMPORAL ****
+
+
+    public function generarPdfTemporal(){
+
+        $infoSalida = SalidaTemporal::where('id', 1)->first();
+
+        $arraySalidasDetalle = SalidaDetalleTemporal::where('id_salida', 1)->get();
+
+        $resultsBloque = [];
+        $totalTodosLosBloques = 0;
+
+        foreach ($arraySalidasDetalle as $salida) {
+
+
+
+            // Agregar salida con su detalle ordenado
+          //  $salida->detalle = $detalleSalida;
+          //  $resultsBloque[] = $salida;
+        }
+
+
+
+
+
+        $mpdf = new \Mpdf\Mpdf(['format' => 'LETTER']);
+        //$mpdf = new \Mpdf\Mpdf(['tempDir' => sys_get_temp_dir(), 'format' => 'LETTER']);
+
+        $mpdf->SetTitle('Reporte Temporal');
+
+        // mostrar errores
+        $mpdf->showImageErrors = false;
+
+        $logoalcaldia = 'images/gobiernologo.jpg';
+        $logosantaana = 'images/logo.png';
+
+        $fechaFormat = date("d-m-Y", strtotime(Carbon::now('America/El_Salvador')));
+
+
+        $tabla = "
+            <table style='width: 100%; border-collapse: collapse;'>
+                <tr>
+                    <!-- Logo izquierdo -->
+                    <td style='width: 15%; text-align: left;'>
+                        <img src='$logosantaana' alt='Santa Ana Norte' style='max-width: 100px; height: auto;'>
+                    </td>
+                    <!-- Texto centrado -->
+                    <td style='width: 60%; text-align: center;'>
+                        <h1 style='font-size: 16px; margin: 0; color: #003366; text-transform: uppercase;'>
+                        ALCALDÍA MUNICIPAL DE SANTA ANA NORTE DISTRITO DE METAPÁN</h1>
+                        <h1 style='font-size: 16px; margin: 0; color: #003366; text-transform: uppercase;'>UNIDAD DE SEGURIDAD Y SALUD OCUPACIONAL.</h1>
+                        <h2 style='font-size: 14px; margin: 0; color: #003366; text-transform: uppercase;'></h2>
+                    </td>
+                    <!-- Logo derecho -->
+                    <td style='width: 10%; text-align: right;'>
+                        <img src='$logoalcaldia' alt='Gobierno de El Salvador' style='max-width: 60px; height: auto;'>
+                    </td>
+                </tr>
+            </table>
+            <hr style='border: none; border-top: 2px solid #003366; margin: 0;'>
+            ";
+
+        $tabla .= "
+            <div style='text-align: center; margin-top: 20px;'>
+                <h1 style='font-size: 15px; margin: 0; color: #000;'>ENTREGAS DE MATERIAL</h1>
+            </div>
+            <div style='text-align: left; margin-top: 10px;'>
+                <p style='font-size: 13px; margin: 0; color: #000;'><strong>Fecha:</strong> xxx</p>
+            </div>
+             <div style='text-align: left; margin-top: 10px;'>
+                <p style='font-size: 13px; margin: 0; color: #000;'><strong>Encargado:</strong> xxxx</p>
+            </div>
+      ";
+
+
+        foreach ($resultsBloque as $fila){
+
+            $tabla .= "<table width='100%' id='tablaFor' style='margin-top: 30px'>
+            <thead>
+                <tr>
+                    <th style='text-align: center; font-size:12px; width: 12%; font-weight: bold; border: 1px solid black;'>Fecha Salida</th>
+                    <th style='text-align: center; font-size:12px; width: 12%; font-weight: bold; border: 1px solid black;'>Distrito</th>
+                    <th style='text-align: center; font-size:12px; width: 12%; font-weight: bold; border: 1px solid black;'>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>";
+
+            $tabla .= "<tr>
+                    <td style='font-size: 11px; font-weight: normal'>$fila->fechaFormat</td>
+                    <td style='font-size: 11px; font-weight: normal'>$fila->nombreDistrito</td>
+                    <td style='font-size: 11px; font-weight: normal'>$fila->descripcion</td>
+                </tr>";
+
+            $tabla .= "</tbody></table>";
+
+            $tabla .= "<table width='100%' id='tablaFor'>
+                    <thead>
+                        <tr>
+                            <th style='font-weight: bold; width: 8%; font-size: 12px; text-align: center;'>LOTE</th>
+                            <th style='font-weight: bold; width: 22%; font-size: 12px; text-align: center;'>Material</th>
+                            <th style='font-weight: bold; width: 13%; font-size: 12px; text-align: center;'>Marca</th>
+                            <th style='font-weight: bold; width: 12%; font-size: 12px; text-align: center;'>U/M</th>
+                            <th style='font-weight: bold; width: 12%; font-size: 12px; text-align: center;'>Normativa</th>
+                            <th style='font-weight: bold; width: 12%; font-size: 12px; text-align: center;'>Cantidad</th>
+                            <th style='font-weight: bold; width: 10%; font-size: 12px; text-align: center;'>Precio</th>
+                            <th style='font-weight: bold; width: 10%; font-size: 12px; text-align: center;'>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>";
+
+            foreach ($fila->detalle as $filaDeta){
+
+
+            }
+
+            $tabla .= "<tr>
+                    <td colspan='7' style='font-size: 11px; font-weight: bold'>Total</td>
+                    <td style='font-size: 11px; font-weight: bold'>zzz</td>
+                </tr>";
+
+
+            $tabla .= "</tbody></table>";
+        }
+
+        $tabla .= "
+            <div style='text-align: left; margin-top: 35px; margin-left: 15px'>
+                <p style='font-size: 15px; margin: 0; color: #000;'><strong>Total: xxxx </strong> </p>
+            </div>
+
+      ";
+
+
+        $stylesheet = file_get_contents('css/cssbodega.css');
+        $mpdf->WriteHTML($stylesheet,1);
+
+        $mpdf->setFooter("Página: " . '{PAGENO}' . "/" . '{nb}');
+        $mpdf->WriteHTML($tabla,2);
+
+        $mpdf->Output();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

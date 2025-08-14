@@ -8,7 +8,7 @@
                             <thead>
                             <tr>
                                 <th style="width: 3%">Fecha Ingreso</th>
-                                <th style="width: 3%">LOTE</th>
+                                <th style="width: 3%">Factura</th>
                                 <th style="width: 3%">Descripción</th>
                                 <th style="width: 4%">Cantidad Actual (Toma en cuenta las salidas)</th>
                                 <th style="width: 2%">Opciones</th>

@@ -97,14 +97,18 @@
                                                 </div>
                                             </div>
 
-
-
-
                                             <hr>
 
                                             <div class="form-group" style="margin-top: 20px">
                                                 <label>Descripción (Opcional):</label>
                                                 <input type="text" class="form-control" autocomplete="off" maxlength="800" id="descripcion">
+                                            </div>
+
+                                            <div class="form-group" style="float: left">
+                                                <br>
+                                                <button type="button" onclick="verPDfTemporal()" class="btn btn-success btn-sm float-right"
+                                                        style="margin-top:10px; margin-right: 15px;">
+                                                    <i class="fas fa-search" title="PDF"></i> PDF Temporal</button>
                                             </div>
 
                                             <div class="form-group" style="float: right">
@@ -491,7 +495,6 @@
                                 "onkeydown=\"return validateInput(event);\" " +
                                 "oninput=\"validateCantidadSalida(this, " + val.cantidad + ");\">" +
                                 "</td>" +
-
 
                                 "</tr>";
 
@@ -940,7 +943,119 @@
 
 
 
+        // ******** PARA GENERAR UN REPORTE TEMPORAL ******************
 
+
+
+        function verPDfTemporal(){
+
+            // fecha
+            var fecha = document.getElementById('fecha').value;
+            var empleado = document.getElementById('select-empleado').value;
+            // descripcion
+            var descripcion = document.getElementById('descripcion').value;
+
+            if(fecha === ''){
+                toastr.error('Fecha es requerida');
+                return
+            }
+
+            if(empleado === ''){
+                toastr.error('Empleado es requerido');
+                return
+            }
+
+
+            var reglaNumeroEntero = /^[0-9]\d*$/;
+            var nRegistro = $('#matriz > tbody >tr').length;
+
+            if (nRegistro <= 0){
+                toastr.error('Registro Salida son requeridos');
+                return;
+            }
+
+            var idEntradaDetalle = $("input[name='idmaterialArray[]']").map(function(){return $(this).attr("data-idmaterialArray");}).get();
+            var salidaCantidad = $("input[name='salidaArray[]']").map(function(){return $(this).attr("data-cantidadSalida");}).get();
+
+
+            //*******************
+
+            // VERIFICAR LO QUE SE INGRESARA
+            for(var a = 0; a < idEntradaDetalle.length; a++){
+
+                //let infoIDEntradaDeta = idEntradaDetalle[a];
+                let infoCantidad = salidaCantidad[a];
+
+                if (infoCantidad === '') {
+                    colorRojoTabla(a);
+                    toastr.error('Fila #' + (a + 1) + ' Cantidad es requerida');
+                    return;
+                }
+
+                if (!infoCantidad.match(reglaNumeroEntero)) {
+                    colorRojoTabla(a);
+                    toastr.error('Fila #' + (a + 1) + ' Cantidad debe ser Entero y no negativo');
+                    return;
+                }
+
+                if (infoCantidad <= 0) {
+                    colorRojoTabla(a);
+                    toastr.error('Fila #' + (a + 1) + ' Cantidad no debe ser negativo');
+                    return;
+                }
+
+                // Máximo 1 millón
+                if (infoCantidad > 1000000) {
+                    colorRojoTabla(a);
+                    toastr.error('Fila #' + (a + 1) + ' Cantidad máximo 1 millón');
+                    return;
+                }
+            }
+
+            let formData = new FormData();
+            const contenedorArray = [];
+
+            for(var p = 0; p < salidaCantidad.length; p++){
+                let infoIdEntradaDeta = idEntradaDetalle[p];
+                let infoCantidad = salidaCantidad[p];
+
+                contenedorArray.push({ infoIdEntradaDeta, infoCantidad});
+            }
+
+            openLoading();
+
+            formData.append('fecha', fecha);
+            formData.append('empleado', empleado);
+            formData.append('descripcion', descripcion);
+            formData.append('contenedorArray', JSON.stringify(contenedorArray));
+
+            axios.post(url+'/salida/guardar-temporal', formData, {
+            })
+                .then((response) => {
+                    closeLoading();
+
+                    if(response.data.success === 1){
+                        // cuando va vacio la salida
+                        toastr.error('Se requiere item de Salida');
+                    }
+                    else if(response.data.success === 10){
+                        // SIEMPRE SERA EL MISMO ID POR SER EL TEMPORAL
+
+                        reporteTemporal()
+                    }
+                    else{
+                        toastr.error('error al guardar');
+                    }
+                })
+                .catch((error) => {
+                    toastr.error('Error al guardar');
+                    closeLoading();
+                });
+        }
+
+        function reporteTemporal(){
+            window.open("{{ URL::to('admin/salidas/pdf-temporal') }}");
+        }
 
 
 

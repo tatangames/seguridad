@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\backend\materiales;
 
 use App\Http\Controllers\Controller;
+use App\Models\Cargo;
 use App\Models\Color;
 use App\Models\Distrito;
+use App\Models\Empleado;
 use App\Models\Entradas;
 use App\Models\EntradasDetalle;
 use App\Models\Marca;
@@ -15,6 +17,7 @@ use App\Models\Retorno;
 use App\Models\Salidas;
 use App\Models\SalidasDetalle;
 use App\Models\Talla;
+use App\Models\UnidadEmpleado;
 use App\Models\UnidadMedida;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -44,15 +47,88 @@ class HistorialController extends Controller
         foreach ($listado as $fila) {
             $fila->fechaFormat = date("d-m-Y", strtotime($fila->fecha));
 
-            $infoRecibe = "Revisar esto";
-           // $fila->nombreRecibe = $infoRecibe->nombre;
+            // distrito unidad empleado
+            $infoEmpleado = Empleado::where('id',$fila->id_empleado)->first();
+            $infoUnidad = UnidadEmpleado::where('id',$infoEmpleado->id_unidad_empleado)->first();
+            $infoDistrito = Distrito::where('id',$infoUnidad->id_distrito)->first();
 
-            $infoDistrito = Distrito::where('id', $fila->id_distrito)->first();
-            $fila->nombreDistrito = $infoDistrito->nombre;
+            if($infoEmpleado->jefe == 1){
+                $nombreFull = $infoEmpleado->nombre . " (JEFE)";
+            }else{
+                $nombreFull = $infoEmpleado->nombre;
+            }
+
+            $fila->empleado = $nombreFull;
+            $fila->unidad = $infoUnidad->nombre;
+            $fila->distrito = $infoDistrito->nombre;
         }
 
         return view('backend.admin.historial.salidas.tablasalidabodega', compact('listado'));
     }
+
+
+    public function informacionHistorialSalida(Request $request)
+    {
+        $regla = array(
+            'id' => 'required' // id salida
+        );
+
+        $validar = Validator::make($request->all(), $regla);
+
+        if ($validar->fails()) {
+            return ['success' => 0];
+        }
+
+        $infoSalida = Salidas::where('id', $request->id)->first();
+
+        $infoEmpleado = Empleado::where('id',$infoSalida->id_empleado)->first();
+        $infoUniEmpleado = UnidadEmpleado::where('id', $infoEmpleado->id_unidad_empleado)->first();
+
+        $arrayDistrito = Distrito::orderBy('nombre', 'ASC')->get();
+        $arrayUnidad = UnidadEmpleado::orderBy('nombre', 'ASC')->get();
+        $arrayCargo = Cargo::orderBy('nombre', 'ASC')->get();
+        $arrayEmpleados = Empleado::where('id_unidad_empleado', $infoEmpleado->id_unidad_empleado)->get();
+
+        return ['success' => 1, 'info' => $infoSalida, 'arrayDistrito' => $arrayDistrito, 'arrayCargo' => $arrayCargo,
+            'arrayUnidad' => $arrayUnidad, 'arrayEmpleados' => $arrayEmpleados, 'infoUniEmpleado' => $infoUniEmpleado];
+    }
+
+
+    public function editarHistorialSalida(Request $request)
+    {
+        $regla = array(
+            'id' => 'required',
+            'fecha' => 'required',
+        );
+
+        // descripcion, empleado
+
+        $validar = Validator::make($request->all(), $regla);
+
+        if ($validar->fails()) {
+            return ['success' => 0];
+        }
+
+        Salidas::where('id', $request->id)->update([
+            'fecha' => $request->fecha,
+            'descripcion' => $request->descripcion,
+            'id_empleado' => $request->empleado,
+        ]);
+
+        return ['success' => 1];
+    }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     public function indexHistorialSalidasDetalle($id)
@@ -220,25 +296,7 @@ class HistorialController extends Controller
     }
 
 
-    public function informacionHistorialEntrada(Request $request)
-    {
-        $regla = array(
-            'id' => 'required',
-        );
 
-        $validar = Validator::make($request->all(), $regla);
-
-        if ($validar->fails()){ return ['success' => 0];}
-
-        if($info = Entradas::where('id', $request->id)->first()){
-
-            $arrayProveedor = Proveedor::orderBy('nombre', 'asc')->get();
-
-            return ['success' => 1, 'info' => $info, 'arrayProveedor' => $arrayProveedor];
-        }else{
-            return ['success' => 2];
-        }
-    }
 
 
     public function editarHistorialEntrada(Request $request)

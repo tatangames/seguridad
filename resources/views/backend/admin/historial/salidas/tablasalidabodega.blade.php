@@ -11,8 +11,9 @@
                             <thead>
                             <tr>
                                 <th style="width: 4%">Fecha Salida</th>
-                                <th style="width: 10%">Persona Recibe</th>
-                                <th style="width: 15%">Distrito</th>
+                                <th style="width: 10%">Distrito</th>
+                                <th style="width: 10%">Unidad</th>
+                                <th style="width: 15%">Empleado</th>
                                 <th style="width: 20%">Descripción</th>
                                 <th style="width: 6%">Opciones</th>
                             </tr>
@@ -22,11 +23,17 @@
                             @foreach($listado as $dato)
                                 <tr>
                                     <td>{{ $dato->fechaFormat }}</td>
-                                    <td>{{ $dato->nombreRecibe }}</td>
-                                    <td>{{ $dato->nombreDistrito }}</td>
+                                    <td>{{ $dato->distrito }}</td>
+                                    <td>{{ $dato->unidad }}</td>
+                                    <td>{{ $dato->empleado }}</td>
                                     <td>{{ $dato->descripcion }}</td>
 
                                     <td>
+                                        <button type="button" class="btn btn-success btn-xs"
+                                                onclick="informacion({{ $dato->id }})">
+                                            <i class="fas fa-edit" title="Editar"></i>&nbsp; Editar
+                                        </button>
+
                                         <button type="button" class="btn btn-info btn-xs"
                                                 onclick="vistaDetalle({{ $dato->id }})">
                                             <i class="fas fa-eye" title="Detalle"></i>&nbsp; Detalle
