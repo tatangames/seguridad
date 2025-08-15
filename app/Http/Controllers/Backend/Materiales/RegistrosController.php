@@ -3,10 +3,13 @@
 namespace App\Http\Controllers\backend\materiales;
 
 use App\Http\Controllers\Controller;
+use App\Models\Cargo;
 use App\Models\Color;
 use App\Models\Distrito;
+use App\Models\Empleado;
 use App\Models\Entradas;
 use App\Models\EntradasDetalle;
+use App\Models\JefeInmediato;
 use App\Models\Marca;
 use App\Models\Materiales;
 use App\Models\Normativa;
@@ -17,6 +20,7 @@ use App\Models\Salidas;
 use App\Models\SalidasDetalle;
 use App\Models\SalidaTemporal;
 use App\Models\Talla;
+use App\Models\UnidadEmpleado;
 use App\Models\UnidadMedida;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -485,6 +489,24 @@ class RegistrosController extends Controller
 
         $infoSalida = SalidaTemporal::where('id', 1)->first();
 
+        $infoEmpleado = Empleado::where('id', $infoSalida->id_empleado)->first();
+        $infoUnidad = UnidadEmpleado::where('id', $infoEmpleado->id_unidad_empleado)->first();
+
+        $jefeInmediato = "";
+
+        if(JefeInmediato::where())
+
+        if($infoEmpleado->jefe == 1){
+            $cargo = "Jefe";
+        }else{
+            $infoCargo = Cargo::where('id', $infoEmpleado->id_cargo)->first();
+            $cargo = $infoCargo->nombre;
+        }
+
+        $fechaFormat = date("d-m-Y", strtotime($infoSalida->fecha));
+
+
+
         $arraySalidasDetalle = SalidaDetalleTemporal::where('id_salida', 1)->get();
 
         $resultsBloque = [];
@@ -514,8 +536,6 @@ class RegistrosController extends Controller
         $logoalcaldia = 'images/gobiernologo.jpg';
         $logosantaana = 'images/logo.png';
 
-        $fechaFormat = date("d-m-Y", strtotime(Carbon::now('America/El_Salvador')));
-
 
         $tabla = "
             <table style='width: 100%; border-collapse: collapse;'>
@@ -541,14 +561,24 @@ class RegistrosController extends Controller
             ";
 
         $tabla .= "
-            <div style='text-align: center; margin-top: 20px;'>
-                <h1 style='font-size: 15px; margin: 0; color: #000;'>ENTREGAS DE MATERIAL</h1>
+            <div style='text-align: center; margin-top: 25px;'>
+                <h1 style='font-size: 15px; margin: 0; color: #000;'>Ficha de entrega de Equipo de Protección Personal (E.P.P.)</h1>
             </div>
             <div style='text-align: left; margin-top: 10px;'>
-                <p style='font-size: 13px; margin: 0; color: #000;'><strong>Fecha:</strong> xxx</p>
+                <p style='font-size: 14px; margin: 0; color: #000;'>Área: <strong>$infoUnidad->nombre</strong>; Cargo: <strong>$cargo</strong></p>
             </div>
              <div style='text-align: left; margin-top: 10px;'>
-                <p style='font-size: 13px; margin: 0; color: #000;'><strong>Encargado:</strong> xxxx</p>
+                <p style='font-size: 14px; margin: 0; color: #000;'>Se entrega al colaborador(a); <strong>$infoEmpleado->nombre</strong></p>
+            </div>
+
+
+            <div style='text-align: left; margin-top: 10px;'>
+                <p style='font-size: 14px; margin: 0; color: #000;'>Fecha: <strong>$fechaFormat</strong>. Jefe inmediato: <strong>$jefeInmediato</strong></p>
+            </div>
+
+
+             <div style='text-align: left; margin-top: 10px;'>
+                <p style='font-size: 14px; margin: 0; color: #000;'>Por medio de la presente hace constar el detalle siguiente:</p>
             </div>
       ";
 

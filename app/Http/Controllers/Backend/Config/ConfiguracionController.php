@@ -529,8 +529,13 @@ class ConfiguracionController extends Controller
 
         foreach ($listado as $item) {
             $infoDistrito = Distrito::where('id', $item->id_distrito)->first();
-
             $item->distrito = $infoDistrito->nombre;
+            $jefeInmediato = "";
+            if($infoEmpleado = Empleado::where('id', $item->id_empleado)->first()){
+                $jefeInmediato = $infoEmpleado->nombre;
+            }
+
+            $item->jefeInmediato = $jefeInmediato;
         }
 
         return view('backend.admin.config.empleados.unidadempleado.tablaunidadempleados', compact('listado'));
@@ -608,6 +613,61 @@ class ConfiguracionController extends Controller
         return ['success' => 1];
     }
 
+
+
+    public function informacionJefeInmediato(Request $request)
+    {
+        $regla = array(
+            'id' => 'required' // id unidad empleado
+        );
+
+        $validar = Validator::make($request->all(), $regla);
+
+        if ($validar->fails()) {
+            return ['success' => 0];
+        }
+
+        $infoUniEmpleado = UnidadEmpleado::where('id', $request->id)->first();
+        $arrayEmpleado = Empleado::orderBy('nombre', 'ASC')->get();
+
+        foreach ($arrayEmpleado as $item) {
+
+            // nombre cargo unidad distrito
+
+            $infoCargo = Cargo::where('id', $item->id_cargo)->first();
+            $infoUnidad = UnidadEmpleado::where('id', $item->id_unidad_empleado)->first();
+            $infoDistrito = Distrito::where('id', $infoUnidad->id_distrito)->first();
+
+            $completo = $item->nombre . " (" . $infoCargo->nombre . ")" . " (" . $infoUnidad->nombre . ")" . " (" . $infoDistrito->nombre . ")";
+
+            $item->completo = $completo;
+        }
+
+        return ['success' => 1, 'info' => $infoUniEmpleado, 'arrayEmpleados' => $arrayEmpleado];
+    }
+
+
+    public function editarJefeInmediato(Request $request)
+    {
+
+        Log::info($request->all());
+
+        $regla = array(
+            'id' => 'required',
+        );
+
+        $validar = Validator::make($request->all(), $regla);
+
+        if ($validar->fails()) {
+            return ['success' => 0];
+        }
+
+        UnidadEmpleado::where('id', $request->id)->update([
+            'id_empleado' => $request->empleado,
+        ]);
+
+        return ['success' => 1];
+    }
 
 
 
@@ -779,7 +839,6 @@ class ConfiguracionController extends Controller
             'nombre' => 'required',
             'unidad' => 'required',
             'cargo' => 'required',
-            'jefe' => 'required',
         );
 
         $validar = Validator::make($request->all(), $regla);
@@ -791,19 +850,10 @@ class ConfiguracionController extends Controller
 
         try {
 
-            // VERIFICAR QUE NO HAYA OTRO JEFE
-            if($request->jefe == 1){
-                Empleado::where('id_unidad_empleado', $request->unidad)->update([
-                    'jefe' => 0,
-                ]);
-            }
-
-
             $dato = new Empleado();
             $dato->nombre = $request->nombre;
             $dato->id_unidad_empleado = $request->unidad;
             $dato->id_cargo = $request->cargo;
-            $dato->jefe = $request->jefe;
             $dato->save();
 
             DB::commit();
@@ -846,7 +896,6 @@ class ConfiguracionController extends Controller
             'nombre' => 'required',
             'unidad' => 'required',
             'cargo' => 'required',
-            'jefe' => 'required',
         );
 
         $validar = Validator::make($request->all(), $regla);
@@ -855,27 +904,17 @@ class ConfiguracionController extends Controller
             return ['success' => 0];
         }
 
-        // VERIFICAR QUE NO HAYA OTRO JEFE
-        if($request->jefe == 1){
-            Empleado::where('id_unidad_empleado', $request->unidad)->update([
-                'jefe' => 0,
-            ]);
-        }
-
         Empleado::where('id', $request->id)->update([
             'nombre' => $request->nombre,
             'id_unidad_empleado' => $request->unidad,
             'id_cargo' => $request->cargo,
-            'jefe' => $request->jefe
         ]);
 
         return ['success' => 1];
     }
 
 
-
-
-//******************** PROVEEDOR *************************************************************
+    //******************** PROVEEDOR *************************************************************
 
     public function vistaProveedor()
     {

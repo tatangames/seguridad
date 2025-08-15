@@ -132,6 +132,8 @@ Route::get('/admin/unidadempleado/tabla', [ConfiguracionController::class,'tabla
 Route::post('/admin/unidadempleado/nuevo', [ConfiguracionController::class,'nuevoUnidadEmpleado']);
 Route::post('/admin/unidadempleado/informacion', [ConfiguracionController::class,'infoUnidadEmpleado']);
 Route::post('/admin/unidadempleado/editar', [ConfiguracionController::class,'actualizarUnidadEmpleado']);
+Route::post('/admin/unidadempleado/jefeinmediato/informacion', [ConfiguracionController::class,'informacionJefeInmediato']);
+Route::post('/admin/unidadempleado/jefeinmediato/editar', [ConfiguracionController::class,'editarJefeInmediato']);
 
 
 // CARGOS
@@ -142,7 +144,7 @@ Route::post('/admin/cargo/informacion', [ConfiguracionController::class,'infoCar
 Route::post('/admin/cargo/editar', [ConfiguracionController::class,'actualizarCargo']);
 
 
-// UNIDAD EMPLEADO
+// EMPLEADO
 Route::get('/admin/empleados/index', [ConfiguracionController::class,'vistaEmpleados'])->name('admin.empleados.index');
 Route::get('/admin/empleados/tabla', [ConfiguracionController::class,'tablaEmpleados']);
 

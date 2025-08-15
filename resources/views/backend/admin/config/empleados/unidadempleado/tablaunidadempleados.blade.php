@@ -9,6 +9,7 @@
                             <tr>
                                 <th style="width: 30%">Nombre</th>
                                 <th style="width: 20%">Distrito</th>
+                                <th style="width: 20%">Jefe Inmediato</th>
                                 <th style="width: 8%">Opciones</th>
                             </tr>
                             </thead>
@@ -18,11 +19,15 @@
                                 <tr>
                                     <td>{{ $dato->nombre }}</td>
                                     <td>{{ $dato->distrito }}</td>
+                                    <td>{{ $dato->jefeInmediato }}</td>
                                     <td>
-                                        <button type="button" style="font-weight: bold; color: white !important;"
-                                                class="button button-primary button-rounded button-pill button-small" onclick="informacion({{ $dato->id }})">
-                                            <i class="fas fa-edit" title="Editar"></i>&nbsp; Editar
-                                        </button>
+                                        <button type="button"
+                                                class="btn btn-info btn-xs" onclick="informacion({{ $dato->id }})">
+                                            <i class="fas fa-edit" title="Editar"></i> Editar</button>
+
+                                        <button type="button" style=" margin: 3px;"
+                                                class="btn btn-success btn-xs" onclick="infoJefeUnidad({{ $dato->id }})">
+                                            <i class="fas fa-edit" title="Jefe Unidad"></i> Jefe Unidad</button>
                                     </td>
                                 </tr>
                             @endforeach

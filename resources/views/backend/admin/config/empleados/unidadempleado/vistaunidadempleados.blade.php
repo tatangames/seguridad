@@ -143,6 +143,59 @@
             </div>
         </div>
     </div>
+
+
+
+
+
+
+    <!-- modal editar jefe inmediato-->
+    <div class="modal fade" id="modalEditarJefeInmediato">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Editar Jefe Inmediato</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="formulario-editar-jefeinmediato">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-12">
+
+                                    <div class="form-group">
+                                        <input type="hidden" id="id-editar-jefe">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Empleado:</label>
+                                        <p>Regresa: Nombre (cargo) (unidad) (distrito)</p>
+                                        <br>
+                                        <select width="100%"  class="form-control" id="select-empleado-editar-jefe">
+                                        </select>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+                    <button type="button" style="font-weight: bold; background-color: #28a745; color: white !important;"
+                            class="button button-rounded button-pill button-small" onclick="editarJefe()">Actualizar Jefe</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+
 </div>
 
 
@@ -173,6 +226,15 @@
             });
 
             $('#select-distrito-editar').select2({
+                theme: "bootstrap-5",
+                "language": {
+                    "noResults": function(){
+                        return "Busqueda no encontrada";
+                    }
+                },
+            });
+
+            $('#select-empleado-editar-jefe').select2({
                 theme: "bootstrap-5",
                 "language": {
                     "noResults": function(){
@@ -289,6 +351,76 @@
                     if(response.data.success === 1){
                         toastr.success('Actualizado correctamente');
                         $('#modalEditar').modal('hide');
+                        recargar();
+                    }
+                    else {
+                        toastr.error('Error al actualizar');
+                    }
+
+                })
+                .catch((error) => {
+                    toastr.error('Error al actualizar');
+                    closeLoading();
+                });
+        }
+
+
+        //****************** JEFE INMEDIATO *********************
+
+        function infoJefeUnidad(id){
+            openLoading();
+            document.getElementById("formulario-editar-jefeinmediato").reset();
+
+            axios.post(url+'/unidadempleado/jefeinmediato/informacion',{
+                'id': id
+            })
+                .then((response) => {
+                    closeLoading();
+                    if(response.data.success === 1){
+                        $('#modalEditarJefeInmediato').modal('show');
+                        $('#id-editar-jefe').val(id);
+
+                        document.getElementById("select-empleado-editar-jefe").options.length = 0;
+
+                        $('#select-empleado-editar-jefe').append('<option value="">Seleccionar opción</option>');
+
+                        $.each(response.data.arrayEmpleados, function( key, val ){
+                            if(response.data.info.id_empleado == val.id){
+                                $('#select-empleado-editar-jefe').append('<option value="' +val.id +'" selected="selected">'+ val.completo +'</option>');
+                            }else{
+                                $('#select-empleado-editar-jefe').append('<option value="' +val.id +'">'+ val.completo +'</option>');
+                            }
+                        });
+
+                    }else{
+                        toastr.error('Información no encontrada');
+                    }
+                })
+                .catch((error) => {
+                    closeLoading();
+                    toastr.error('Información no encontrada');
+                });
+        }
+
+
+        function editarJefe(){
+            var id = document.getElementById('id-editar-jefe').value;
+            var empleado = document.getElementById('select-empleado-editar-jefe').value;
+
+
+            openLoading();
+            var formData = new FormData();
+            formData.append('id', id);
+            formData.append('empleado', empleado);
+
+            axios.post(url+'/unidadempleado/jefeinmediato/editar', formData, {
+            })
+                .then((response) => {
+                    closeLoading();
+
+                    if(response.data.success === 1){
+                        toastr.success('Actualizado correctamente');
+                        $('#modalEditarJefeInmediato').modal('hide');
                         recargar();
                     }
                     else {

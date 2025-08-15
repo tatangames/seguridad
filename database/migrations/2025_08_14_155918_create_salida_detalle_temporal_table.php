@@ -18,11 +18,6 @@ return new class extends Migration
 
             $table->integer('cantidad_salida');
 
-            // SABER SI ESTE MATERIAL REGRESARA DE NUEVO A BODEGA,
-            // PARA QUE SALGA EN PENDIENTES DE REGRESO
-            $table->boolean('tipo_regresa');
-
-
             $table->foreign('id_salida')->references('id')->on('salida_temporal');
             $table->foreign('id_entrada_detalle')->references('id')->on('entradas_detalle');
         });

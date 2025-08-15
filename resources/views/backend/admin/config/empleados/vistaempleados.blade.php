@@ -106,14 +106,7 @@
                                         </select>
                                     </div>
 
-                                    <div class="form-group">
-                                        <div class="d-flex align-items-center">
-                                            <div class="form-check ml-3">
-                                                <input class="form-check-input" type="checkbox" id="check-jefe">
-                                                <label class="form-check-label" for="check-jefe" style="font-weight: bold; font-size: 18px">ES JEFE?</label>
-                                            </div>
-                                        </div>
-                                    </div>
+
 
                                 </div>
                             </div>
@@ -175,14 +168,6 @@
                                         </select>
                                     </div>
 
-                                    <div class="form-group">
-                                        <div class="d-flex align-items-center">
-                                            <div class="form-check ml-3">
-                                                <input class="form-check-input" type="checkbox" id="check-jefe-editar">
-                                                <label class="form-check-label" for="check-jefe-editar" style="font-weight: bold; font-size: 18px">ES JEFE?</label>
-                                            </div>
-                                        </div>
-                                    </div>
 
                                 </div>
                             </div>
@@ -359,8 +344,6 @@
             var cargo = document.getElementById('select-cargo').value;
             var nombre = document.getElementById('nombre-nuevo').value;
 
-            var checkboxJefe = document.getElementById('check-jefe');
-            var valorCheckboxJefe = checkboxJefe.checked ? 1 : 0;
 
             if(unidad === ''){
                 toastr.error('Unidad es requerido');
@@ -382,7 +365,6 @@
             formData.append('nombre', nombre);
             formData.append('unidad', unidad);
             formData.append('cargo', cargo);
-            formData.append('jefe', valorCheckboxJefe);
 
             axios.post(url+'/empleados/nuevo', formData, {
             })
@@ -416,7 +398,6 @@
                         $('#modalEditar').modal('show');
                         $('#id-editar').val(id);
 
-
                         document.getElementById("select-distrito-editar").options.length = 0;
                         document.getElementById("select-unidad-editar").options.length = 0;
                         document.getElementById("select-cargo-editar").options.length = 0;
@@ -448,10 +429,6 @@
                         $('#nombre-editar').val(response.data.info.nombre);
 
 
-                        let checkJefe = response.data.info.jefe
-
-                        document.getElementById('check-jefe-editar').checked = checkJefe;
-
                     }else{
                         toastr.error('Información no encontrada');
                     }
@@ -467,9 +444,6 @@
             var nombre = document.getElementById('nombre-editar').value;
             var unidad = document.getElementById('select-unidad-editar').value;
             var cargo = document.getElementById('select-cargo-editar').value;
-
-            var checkboxJefe = document.getElementById('check-jefe-editar');
-            var valorCheckboxJefe = checkboxJefe.checked ? 1 : 0;
 
             if(nombre === ''){
                 toastr.error('Nombre es requerido');
@@ -487,7 +461,6 @@
             formData.append('nombre', nombre);
             formData.append('unidad', unidad);
             formData.append('cargo', cargo);
-            formData.append('jefe', valorCheckboxJefe);
 
             axios.post(url+'/empleados/editar', formData, {
             })
