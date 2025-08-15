@@ -9,6 +9,7 @@
                             <tr>
                                 <th style="width: 30%">Nombre</th>
                                 <th style="width: 20%">Distrito</th>
+                                <th style="width: 20%">Empleado Unidad</th>
                                 <th style="width: 20%">Jefe Inmediato</th>
                                 <th style="width: 8%">Opciones</th>
                             </tr>
@@ -19,6 +20,7 @@
                                 <tr>
                                     <td>{{ $dato->nombre }}</td>
                                     <td>{{ $dato->distrito }}</td>
+                                    <td>{{ $dato->jefeUnidad }}</td>
                                     <td>{{ $dato->jefeInmediato }}</td>
                                     <td>
                                         <button type="button"

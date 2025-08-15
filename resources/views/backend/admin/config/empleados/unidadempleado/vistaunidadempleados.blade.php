@@ -170,10 +170,18 @@
                                     </div>
 
                                     <div class="form-group">
-                                        <label>Empleado:</label>
+                                        <label>Empleado Unidad:</label>
                                         <p>Regresa: Nombre (cargo) (unidad) (distrito)</p>
                                         <br>
-                                        <select width="100%"  class="form-control" id="select-empleado-editar-jefe">
+                                        <select width="100%"  class="form-control" id="select-empleadounidad-editar-jefe">
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Empleado Jefe Inmediato:</label>
+                                        <p>Regresa: Nombre (cargo) (unidad) (distrito)</p>
+                                        <br>
+                                        <select width="100%"  class="form-control" id="select-empleadoinmediato-editar-jefe">
                                         </select>
                                     </div>
 
@@ -234,7 +242,16 @@
                 },
             });
 
-            $('#select-empleado-editar-jefe').select2({
+            $('#select-empleadounidad-editar-jefe').select2({
+                theme: "bootstrap-5",
+                "language": {
+                    "noResults": function(){
+                        return "Busqueda no encontrada";
+                    }
+                },
+            });
+
+            $('#select-empleadoinmediato-editar-jefe').select2({
                 theme: "bootstrap-5",
                 "language": {
                     "noResults": function(){
@@ -380,15 +397,25 @@
                         $('#modalEditarJefeInmediato').modal('show');
                         $('#id-editar-jefe').val(id);
 
-                        document.getElementById("select-empleado-editar-jefe").options.length = 0;
+                        document.getElementById("select-empleadounidad-editar-jefe").options.length = 0;
+                        document.getElementById("select-empleadoinmediato-editar-jefe").options.length = 0;
 
-                        $('#select-empleado-editar-jefe').append('<option value="">Seleccionar opción</option>');
+                        $('#select-empleadounidad-editar-jefe').append('<option value="">Seleccionar opción</option>');
+                        $('#select-empleadoinmediato-editar-jefe').append('<option value="">Seleccionar opción</option>');
 
                         $.each(response.data.arrayEmpleados, function( key, val ){
                             if(response.data.info.id_empleado == val.id){
-                                $('#select-empleado-editar-jefe').append('<option value="' +val.id +'" selected="selected">'+ val.completo +'</option>');
+                                $('#select-empleadounidad-editar-jefe').append('<option value="' +val.id +'" selected="selected">'+ val.completo +'</option>');
                             }else{
-                                $('#select-empleado-editar-jefe').append('<option value="' +val.id +'">'+ val.completo +'</option>');
+                                $('#select-empleadounidad-editar-jefe').append('<option value="' +val.id +'">'+ val.completo +'</option>');
+                            }
+                        });
+
+                        $.each(response.data.arrayEmpleados, function( key, val ){
+                            if(response.data.info.id_empleado_inmediato == val.id){
+                                $('#select-empleadoinmediato-editar-jefe').append('<option value="' +val.id +'" selected="selected">'+ val.completo +'</option>');
+                            }else{
+                                $('#select-empleadoinmediato-editar-jefe').append('<option value="' +val.id +'">'+ val.completo +'</option>');
                             }
                         });
 
@@ -405,13 +432,23 @@
 
         function editarJefe(){
             var id = document.getElementById('id-editar-jefe').value;
-            var empleado = document.getElementById('select-empleado-editar-jefe').value;
+            var empleadounidad = document.getElementById('select-empleadounidad-editar-jefe').value;
+            var empleadoinmediato = document.getElementById('select-empleadoinmediato-editar-jefe').value;
+
+            if ((empleadounidad === "" && empleadoinmediato !== "") ||
+                (empleadounidad !== "" && empleadoinmediato === "")) {
+
+                toastr.error('Si uno de los campos está vacío, el otro también debe estarlo.');
+
+                return
+            }
 
 
             openLoading();
             var formData = new FormData();
             formData.append('id', id);
-            formData.append('empleado', empleado);
+            formData.append('empleadounidad', empleadounidad);
+            formData.append('empleadoinmediato', empleadoinmediato);
 
             axios.post(url+'/unidadempleado/jefeinmediato/editar', formData, {
             })

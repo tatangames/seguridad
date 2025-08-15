@@ -530,11 +530,19 @@ class ConfiguracionController extends Controller
         foreach ($listado as $item) {
             $infoDistrito = Distrito::where('id', $item->id_distrito)->first();
             $item->distrito = $infoDistrito->nombre;
+
+            $jefeUnidad = "";
             $jefeInmediato = "";
+
             if($infoEmpleado = Empleado::where('id', $item->id_empleado)->first()){
+                $jefeUnidad = $infoEmpleado->nombre;
+            }
+
+            if($infoEmpleado = Empleado::where('id', $item->id_empleado_inmediato)->first()){
                 $jefeInmediato = $infoEmpleado->nombre;
             }
 
+            $item->jefeUnidad = $jefeUnidad;
             $item->jefeInmediato = $jefeInmediato;
         }
 
@@ -649,9 +657,6 @@ class ConfiguracionController extends Controller
 
     public function editarJefeInmediato(Request $request)
     {
-
-        Log::info($request->all());
-
         $regla = array(
             'id' => 'required',
         );
@@ -663,7 +668,8 @@ class ConfiguracionController extends Controller
         }
 
         UnidadEmpleado::where('id', $request->id)->update([
-            'id_empleado' => $request->empleado,
+            'id_empleado' => $request->empleadounidad,
+            'id_empleado_inmediato' => $request->empleadoinmediato
         ]);
 
         return ['success' => 1];

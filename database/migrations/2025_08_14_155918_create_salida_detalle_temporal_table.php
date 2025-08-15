@@ -18,6 +18,9 @@ return new class extends Migration
 
             $table->integer('cantidad_salida');
 
+            $table->boolean('reemplazo');
+            $table->boolean('recomendacion');
+
             $table->foreign('id_salida')->references('id')->on('salida_temporal');
             $table->foreign('id_entrada_detalle')->references('id')->on('entradas_detalle');
         });

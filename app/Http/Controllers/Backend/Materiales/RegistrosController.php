@@ -328,6 +328,9 @@ class RegistrosController extends Controller
 
             $fecha = date("d-m-Y", strtotime($infoPadre->fecha));
             $fila->fechaIngreso = $fecha;
+
+            $precioFormat = "$" . number_format($fila->precio, 2, '.', ',');
+            $fila->precioFormat = $precioFormat;
         }
 
         $disponible = 0;
@@ -358,7 +361,7 @@ class RegistrosController extends Controller
             'empleado' => 'required',
         );
 
-        //  descripcion, (infoIdEntradaDeta, infoCantidad)
+        //  descripcion, (infoIdEntradaDeta, infoCantidad, infoReemplazo, infoRecomendacion)
 
         $validar = Validator::make($request->all(), $regla);
 
@@ -374,7 +377,6 @@ class RegistrosController extends Controller
             if($datosContenedor == null){
                 return ['success' => 1];
             }
-
 
             $reg = new Salidas();
             $reg->fecha = $request->fecha;
@@ -405,6 +407,8 @@ class RegistrosController extends Controller
                 $detalle->id_entrada_detalle = $infoFilaEntradaDetalle->id;
                 $detalle->cantidad_salida = $filaArray['infoCantidad'];
                 $detalle->tipo_regresa = 0;
+                $detalle->reemplazo = $filaArray['infoReemplazo'];
+                $detalle->recomendacion = $filaArray['infoRecomendacion'];
                 $detalle->save();
 
                 // ACTUALIZAR CANTIDADES DE SALIDA
@@ -432,7 +436,7 @@ class RegistrosController extends Controller
             'empleado' => 'required',
         );
 
-        //  descripcion, (infoIdEntradaDeta, infoCantidad)
+        //  descripcion, (infoIdEntradaDeta, infoCantidad, infoReemplazo, infoRecomendacion)
 
         $validar = Validator::make($request->all(), $regla);
 
@@ -469,6 +473,8 @@ class RegistrosController extends Controller
                 $detalle->id_salida = 1;
                 $detalle->id_entrada_detalle = $infoFilaEntradaDetalle->id;
                 $detalle->cantidad_salida = $filaArray['infoCantidad'];
+                $detalle->reemplazo = $filaArray['infoReemplazo'];
+                $detalle->recomendacion = $filaArray['infoRecomendacion'];
                 $detalle->save();
             }
 
@@ -494,7 +500,11 @@ class RegistrosController extends Controller
 
         $jefeInmediato = "";
 
-        if(JefeInmediato::where())
+        if($infoUnidad->id_empleado == $infoSalida->id_empleado){
+            $filaemple = Empleado::where('id', $infoUnidad->id_empleado_inmediato)->first();
+
+            $jefeInmediato = $filaemple->nombre;
+        }
 
         if($infoEmpleado->jefe == 1){
             $cargo = "Jefe";
@@ -520,8 +530,6 @@ class RegistrosController extends Controller
           //  $salida->detalle = $detalleSalida;
           //  $resultsBloque[] = $salida;
         }
-
-
 
 
 
@@ -583,17 +591,21 @@ class RegistrosController extends Controller
       ";
 
 
-        foreach ($resultsBloque as $fila){
-
-            $tabla .= "<table width='100%' id='tablaFor' style='margin-top: 30px'>
+        $tabla .= "<table width='100%' id='tablaFor' style='margin-top: 30px'>
             <thead>
                 <tr>
-                    <th style='text-align: center; font-size:12px; width: 12%; font-weight: bold; border: 1px solid black;'>Fecha Salida</th>
-                    <th style='text-align: center; font-size:12px; width: 12%; font-weight: bold; border: 1px solid black;'>Distrito</th>
-                    <th style='text-align: center; font-size:12px; width: 12%; font-weight: bold; border: 1px solid black;'>Descripción</th>
+                    <th style='text-align: center; font-size:10px; width: 12%; font-weight: bold; border: 1px solid black;'>CANTIDAD</th>
+                    <th style='text-align: center; font-size:10px; width: 12%; font-weight: bold; border: 1px solid black;'>DESCRIPCION DE E.P.P.</th>
+                    <th style='text-align: center; font-size:10px; width: 12%; font-weight: bold; border: 1px solid black;'>REEMPLAZO</th>
+                    <th style='text-align: center; font-size:10px; width: 12%; font-weight: bold; border: 1px solid black;'>VALOR</th>
+                    <th style='text-align: center; font-size:10px; width: 12%; font-weight: bold; border: 1px solid black;'>RECOMENDACIONES SOBRE EL USO Y MANTENIMIENTO DEL E.P.P. OTORGADO</th>
+
                 </tr>
             </thead>
             <tbody>";
+
+
+        foreach ($resultsBloque as $fila){
 
             $tabla .= "<tr>
                     <td style='font-size: 11px; font-weight: normal'>$fila->fechaFormat</td>
@@ -601,36 +613,14 @@ class RegistrosController extends Controller
                     <td style='font-size: 11px; font-weight: normal'>$fila->descripcion</td>
                 </tr>";
 
-            $tabla .= "</tbody></table>";
-
-            $tabla .= "<table width='100%' id='tablaFor'>
-                    <thead>
-                        <tr>
-                            <th style='font-weight: bold; width: 8%; font-size: 12px; text-align: center;'>LOTE</th>
-                            <th style='font-weight: bold; width: 22%; font-size: 12px; text-align: center;'>Material</th>
-                            <th style='font-weight: bold; width: 13%; font-size: 12px; text-align: center;'>Marca</th>
-                            <th style='font-weight: bold; width: 12%; font-size: 12px; text-align: center;'>U/M</th>
-                            <th style='font-weight: bold; width: 12%; font-size: 12px; text-align: center;'>Normativa</th>
-                            <th style='font-weight: bold; width: 12%; font-size: 12px; text-align: center;'>Cantidad</th>
-                            <th style='font-weight: bold; width: 10%; font-size: 12px; text-align: center;'>Precio</th>
-                            <th style='font-weight: bold; width: 10%; font-size: 12px; text-align: center;'>Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>";
-
-            foreach ($fila->detalle as $filaDeta){
 
 
-            }
-
-            $tabla .= "<tr>
-                    <td colspan='7' style='font-size: 11px; font-weight: bold'>Total</td>
-                    <td style='font-size: 11px; font-weight: bold'>zzz</td>
-                </tr>";
 
 
-            $tabla .= "</tbody></table>";
+
         }
+
+        $tabla .= "</tbody></table>";
 
         $tabla .= "
             <div style='text-align: left; margin-top: 35px; margin-left: 15px'>

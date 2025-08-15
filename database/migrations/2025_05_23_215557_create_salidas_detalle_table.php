@@ -22,6 +22,8 @@ return new class extends Migration
             // PARA QUE SALGA EN PENDIENTES DE REGRESO
             $table->boolean('tipo_regresa');
 
+            $table->boolean('reemplazo');
+            $table->boolean('recomendacion');
 
             $table->foreign('id_salida')->references('id')->on('salidas');
             $table->foreign('id_entrada_detalle')->references('id')->on('entradas_detalle');

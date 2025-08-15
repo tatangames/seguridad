@@ -32,6 +32,11 @@
     *:focus {
         outline: none;
     }
+
+    #modalCantidad .modal-dialog {
+        max-width: 95%; /* o en px, ej. 1400px */
+    }
+
 </style>
 
 <div id="divcontenedor" style="display: none">
@@ -160,7 +165,11 @@
                         <th style="width: 3%">#</th>
                         <th style="width: 10%">Material</th>
                         <th style="width: 6%">Salida</th>
-                        <th style="width: 6%">Retorno</th>
+                        <th style="width: 6%">Reemplazo</th>
+                        <th style="width: 6%">Recomendación</th>
+
+
+
                         <th style="width: 5%">Opciones</th>
                     </tr>
                     </thead>
@@ -279,7 +288,12 @@
                                         <tr>
                                             <th style="width: 5%">Fecha Ingreso</th>
                                             <th style="width: 5%">Factura</th>
+                                            <th style="width: 5%">Valor</th>
                                             <th style="width: 5%">Proveedor</th>
+
+                                            <th style="width: 5%">Reemplazo</th>
+                                            <th style="width: 5%">Recomendación</th>
+
                                             <th style="width: 4%">Cantidad Actual</th>
                                             <th style="width: 4%">Cantidad Salida</th>
                                         </tr>
@@ -481,7 +495,26 @@
                                 "</td>" +
 
                                 "<td>" +
+                                "<input disabled value='" + val.precioFormat + "' class='form-control' type='text'>" +
+                                "</td>" +
+
+                                "<td>" +
                                 "<input disabled value='" + val.proveedor + "' class='form-control' type='text'>" +
+                                "</td>" +
+
+
+                                "<td>" +
+                                "<select name='arraySelect1[]' class='form-control' >" +
+                                "<option value='1'>SI</option>" +
+                                "<option value='0'>NO</option>" +
+                                "</select>" +
+                                "</td>" +
+
+                                "<td>" +
+                                "<select name='arraySelect2[]' class='form-control'>" +
+                                "<option value='1'>SI</option>" +
+                                "<option value='0'>NO</option>" +
+                                "</select>" +
                                 "</td>" +
 
                                 "<td>" +
@@ -526,9 +559,17 @@
             // cantidad actual de cada fila
             var arrayCantidadActual = $("input[name='arrayCantidadActual[]']").map(function(){return $(this).attr("data-cantidadActualFila");}).get();
             // checkbox Retornara
-            var checkboxes = $("input[name='arrayRetornara[]']");
+          //  var checkboxes = $("input[name='arrayRetornara[]']");
 
+            // REEMPLAZO
+            // JS: tomar los valores (asegúrate de ejecutar esto después de pintar la tabla)
+            var arraySelectReemplazo = $("select[name='arraySelect1[]']").map(function () {
+                return $(this).val(); // '1' o '0'
+            }).get();
 
+            var arraySelectRecomendacion = $("select[name='arraySelect2[]']").map(function () {
+                return $(this).val(); // '1' o '0'
+            }).get();
 
 
             colorBlancoTabla()
@@ -574,17 +615,14 @@
                 let infoFilaIdEntradaDetalle = arrayIdEntradaDetalle[z];
                 let filaCantidad = arrayCantidadSalida[z];
 
-                var valorRetornara = $(checkboxes[z]).prop("checked") ? 1 : 0;
+                let valorReemplazo = arraySelectReemplazo[z];
+                let valorRecomendacion = arraySelectRecomendacion[z];
 
-                var textoCheckbox = "No";
-                if(valorRetornara === 1){
-                    textoCheckbox = "Si";
-                }
+                var textoReemplazo = "NO";
+                if(valorReemplazo == 1) textoReemplazo = "SI"
 
-                // Puedes usar `valorRetornara` aquí
-                console.log("Retornará en fila " + z + ": " + valorRetornara);
-
-
+                var textoRecomendacion = "NO";
+                if(valorRecomendacion == 1) textoRecomendacion = "SI"
 
                 if(filaCantidad !== ''){
                     if(filaCantidad !== 0){
@@ -605,8 +643,13 @@
                             "</td>" +
 
                             "<td>" +
-                            "<input name='retornoArray[]' disabled data-retorno='" + valorRetornara + "'" +
-                            " value='" + textoCheckbox + "' class='form-control' type='text'>" +
+                            "<input name='reArrayReemplazo[]' disabled data-idvalorReemplazo='" + valorReemplazo + "'" +
+                            " value='" + textoReemplazo + "' class='form-control' type='text'>" +
+                            "</td>" +
+
+                            "<td>" +
+                            "<input name='reArrayRecomendacion[]' disabled data-idvalorRecomendacion='" + valorRecomendacion + "'" +
+                            " value='" + textoRecomendacion + "' class='form-control' type='text'>" +
                             "</td>" +
 
 
@@ -620,6 +663,7 @@
                     }
                 }
             }
+
 
 
             $('#modalCantidad').modal('hide');
@@ -686,8 +730,12 @@
             var idEntradaDetalle = $("input[name='idmaterialArray[]']").map(function(){return $(this).attr("data-idmaterialArray");}).get();
             var salidaCantidad = $("input[name='salidaArray[]']").map(function(){return $(this).attr("data-cantidadSalida");}).get();
 
+            var arrayReemplazo = $("input[name='reArrayReemplazo[]']").map(function(){return $(this).attr("data-idvalorReemplazo");}).get();
+            var arrayRecomendacion = $("input[name='reArrayRecomendacion[]']").map(function(){return $(this).attr("data-idvalorRecomendacion");}).get();
+
+
             // checkbox Retornara
-            var checkboxes = $("input[name='retornoArray[]']").map(function(){return $(this).attr("data-retorno");}).get();
+           // var checkboxes = $("input[name='retornoArray[]']").map(function(){return $(this).attr("data-retorno");}).get();
 
             //*******************
 
@@ -730,7 +778,10 @@
                 let infoIdEntradaDeta = idEntradaDetalle[p];
                 let infoCantidad = salidaCantidad[p];
 
-                contenedorArray.push({ infoIdEntradaDeta, infoCantidad});
+                let infoReemplazo = arrayReemplazo[p];
+                let infoRecomendacion = arrayRecomendacion[p];
+
+                contenedorArray.push({ infoIdEntradaDeta, infoCantidad, infoReemplazo, infoRecomendacion});
             }
 
             openLoading();
@@ -977,6 +1028,9 @@
             var idEntradaDetalle = $("input[name='idmaterialArray[]']").map(function(){return $(this).attr("data-idmaterialArray");}).get();
             var salidaCantidad = $("input[name='salidaArray[]']").map(function(){return $(this).attr("data-cantidadSalida");}).get();
 
+            var arrayReemplazo = $("input[name='reArrayReemplazo[]']").map(function(){return $(this).attr("data-idvalorReemplazo");}).get();
+            var arrayRecomendacion = $("input[name='reArrayRecomendacion[]']").map(function(){return $(this).attr("data-idvalorRecomendacion");}).get();
+
 
             //*******************
 
@@ -1019,7 +1073,10 @@
                 let infoIdEntradaDeta = idEntradaDetalle[p];
                 let infoCantidad = salidaCantidad[p];
 
-                contenedorArray.push({ infoIdEntradaDeta, infoCantidad});
+                let infoReemplazo = arrayReemplazo[p];
+                let infoRecomendacion = arrayRecomendacion[p];
+
+                contenedorArray.push({ infoIdEntradaDeta, infoCantidad, infoReemplazo, infoRecomendacion});
             }
 
             openLoading();
