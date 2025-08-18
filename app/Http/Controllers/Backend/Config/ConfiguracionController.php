@@ -845,6 +845,7 @@ class ConfiguracionController extends Controller
             'nombre' => 'required',
             'unidad' => 'required',
             'cargo' => 'required',
+            'jefe' => 'required'
         );
 
         $validar = Validator::make($request->all(), $regla);
@@ -856,10 +857,18 @@ class ConfiguracionController extends Controller
 
         try {
 
+            if($request->jefe == 1){
+                Empleado::where('id_unidad_empleado', $request->unidad)->update([
+                    'jefe' => 0
+                ]);
+            }
+
             $dato = new Empleado();
             $dato->nombre = $request->nombre;
             $dato->id_unidad_empleado = $request->unidad;
             $dato->id_cargo = $request->cargo;
+            $dato->jefe = $request->jefe;
+            $dato->dui = $request->dui;
             $dato->save();
 
             DB::commit();
@@ -902,6 +911,7 @@ class ConfiguracionController extends Controller
             'nombre' => 'required',
             'unidad' => 'required',
             'cargo' => 'required',
+            'jefe' => 'required'
         );
 
         $validar = Validator::make($request->all(), $regla);
@@ -910,10 +920,19 @@ class ConfiguracionController extends Controller
             return ['success' => 0];
         }
 
+
+        if($request->jefe == 1){
+            Empleado::where('id_unidad_empleado', $request->unidad)->update([
+                'jefe' => 0
+            ]);
+        }
+
         Empleado::where('id', $request->id)->update([
             'nombre' => $request->nombre,
             'id_unidad_empleado' => $request->unidad,
             'id_cargo' => $request->cargo,
+            'jefe' => $request->jefe,
+            'dui' => $request->dui
         ]);
 
         return ['success' => 1];

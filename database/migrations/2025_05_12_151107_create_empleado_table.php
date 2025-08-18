@@ -18,6 +18,10 @@ return new class extends Migration
             $table->bigInteger('id_unidad_empleado')->unsigned();
             $table->bigInteger('id_cargo')->unsigned();
 
+            $table->boolean('jefe');
+
+            $table->string('dui', 50)->nullable();
+
             $table->foreign('id_unidad_empleado')->references('id')->on('unidad_empleado');
             $table->foreign('id_cargo')->references('id')->on('cargo');
         });

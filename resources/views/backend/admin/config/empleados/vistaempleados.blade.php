@@ -7,6 +7,7 @@
     <link href="{{ asset('css/buttons_estilo.css') }}" rel="stylesheet">
     <link href="{{ asset('css/select2.min.css') }}" type="text/css" rel="stylesheet">
     <link href="{{ asset('css/select2-bootstrap-5-theme.min.css') }}" type="text/css" rel="stylesheet">
+    <link href="{{ asset('css/estiloToggle.css') }}" type="text/css" rel="stylesheet" />
 @stop
 
 <style>
@@ -95,6 +96,11 @@
                                     </div>
 
 
+                                    <div class="form-group">
+                                        <label>DUI</label>
+                                        <input type="text" maxlength="50" class="form-control" id="dui-nuevo" autocomplete="off">
+                                    </div>
+
 
                                     <div class="form-group">
                                         <label>Cargo:</label>
@@ -106,7 +112,16 @@
                                         </select>
                                     </div>
 
-
+                                    <div class="form-group">
+                                        <label>ES JEFE?</label><br>
+                                        <label class="switch" style="margin-top:10px">
+                                            <input type="checkbox" id="check-jefe">
+                                            <div class="slider round">
+                                                <span class="on">SI</span>
+                                                <span class="off">NO</span>
+                                            </div>
+                                        </label>
+                                    </div>
 
                                 </div>
                             </div>
@@ -162,12 +177,28 @@
                                     </div>
 
                                     <div class="form-group">
+                                        <label>DUI</label>
+                                        <input type="text" maxlength="50" class="form-control" id="dui-editar" autocomplete="off">
+                                    </div>
+
+                                    <div class="form-group">
                                         <label>Cargo:</label>
                                         <br>
                                         <select width="100%" class="form-control" id="select-cargo-editar">
                                         </select>
                                     </div>
 
+
+                                    <div class="form-group">
+                                        <label>ES JEFE?</label><br>
+                                        <label class="switch" style="margin-top:10px">
+                                            <input type="checkbox" id="check-jefe-editar">
+                                            <div class="slider round">
+                                                <span class="on">SI</span>
+                                                <span class="off">NO</span>
+                                            </div>
+                                        </label>
+                                    </div>
 
                                 </div>
                             </div>
@@ -343,7 +374,10 @@
             var unidad = document.getElementById('select-unidad').value;
             var cargo = document.getElementById('select-cargo').value;
             var nombre = document.getElementById('nombre-nuevo').value;
+            var dui = document.getElementById('dui-nuevo').value;
 
+            var checkboxJefe = document.getElementById('check-jefe');
+            var valorCheckboxJefe = checkboxJefe.checked ? 1 : 0;
 
             if(unidad === ''){
                 toastr.error('Unidad es requerido');
@@ -365,6 +399,8 @@
             formData.append('nombre', nombre);
             formData.append('unidad', unidad);
             formData.append('cargo', cargo);
+            formData.append('dui', dui);
+            formData.append('jefe', valorCheckboxJefe);
 
             axios.post(url+'/empleados/nuevo', formData, {
             })
@@ -427,7 +463,13 @@
                         });
 
                         $('#nombre-editar').val(response.data.info.nombre);
+                        $('#dui-editar').val(response.data.info.dui);
 
+                        if(response.data.info.jefe === 0){
+                            $("#check-jefe-editar").prop("checked", false);
+                        }else{
+                            $("#check-jefe-editar").prop("checked", true);
+                        }
 
                     }else{
                         toastr.error('Información no encontrada');
@@ -444,6 +486,10 @@
             var nombre = document.getElementById('nombre-editar').value;
             var unidad = document.getElementById('select-unidad-editar').value;
             var cargo = document.getElementById('select-cargo-editar').value;
+            var dui = document.getElementById('dui-editar').value;
+
+            var checkboxJefe = document.getElementById('check-jefe-editar');
+            var valorCheckboxJefe = checkboxJefe.checked ? 1 : 0;
 
             if(nombre === ''){
                 toastr.error('Nombre es requerido');
@@ -461,6 +507,8 @@
             formData.append('nombre', nombre);
             formData.append('unidad', unidad);
             formData.append('cargo', cargo);
+            formData.append('dui', dui);
+            formData.append('jefe', valorCheckboxJefe);
 
             axios.post(url+'/empleados/editar', formData, {
             })

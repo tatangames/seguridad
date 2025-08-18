@@ -11,6 +11,8 @@
                                 <th style="width: 20%">Distrito</th>
                                 <th style="width: 25%">Unidad</th>
                                 <th style="width: 20%">Cargo</th>
+                                <th style="width: 20%">DUI</th>
+                                <th style="width: 20%">Es Jefe</th>
                                 <th style="width: 8%">Opciones</th>
                             </tr>
                             </thead>
@@ -22,10 +24,15 @@
                                     <td>{{ $dato->distrito }}</td>
                                     <td>{{ $dato->unidad }}</td>
                                     <td>{{ $dato->cargo }}</td>
+                                    <td>{{ $dato->dui }}</td>
+                                    <td>
+                                        @if($dato->jefe == 1)
+                                            <span class="badge bg-success">SI</span>
+                                        @endif
+                                    </td>
 
                                     <td>
-                                        <button type="button" style="font-weight: bold; color: white !important;"
-                                                class="button button-primary button-rounded button-pill button-small" onclick="informacion({{ $dato->id }})">
+                                        <button type="button" style="margin: 5px" class="btn btn-success btn-xs" onclick="informacion({{ $dato->id }})">
                                             <i class="fas fa-edit" title="Editar"></i>&nbsp; Editar
                                         </button>
                                     </td>

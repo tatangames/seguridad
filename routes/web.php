@@ -196,6 +196,8 @@ Route::post('/admin/salida/guardar',  [RegistrosController::class,'guardarSalida
 // TEMPORAL PARA EL REPORTE PDF
 Route::post('/admin/salida/guardar-temporal',  [RegistrosController::class,'guardarSalidaMaterialesTemporal']);
 Route::get('/admin/salidas/pdf-temporal', [RegistrosController::class,'generarPdfTemporal']);
+Route::get('/admin/salidas/pdfcompleto/{idsalida}', [RegistrosController::class,'generarPdfSalida']);
+
 
 
 

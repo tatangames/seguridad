@@ -806,6 +806,7 @@
                         toastr.error('Fila #' + fila + " Supera a las unidades existentes disponibles");
                     }
                     else if(response.data.success === 10){
+                        reporteFinal(response.data.idsalida)
                         msgActualizado()
                     }
                     else{
@@ -1114,6 +1115,9 @@
             window.open("{{ URL::to('admin/salidas/pdf-temporal') }}");
         }
 
+        function reporteFinal(idsalida){
+            window.open("{{ URL::to('admin/salidas/pdfcompleto') }}/" + idsalida);
+        }
 
 
     </script>
