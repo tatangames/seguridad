@@ -35,7 +35,6 @@ return new class extends Migration
             $table->boolean('tipo_retorno');
 
             $table->foreign('id_entrada_detalle')->references('id')->on('entradas_detalle');
-            $table->foreign('id_encargado')->references('id')->on('encargado');
             $table->foreign('id_salida_detalle')->references('id')->on('salidas_detalle');
         });
     }

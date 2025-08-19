@@ -314,6 +314,10 @@ class ReportesController extends Controller
 
             $fila->fechaFormat = date("d-m-Y", strtotime($fila->fecha));
 
+            $conteoInicial = EntradasDetalle::where('id_material', $idmaterial)
+                ->where('id_entradas', $fila->id)
+                ->sum('cantidad_inicial');
+
             // buscar todas sus salidas
             $arraySalidas = DB::table('salidas_detalle AS sd')
                 ->join('entradas_detalle AS ed', 'sd.id_entrada_detalle', '=', 'ed.id')
@@ -322,7 +326,6 @@ class ReportesController extends Controller
                 ->where('ed.id_entradas', $fila->id)
                 ->get();
 
-            $sumaEntradaInicial = 0;
 
             foreach ($arraySalidas as $filaSalida) {
 
@@ -330,8 +333,6 @@ class ReportesController extends Controller
 
                 $infoSalida = Salidas::where('id', $filaSalida->id_salida)->first();
                 $filaSalida->fechaFormat = date("d-m-Y", strtotime($infoSalida->fecha));
-
-                $sumaEntradaInicial += $filaSalida->cantidad_inicial;
 
                 $infoEmpleado = Empleado::where('id', $infoSalida->id_empleado)->first();
                 $infoUnidad = UnidadEmpleado::where('id', $infoEmpleado->id_unidad_empleado)->first();
@@ -344,8 +345,8 @@ class ReportesController extends Controller
 
             $arraySalidaDetalleSORT = $arraySalidas->sortBy('fecha');
 
-            $totalRecibido += $sumaEntradaInicial;
-            $fila->cantidadInicial = $sumaEntradaInicial;
+            $totalRecibido += $conteoInicial;
+            $fila->cantidadInicial = $conteoInicial;
 
             $resultsBloque[$index]->detalle = $arraySalidaDetalleSORT;
             $index++;

@@ -14,11 +14,12 @@ return new class extends Migration
         Schema::create('unidad_empleado', function (Blueprint $table) {
             $table->id();
             $table->bigInteger('id_distrito')->unsigned();
-            $table->bigInteger('id_empleado')->unsigned()->nullable();
+
+            // id_empleado sera variable null
+
             $table->string('nombre', 100);
 
             $table->foreign('id_distrito')->references('id')->on('distrito');
-            $table->foreign('id_empleado')->references('id')->on('empleado');
         });
     }
 
