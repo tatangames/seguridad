@@ -11,6 +11,7 @@ use App\Models\EntradasDetalle;
 use App\Models\Marca;
 use App\Models\Materiales;
 use App\Models\Normativa;
+use App\Models\Prueba;
 use App\Models\Salidas;
 use App\Models\SalidasDetalle;
 use App\Models\Talla;
@@ -509,12 +510,20 @@ class ReportesController extends Controller
         $mpdf->WriteHTML($tabla,2);
 
         $mpdf->Output();
+    }
+
+
+
+    public function pruebas()
+    {
+
+        $unicos = Prueba::select('unidad')->distinct()->get();
+
+        return $unicos;
 
 
 
     }
-
-
 
 
 
