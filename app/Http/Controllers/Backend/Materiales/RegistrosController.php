@@ -805,11 +805,9 @@ class RegistrosController extends Controller
                 <p style='font-size: 13px; margin: 0; color: #000;'>Se entrega al colaborador(a); <strong>$infoEmpleado->nombre</strong></p>
             </div>
 
-
             <div style='text-align: left; margin-top: 10px;'>
                 <p style='font-size: 13px; margin: 0; color: #000;'>Fecha: <strong>$fechaFormat</strong>. Jefe inmediato: <strong>$jefeInmediato</strong></p>
             </div>
-
 
              <div style='text-align: left; margin-top: 10px;'>
                 <p style='font-size: 13px; margin: 0; color: #000;'>Por medio de la presente hace constar el detalle siguiente:</p>

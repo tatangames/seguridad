@@ -101,13 +101,6 @@
                                 <p>Salidas</p>
                             </a>
                         </li>
-
-                        <li class="nav-item">
-                            <a href="{{ route('sidebar.historial.retornos') }}" target="frameprincipal" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Retorno</p>
-                            </a>
-                        </li>
                     </ul>
                 </li>
 

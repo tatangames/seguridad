@@ -260,8 +260,8 @@ Route::get('/admin/historial/retornos/tabla', [HistorialController::class,'tabla
 
 // REPORTES
 Route::get('/admin/reprotes/general/index', [ReportesController::class,'indexGeneralReportes'])->name('admin.historial.general.index');
-Route::get('/admin/reportes/pdf/recibe-separados/{id}', [ReportesController::class,'reporteEncargadoRecibeSeparados']);
-Route::get('/admin/reportes/pdf/recibe-juntos/{id}', [ReportesController::class,'reporteEncargadoRecibeJuntos']);
+Route::get('/admin/reportes/pdf/recibe-separados/{id}', [ReportesController::class,'reporteEmpleadoRecibidos']);
+Route::get('/admin/reportes/pdf/kardex-material/{id}', [ReportesController::class,'reporteKardexMaterial']);
 
 
 
