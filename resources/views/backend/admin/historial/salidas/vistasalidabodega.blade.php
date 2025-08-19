@@ -339,6 +339,10 @@
         }
 
 
+        function reportePDF(id){
+            window.open("{{ URL::to('admin/salidas/pdfcompleto') }}/" + id);
+        }
+
 
 
     </script>

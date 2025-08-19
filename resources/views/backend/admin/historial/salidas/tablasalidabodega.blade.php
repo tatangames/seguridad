@@ -34,9 +34,14 @@
                                             <i class="fas fa-edit" title="Editar"></i>&nbsp; Editar
                                         </button>
 
-                                        <button type="button" class="btn btn-info btn-xs"
+                                        <button type="button" style="margin: 5px" class="btn btn-info btn-xs"
                                                 onclick="vistaDetalle({{ $dato->id }})">
                                             <i class="fas fa-eye" title="Detalle"></i>&nbsp; Detalle
+                                        </button>
+
+                                        <button type="button" style="margin: 5px" class="btn btn-info btn-xs"
+                                                onclick="reportePDF({{ $dato->id }})">
+                                            <i class="fas fa-file-pdf" title="PDF"></i>&nbsp; PDF
                                         </button>
 
                                     </td>
