@@ -66,12 +66,6 @@
                     </a>
                 </li>
 
-                <li class="nav-item">
-                    <a href="{{ route('admin.retorno.registro.index') }}" target="frameprincipal" class="nav-link">
-                        <i class="far fa-circle nav-icon"></i>
-                        <p>Retornos</p>
-                    </a>
-                </li>
 
 
 

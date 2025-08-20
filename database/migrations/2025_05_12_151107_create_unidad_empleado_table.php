@@ -16,6 +16,9 @@ return new class extends Migration
             $table->bigInteger('id_distrito')->unsigned();
 
             // id_empleado sera variable null
+            $table->bigInteger('id_empleado')->nullable();
+            $table->bigInteger('id_empleado_inmediato')->nullable();
+
 
             $table->string('nombre', 100);
 
