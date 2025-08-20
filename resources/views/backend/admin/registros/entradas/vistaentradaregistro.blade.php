@@ -449,9 +449,16 @@
             var fecha = document.getElementById('fecha').value;
             var descripc = document.getElementById('descripcion').value; // max 800
             var lote = document.getElementById('lote').value;
+            var proveedor = document.getElementById('select-proveedor').value;
 
             if(fecha === ''){
                 toastr.error('Fecha es requerida');
+                return;
+            }
+
+
+            if(proveedor === ''){
+                toastr.error('Proveedor es requerido');
                 return;
             }
 
@@ -558,6 +565,7 @@
             formData.append('fecha', fecha);
             formData.append('descripcion', descripc);
             formData.append('lote', lote);
+            formData.append('proveedor', proveedor);
             formData.append('contenedorArray', JSON.stringify(contenedorArray));
 
             axios.post(url+'/entradas/guardar', formData, {

@@ -122,6 +122,7 @@ class RegistrosController extends Controller
 
         $rules = array(
             'fecha' => 'required',
+            'proveedor' => 'required',
         );
 
         // descripcion, lote
@@ -146,6 +147,7 @@ class RegistrosController extends Controller
             $registro->fecha = $request->fecha;
             $registro->descripcion = $request->observacion;
             $registro->lote = $request->lote;
+            $registro->id_proveedor = $request->proveedor;
             $registro->save();
 
             // idMaterial    infoCantidad
