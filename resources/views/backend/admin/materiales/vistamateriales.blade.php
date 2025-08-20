@@ -443,7 +443,7 @@
 
         function nuevo(){
 
-            var nombre = document.getElementById('nombre-nuevo').value;
+            var nombre = document.getElementById('repuesto').value;
             var codigo = document.getElementById('codigo-nuevo').value;
             var unidad = document.getElementById('select-unidad-nuevo').value;
             var marca = document.getElementById('select-marca-nuevo').value;
@@ -520,8 +520,6 @@
                         $('#nombre-editar').val(response.data.material.nombre);
                         $('#codigo-editar').val(response.data.material.codigo);
                         $('#otros-editar').val(response.data.material.otros);
-
-                        contarcaracteresEditar();
 
                         document.getElementById("select-unidad-editar").options.length = 0;
                         document.getElementById("select-marca-editar").options.length = 0;

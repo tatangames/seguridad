@@ -11,7 +11,7 @@
                                 <th style="width: 3%">Factura</th>
                                 <th style="width: 3%">Descripción</th>
                                 <th style="width: 4%">Cantidad Actual (Toma en cuenta las salidas)</th>
-                                <th style="width: 2%">Opciones</th>
+
                             </tr>
                             </thead>
                             <tbody>
@@ -22,13 +22,7 @@
                                     <td>{{ $dato->lote }}</td>
                                     <td>{{ $dato->descripcion }}</td>
                                     <td>{{ $dato->cantidadDisponible }}</td>
-                                    <td>
 
-                                        <button type="button" class="btn btn-primary btn-xs" onclick="movimientos({{ $dato->id }})">
-                                            <i class="fas fa-edit" title="Movimientos"></i>&nbsp; Movimientos
-                                        </button>
-
-                                    </td>
                                 </tr>
                             @endforeach
                             </tbody>

@@ -297,6 +297,26 @@ class HistorialController extends Controller
 
 
 
+    public function informacionHistorialEntrada(Request $request)
+    {
+        $regla = array(
+            'id' => 'required', // id historial entrada
+        );
+
+        $validar = Validator::make($request->all(), $regla);
+
+        if ($validar->fails()) {
+            return ['success' => 0];
+        }
+
+        $info = Entradas::where('id', $request->id)->first();
+
+        $arrayProveedor = Proveedor::orderBy('nombre', 'asc')->get();
+
+        return ['success' => 1, 'info' => $info, 'arrayProveedor' => $arrayProveedor];
+    }
+
+
 
 
     public function editarHistorialEntrada(Request $request)

@@ -264,9 +264,6 @@ Route::get('/admin/reportes/pdf/recibe-separados/{id}', [ReportesController::cla
 Route::get('/admin/reportes/pdf/kardex-material/{id}', [ReportesController::class,'reporteKardexMaterial']);
 
 
-Route::get('/admin/reportes/prueba', [ReportesController::class,'pruebas']);
-
-
 
 
 

@@ -134,8 +134,8 @@ class ReportesController extends Controller
         $totalTodosLosBloques = "$" . number_format($totalTodosLosBloques, 2, '.', ',');
 
 
-        $mpdf = new \Mpdf\Mpdf(['format' => 'LETTER']);
-        //$mpdf = new \Mpdf\Mpdf(['tempDir' => sys_get_temp_dir(), 'format' => 'LETTER']);
+        //$mpdf = new \Mpdf\Mpdf(['format' => 'LETTER']);
+        $mpdf = new \Mpdf\Mpdf(['tempDir' => sys_get_temp_dir(), 'format' => 'LETTER']);
 
         $mpdf->SetTitle('Entregas');
 
