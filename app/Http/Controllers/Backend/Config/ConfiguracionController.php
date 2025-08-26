@@ -820,8 +820,14 @@ class ConfiguracionController extends Controller
 
         $arrayEmpleados = Empleado::where('id_unidad_empleado', $request->id)->get();
 
-        $jefe = "";
+        foreach ($arrayEmpleados as $item){
+            $infoCargo = Cargo::where('id', $item->id_cargo)->first();
+            $item->nombreCompleto = $item->nombre . ' (' . $infoCargo->nombre . ')';
+        }
 
+
+
+        $jefe = "";
         // obtener el jefe de esa unidad
         foreach ($arrayEmpleados as $item){
             if($item->jefe == 1){

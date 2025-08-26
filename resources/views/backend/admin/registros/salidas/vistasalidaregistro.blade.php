@@ -88,7 +88,7 @@
 
 
                                             <div class="row">
-                                                <div class="form-group col-md-6">
+                                                <div class="form-group col-md-8">
                                                     <label>Empleado:</label>
                                                     <br>
                                                     <select class="form-control" id="select-empleado" style="width:100%;">
@@ -209,7 +209,7 @@
                                     <tr>
                                         <td>
                                             <input id="inputBuscador" autocomplete="off" class='form-control' style='width:100%' onkeyup='buscarMaterial(this)' maxlength='300' type='text'>
-                                            <div class='droplista' id="midropmenu" style='position: absolute; z-index: 9; width: 75% !important;'></div>
+                                            <div class='droplista' id="midropmenu" style='position: absolute; z-index: 9; width: 95% !important;'></div>
                                         </td>
                                     </tr>
                                     </tbody>
@@ -980,7 +980,7 @@
 
                         // empleado
                         $.each(response.data.arrayEmpleados, function( key, val ){
-                            $('#select-empleado').append('<option value="' + val.id + '" data-info="' + val.jefe + '">' + val.nombre + '</option>');
+                            $('#select-empleado').append('<option value="' + val.id + '" data-info="' + val.jefe + '">' + val.nombreCompleto + '</option>');
                         });
 
                     }else{
