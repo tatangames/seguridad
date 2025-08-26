@@ -458,11 +458,12 @@ class RegistrosController extends Controller
             // GUARDAR SIEMPRE EN LA MISMA POR SER TEMPORAL
 
 
-            SalidaTemporal::where('id', 1)->update([
-                'fecha' => $request->fecha,
-                'id_empleado' => $request->empleado,
-                'descripcion' => $request->descripcion
-            ]);
+                SalidaTemporal::where('id', 1)->update([
+                    'fecha' => $request->fecha,
+                    'id_empleado' => $request->empleado,
+                    'descripcion' => $request->descripcion
+                ]);
+
 
             DB::table('salida_detalle_temporal')->delete();
 
@@ -551,8 +552,8 @@ class RegistrosController extends Controller
         $totalColumnaValor = "$" . number_format($totalColumnaValor, 2, '.', ',');
 
 
-        $mpdf = new \Mpdf\Mpdf(['format' => 'LETTER']);
-        //$mpdf = new \Mpdf\Mpdf(['tempDir' => sys_get_temp_dir(), 'format' => 'LETTER']);
+       // $mpdf = new \Mpdf\Mpdf(['format' => 'LETTER']);
+        $mpdf = new \Mpdf\Mpdf(['tempDir' => sys_get_temp_dir(), 'format' => 'LETTER']);
 
         $mpdf->SetTitle('Reporte Temporal');
 
