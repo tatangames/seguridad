@@ -273,6 +273,11 @@
 
         function modalAgregar(){
             document.getElementById("formulario-nuevo").reset();
+
+            document.getElementById("select-distrito").selectedIndex = 0;
+            $('#select-distrito').val($('#select-distrito option:first').val()).trigger('change');
+
+
             $('#modalAgregar').modal('show');
         }
 
