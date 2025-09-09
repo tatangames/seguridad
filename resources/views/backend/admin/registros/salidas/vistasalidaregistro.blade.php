@@ -395,7 +395,12 @@
 
         $('#select-empleado').on('change', function() {
             let info = $(this).find(':selected').data('info');
-            $('#jefe-inmediato').val(info);
+            if(info != '0'){
+                $('#jefe-inmediato').val(info);
+            }else{
+                $('#jefe-inmediato').val('');
+            }
+
         });
 
 
@@ -936,6 +941,7 @@
                     if(response.data.success === 1){
 
                         document.getElementById("select-unidad").options.length = 0;
+                        document.getElementById("select-empleado").options.length = 0;
 
                         $('#select-unidad').append('<option value=0 disabled selected>Seleccionar opción</option>');
 

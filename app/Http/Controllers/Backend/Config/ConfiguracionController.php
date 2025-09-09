@@ -823,22 +823,20 @@ class ConfiguracionController extends Controller
         foreach ($arrayEmpleados as $item){
             $infoCargo = Cargo::where('id', $item->id_cargo)->first();
             $item->nombreCompleto = $item->nombre . ' (' . $infoCargo->nombre . ')';
-        }
 
-
-
-        $jefe = "";
-        // obtener el jefe de esa unidad
-        foreach ($arrayEmpleados as $item){
             if($item->jefe == 1){
-                $jefe = $item->nombre;
-                break;
-            }
-        }
+                // PORQUE SOY YO MISMO EL JEFE
+                $item->jefe = "";
+            }else{
 
-        // AGREGAR LISTADO DE JEFES SI LOS HUBIERA
-        foreach ($arrayEmpleados as $item){
-            $item->jefe = $jefe;
+                // BUSCAR EL JEFE DONDE PERTENEZCO EN LA UNIDAD
+                if($Dato = Empleado::where('id_unidad_empleado', $item->id_unidad_empleado)
+                    ->where('id', '!=', $item->id)
+                    ->where('jefe', 1)
+                    ->first()){
+                    $item->jefe = $Dato->nombre;
+                }
+            }
         }
 
         return ['success' => 1, 'arrayEmpleados' => $arrayEmpleados];
