@@ -579,7 +579,7 @@ class RegistrosController extends Controller
                     <!-- Texto centrado -->
                     <td style='width: 60%; text-align: center;'>
                         <h1 style='font-size: 15px; margin: 0; color: #003366; text-transform: uppercase;'>
-                        ALCALDÍA MUNICIPAL DE SANTA ANA NORTE DISTRITO DE METAPÁN</h1>
+                        ALCALDÍA MUNICIPAL DE SANTA ANA NORTE</h1>
                         <h1 style='font-size: 15px; margin: 0; color: #003366; text-transform: uppercase;'>UNIDAD DE SEGURIDAD Y SALUD OCUPACIONAL.</h1>
                         <h2 style='font-size: 13px; margin: 0; color: #003366; text-transform: uppercase;'></h2>
                     </td>
@@ -694,10 +694,15 @@ class RegistrosController extends Controller
                     </td>
 
                     <!-- Columna derecha -->
-                    <td style='width: 60%; text-align: center; vertical-align: top; padding: 10px;'>
-                        <p style='margin: 0; font-weight: bold;'>FECHA DE RECIBIDO</p>
-                        <p style='margin: 0;'>DUI # $infoEmpleado->dui</p>
-                    </td>
+                  <td style='width: 60%; text-align: left; vertical-align: top; padding: 10px; padding-left: 120px; padding-right: 40px;'>
+                    <p style='margin: 0; font-weight: bold;'>FECHA DE RECIBIDO</p>
+                    <p style='margin: 0;'>
+                        <span style='font-weight: bold;'>DUI #</span> $infoEmpleado->dui
+                    </p>
+                </td>
+
+
+
                 </tr>
             </table>
         ";
@@ -809,7 +814,7 @@ class RegistrosController extends Controller
                     <!-- Texto centrado -->
                     <td style='width: 60%; text-align: center;'>
                         <h1 style='font-size: 15px; margin: 0; color: #003366; text-transform: uppercase;'>
-                        ALCALDÍA MUNICIPAL DE SANTA ANA NORTE DISTRITO DE METAPÁN</h1>
+                        ALCALDÍA MUNICIPAL DE SANTA ANA NORTE</h1>
                         <h1 style='font-size: 15px; margin: 0; color: #003366; text-transform: uppercase;'>UNIDAD DE SEGURIDAD Y SALUD OCUPACIONAL.</h1>
                         <h2 style='font-size: 13px; margin: 0; color: #003366; text-transform: uppercase;'></h2>
                     </td>
@@ -924,10 +929,13 @@ class RegistrosController extends Controller
                     </td>
 
                     <!-- Columna derecha -->
-                    <td style='width: 60%; text-align: center; vertical-align: top; padding: 10px;'>
-                        <p style='margin: 0; font-weight: bold;'>FECHA DE RECIBIDO</p>
-                        <p style='margin: 0;'>DUI # $infoEmpleado->dui</p>
-                    </td>
+<td style='width: 60%; text-align: left; vertical-align: top; padding: 10px; padding-left: 120px; padding-right: 40px;'>
+    <p style='margin: 0; font-weight: bold;'>FECHA DE RECIBIDO</p>
+    <p style='margin: 0;'>
+        <span style='font-weight: bold;'>DUI #</span> $infoEmpleado->dui
+    </p>
+</td>
+
                 </tr>
             </table>
         ";

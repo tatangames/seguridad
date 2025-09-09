@@ -158,7 +158,7 @@ class ReportesController extends Controller
                     <!-- Texto centrado -->
                     <td style='width: 60%; text-align: center;'>
                         <h1 style='font-size: 15px; margin: 0; color: #003366; text-transform: uppercase;'>
-                        ALCALDÍA MUNICIPAL DE SANTA ANA NORTE DISTRITO DE METAPÁN</h1>
+                        ALCALDÍA MUNICIPAL DE SANTA ANA NORTE</h1>
                         <h1 style='font-size: 15px; margin: 0; color: #003366; text-transform: uppercase;'>UNIDAD DE SEGURIDAD Y SALUD OCUPACIONAL.</h1>
                         <h2 style='font-size: 13px; margin: 0; color: #003366; text-transform: uppercase;'></h2>
                     </td>
@@ -383,7 +383,7 @@ class ReportesController extends Controller
                     <!-- Texto centrado -->
                      <td style='width: 60%; text-align: center;'>
                         <h1 style='font-size: 15px; margin: 0; color: #003366; text-transform: uppercase;'>
-                        ALCALDÍA MUNICIPAL DE SANTA ANA NORTE DISTRITO DE METAPÁN</h1>
+                        ALCALDÍA MUNICIPAL DE SANTA ANA NORTE</h1>
                         <h1 style='font-size: 15px; margin: 0; color: #003366; text-transform: uppercase;'>UNIDAD DE SEGURIDAD Y SALUD OCUPACIONAL.</h1>
                         <h2 style='font-size: 13px; margin: 0; color: #003366; text-transform: uppercase;'></h2>
                     </td>
