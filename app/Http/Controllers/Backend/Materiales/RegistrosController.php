@@ -511,241 +511,6 @@ class RegistrosController extends Controller
         }else{
             // JEFE DE LA UNIDAD
             if($infoJefe = Empleado::where('id_unidad_empleado', $infoEmpleado->id_unidad_empleado)
-            ->where('jefe', 1)->first()){
-                $jefeInmediato = $infoJefe->nombre;
-            }
-        }
-
-
-        $infoCargo = Cargo::where('id', $infoEmpleado->id_cargo)->first();
-        $cargo = $infoCargo->nombre;
-
-        $fechaFormat = date("d-m-Y", strtotime($infoSalida->fecha));
-
-        $arraySalidasDetalle = SalidaDetalleTemporal::where('id_salida', 1)->get();
-
-        $totalColumna = 0;
-
-        foreach ($arraySalidasDetalle as $item) {
-
-            $infoEntradaDetalle = EntradasDetalle::where('id', $item->id_entrada_detalle)->first();
-            $infoMaterial = Materiales::where('id', $infoEntradaDetalle->id_material)->first();
-
-
-            // precio unitario
-            $item->precioFormat = "$" . number_format($infoEntradaDetalle->precio, 2, '.', ',');
-
-            $multiplicado = $item->cantidad_salida * $infoEntradaDetalle->precio;
-            $totalColumna += $multiplicado;
-            $item->multiplicado = "$" . number_format($multiplicado, 2, '.', ',');
-
-            $item->nombreMaterial = $infoMaterial->nombre;
-
-            $textoRecomendacion = "NO";
-            $textoReemplazo = "NO";
-            if($item->reemplazo == 1){
-                $textoReemplazo = "SI";
-            }
-            if($item->recomendacion == 1){
-                $textoRecomendacion = "SI";
-            }
-
-            $item->recomendacion = $textoRecomendacion;
-            $item->reemplazo = $textoReemplazo;
-        }
-
-        $totalColumnaValor = "$" . number_format($totalColumna, 2, '.', ',');
-
-
-       // $mpdf = new \Mpdf\Mpdf(['format' => 'LETTER']);
-        $mpdf = new \Mpdf\Mpdf(['tempDir' => sys_get_temp_dir(), 'format' => 'LETTER']);
-
-        $mpdf->SetTitle('Reporte Temporal');
-
-        // mostrar errores
-        $mpdf->showImageErrors = false;
-
-        $logoalcaldia = 'images/gobiernologo.jpg';
-        $logosantaana = 'images/logo.png';
-
-
-        $tabla = "
-            <table style='width: 100%; border-collapse: collapse;'>
-                <tr>
-                    <!-- Logo izquierdo -->
-                    <td style='width: 15%; text-align: left;'>
-                        <img src='$logosantaana' alt='Santa Ana Norte' style='max-width: 100px; height: auto;'>
-                    </td>
-                    <!-- Texto centrado -->
-                    <td style='width: 60%; text-align: center;'>
-                        <h1 style='font-size: 15px; margin: 0; color: #003366; text-transform: uppercase;'>
-                        ALCALDÍA MUNICIPAL DE SANTA ANA NORTE</h1>
-                        <h1 style='font-size: 15px; margin: 0; color: #003366; text-transform: uppercase;'>UNIDAD DE SEGURIDAD Y SALUD OCUPACIONAL.</h1>
-                        <h2 style='font-size: 13px; margin: 0; color: #003366; text-transform: uppercase;'></h2>
-                    </td>
-                    <!-- Logo derecho -->
-                    <td style='width: 10%; text-align: right;'>
-                        <img src='$logoalcaldia' alt='Gobierno de El Salvador' style='max-width: 60px; height: auto;'>
-                    </td>
-                </tr>
-            </table>
-            <hr style='border: none; border-top: 2px solid #003366; margin: 0;'>
-            ";
-
-        $tabla .= "
-
-            <div style='text-align: center; margin-top: 25px;'>
-                <h1 style='font-size: 14px; margin: 0; color: #000;'>Ficha de entrega de Equipo de Protección Personal (E.P.P.)</h1>
-            </div>
-
-             <div style='text-align: left; margin-top: 10px;'>
-                <p style='font-size: 13px; margin: 0; color: #000;'>Fecha: <strong>$fechaFormat</strong>.</p>
-            </div>
-
-            <div style='text-align: left; margin-top: 10px;'>
-                <p style='font-size: 13px; margin: 0; color: #000;'>Área: <strong>$infoUnidad->nombre</strong>; Cargo: <strong>$cargo</strong></p>
-            </div>
-             <div style='text-align: left; margin-top: 10px;'>
-                <p style='font-size: 13px; margin: 0; color: #000;'>Se entrega al colaborador(a); <strong>$infoEmpleado->nombre</strong></p>
-            </div>
-
-
-            <div style='text-align: left; margin-top: 10px;'>
-                <p style='font-size: 13px; margin: 0; color: #000;'>Jefe inmediato: <strong>$jefeInmediato</strong></p>
-            </div>
-
-
-             <div style='text-align: left; margin-top: 10px;'>
-                <p style='font-size: 13px; margin: 0; color: #000;'>Por medio de la presente hace constar el detalle siguiente:</p>
-            </div>
-      ";
-
-
-        $tabla  .= "<table width='100%' id='tablaFor' style='margin-top:30px; border-collapse:collapse'>";
-        $tabla .= "
-            <thead>
-                <tr>
-                    <th style='text-align:center; font-size:8px; width:10%;  font-weight:bold; border:1px solid #000' rowspan='2'>CANTIDAD</th>
-                    <th style='text-align:center; font-size:8px; width:25%;  font-weight:bold; border:1px solid #000' rowspan='2'>DESCRIPCION DE E.P.P.</th>
-                    <th style='text-align:center; font-size:8px; width:11%;  font-weight:bold; border:1px solid #000' colspan='2'>REEMPLAZO</th>
-                    <th style='text-align:center; font-size:8px; width:11%;  font-weight:bold; border:1px solid #000' rowspan='2'>VALOR</th>
-                    <th style='text-align:center; font-size:8px; width:11%;  font-weight:bold; border:1px solid #000' rowspan='2'>VALOR TOTAL</th>
-                    <th style='text-align:center; font-size:8px; width:18%;  font-weight:bold; border:1px solid #000' rowspan='2'>
-                        RECOMENDACIONES SOBRE EL USO Y MANTENIMIENTO DEL E.P.P. OTORGADO
-                    </th>
-                </tr>
-                <tr>
-                    <th style='text-align:center; font-size:8px; font-weight:bold; border:1px solid #000; width:5.5%'>SI</th>
-                    <th style='text-align:center; font-size:8px; font-weight:bold; border:1px solid #000; width:5.5%'>NO</th>
-                </tr>
-            </thead>
-            <tbody>";
-        foreach ($arraySalidasDetalle as $fila) {
-            $esSi = (is_numeric($fila->reemplazo) ? (intval($fila->reemplazo) === 1) : (strtoupper(trim($fila->reemplazo)) === 'SI'));
-            $si = $esSi ? 'X' : '';
-            $no = $esSi ? '' : 'X';
-
-            $tabla .= "
-    <tr>
-        <td style='font-size:10px; border:1px solid #000; text-align:center'>{$fila->cantidad_salida}</td>
-        <td style='font-size:10px; border:1px solid #000'>{$fila->nombreMaterial}</td>
-        <td style='font-size:10px; border:1px solid #000; text-align:center'>{$si}</td>
-        <td style='font-size:10px; border:1px solid #000; text-align:center'>{$no}</td>
-        <td style='font-size:10px; border:1px solid #000; text-align:right'>{$fila->precioFormat}</td>
-        <td style='font-size:10px; border:1px solid #000; text-align:right'>{$fila->multiplicado}</td>
-        <td style='font-size:10px; border:1px solid #000'>{$fila->recomendacion}</td>
-    </tr>";
-        }
-
-        $tabla .= "
-<tr>
-    <td style='font-size:11px; border:1px solid #000'></td>
-    <td style='font-size:11px; border:1px solid #000'></td>
-    <td style='font-size:11px; border:1px solid #000'></td>  <!-- REEMPLAZO: SI -->
-    <td style='font-size:11px; border:1px solid #000'></td>  <!-- REEMPLAZO: NO -->
-    <td style='font-size:11px; border:1px solid #000; font-weight:bold; text-align:right'></td>
-    <td style='font-size:11px; border:1px solid #000; font-weight:bold; text-align:right'>{$totalColumnaValor}</td>
-    <td style='font-size:11px; border:1px solid #000'></td>
-</tr>
-</tbody>
-</table>";
-
-
-        $texto1 = "Esperando que dicho Equipo de protección personal cumpla con lo requerido, tendiendo un total de inversión de; " . "<strong>" .$totalColumnaValor . "</strong>" . " sea utilizado de la mejor manera. Yo me comprometo a utilizar el E.P.P. dentro de las horas laborales que me correspondes, correré con el total de la inversión para su reposición echa a mi persona cuando se me compruebe la venta de este equipo, el mal uso, la perdida, el deterioro por negligencia. El cual firmo la presente para constancia de recibido.";
-
-
-        $tabla .= "
-            <div style='text-align: justify; margin-top: 35px; font-family: tahoma, arial, sans-serif;'>
-                <p style='font-size: 13px; margin: 0; color: #000;'>$texto1</p>
-            </div>
-      ";
-
-
-
-
-        $tabla .= "
-            <table width='100%' style='margin-top: 50px; border-collapse: collapse; font-family: tahoma, arial, sans-serif; font-size: 12px;'>
-                <tr>
-                    <!-- Columna izquierda -->
-                    <td style='width: 40%; text-align: center; vertical-align: top; padding: 10px;'>
-                        <p style='margin: 0; font-weight: bold;'>Firma de Entregado.</p>
-                        <p style='margin: 0;'>José Rigoberto Pinto Córdova</p>
-                        <p style='margin: 0;'>Jefe de la unidad de S.S.O.</p>
-                    </td>
-
-                    <!-- Columna derecha -->
-                  <td style='width: 60%; text-align: left; vertical-align: top; padding: 10px; padding-left: 120px; padding-right: 40px;'>
-                    <p style='margin: 0; font-weight: bold;'>FECHA DE RECIBIDO</p>
-                    <p style='margin: 0;'>
-                        <span style='font-weight: bold;'>DUI #</span> $infoEmpleado->dui
-                    </p>
-                </td>
-
-
-
-                </tr>
-            </table>
-        ";
-
-
-
-        $texto2 = "<span style='text-decoration: underline;'>CAPITULO ll INFRACCIONES DE PARTE DE LOS TRABAJADORES Art. 85.</span> – serán objeto de sanción conforme a la legislación vigente, los trabajadores que violen las siguientes medidas de seguridad e higiene: 1) Incumplir las ordenes e instrucciones dadas para garantizar su propia seguridad y salud, las de sus compañeros de trabajo y de terceras personas que se encuentren en el entorno. <span style='background-color: yellow;'>2) No utilizar correctamente los medios y equipos de protección personal facilitados por el empleador, de acuerdo con las instrucciones y regulaciones recibidas por este. </span> 3) No haber información inmediatamente a su jefe inmediato de cualquier situación que a su juicio pueda implicar un riesgo grave e inminente para la seguridad y salud ocupacional, así como de los defectos que hubiere comprobado en los sistemas de protección. Los trabajadores que violen estas disposiciones serán objeto de sanción, de conformidad a los estipulado en el Reglamento Interno de Trabajo de la Empresa, y si la contravención es manifestada y reiterada podrá el empleador dar por terminado su contrato de trabajo, de conformidad al artículo 50 número 17 del código de trabajo.";
-
-           $tabla .= "
-            <div style='text-align: justify; margin-top: 35px; font-family: tahoma, arial, sans-serif;'>
-                <p style='font-size: 13px; margin: 0; color: #000;'>$texto2</p>
-            </div>
-      ";
-
-
-        $stylesheet = file_get_contents('css/cssbodega.css');
-        $mpdf->WriteHTML($stylesheet,1);
-
-        $mpdf->setFooter("Página: " . '{PAGENO}' . "/" . '{nb}');
-        $mpdf->WriteHTML($tabla,2);
-
-        $mpdf->Output();
-    }
-
-
-
-    public function generarPdfSalida($idsalida){
-
-        $infoSalida = Salidas::where('id', $idsalida)->first();
-
-        $infoEmpleado = Empleado::where('id', $infoSalida->id_empleado)->first();
-        $infoUnidad = UnidadEmpleado::where('id', $infoEmpleado->id_unidad_empleado)->first();
-
-        $jefeInmediato = "";
-
-        // JEFE INMEDIATO
-        if($unid = UnidadEmpleado::where('id_empleado', $infoEmpleado->id)->first()){ // es el mismo empleado
-            $infoEm = Empleado::where('id', $unid->id_empleado_inmediato)->first();
-            $jefeInmediato = $infoEm->nombre;
-
-        }else{
-            // JEFE DE LA UNIDAD
-            if($infoJefe = Empleado::where('id_unidad_empleado', $infoEmpleado->id_unidad_empleado)
                 ->where('jefe', 1)->first()){
                 $jefeInmediato = $infoJefe->nombre;
             }
@@ -757,7 +522,7 @@ class RegistrosController extends Controller
 
         $fechaFormat = date("d-m-Y", strtotime($infoSalida->fecha));
 
-        $arraySalidasDetalle = SalidasDetalle::where('id_salida', 1)->get();
+        $arraySalidasDetalle = SalidaDetalleTemporal::where('id_salida', 1)->get();
 
         $totalColumna = 0;
 
@@ -830,33 +595,33 @@ class RegistrosController extends Controller
         $tabla .= "
 
             <div style='text-align: center; margin-top: 25px;'>
-                <h1 style='font-size: 14px; margin: 0; color: #000;'>Ficha de entrega de Equipo de Protección Personal (E.P.P.)</h1>
+                <h1 style='font-size: 12px; margin: 0; color: #000;'>Ficha de entrega de Equipo de Protección Personal (E.P.P.)</h1>
             </div>
 
              <div style='text-align: left; margin-top: 10px;'>
-                <p style='font-size: 13px; margin: 0; color: #000;'>Fecha: <strong>$fechaFormat</strong>.</p>
+                <p style='font-size: 10px; margin: 0; color: #000;'>Fecha: <strong>$fechaFormat</strong>.</p>
             </div>
 
             <div style='text-align: left; margin-top: 10px;'>
-                <p style='font-size: 13px; margin: 0; color: #000;'>Área: <strong>$infoUnidad->nombre</strong>; Cargo: <strong>$cargo</strong></p>
+                <p style='font-size: 10px; margin: 0; color: #000;'>Área: <strong>$infoUnidad->nombre</strong>; Cargo: <strong>$cargo</strong></p>
             </div>
              <div style='text-align: left; margin-top: 10px;'>
-                <p style='font-size: 13px; margin: 0; color: #000;'>Se entrega al colaborador(a); <strong>$infoEmpleado->nombre</strong></p>
+                <p style='font-size: 10px; margin: 0; color: #000;'>Se entrega al colaborador(a); <strong>$infoEmpleado->nombre</strong></p>
             </div>
 
 
             <div style='text-align: left; margin-top: 10px;'>
-                <p style='font-size: 13px; margin: 0; color: #000;'>Jefe inmediato: <strong>$jefeInmediato</strong></p>
+                <p style='font-size: 10px; margin: 0; color: #000;'>Jefe inmediato: <strong>$jefeInmediato</strong></p>
             </div>
 
 
              <div style='text-align: left; margin-top: 10px;'>
-                <p style='font-size: 13px; margin: 0; color: #000;'>Por medio de la presente hace constar el detalle siguiente:</p>
+                <p style='font-size: 10px; margin: 0; color: #000;'>Por medio de la presente hace constar el detalle siguiente:</p>
             </div>
       ";
 
 
-        $tabla  .= "<table width='100%' id='tablaFor' style='margin-top:30px; border-collapse:collapse'>";
+        $tabla  .= "<table width='100%' id='tablaFor' style='margin-top:15px; border-collapse:collapse'>";
         $tabla .= "
             <thead>
                 <tr>
@@ -893,15 +658,19 @@ class RegistrosController extends Controller
         }
 
         $tabla .= "
-<tr>
-    <td style='font-size:11px; border:1px solid #000'></td>
-    <td style='font-size:11px; border:1px solid #000'></td>
-    <td style='font-size:11px; border:1px solid #000'></td>  <!-- REEMPLAZO: SI -->
-    <td style='font-size:11px; border:1px solid #000'></td>  <!-- REEMPLAZO: NO -->
-    <td style='font-size:11px; border:1px solid #000; font-weight:bold; text-align:right'></td>
-    <td style='font-size:11px; border:1px solid #000; font-weight:bold; text-align:right'>{$totalColumnaValor}</td>
-    <td style='font-size:11px; border:1px solid #000'></td>
-</tr>
+            <tr>
+                <td style='font-size:11px; border:1px solid #000'></td>
+                <td style='font-size:11px; border:1px solid #000'></td>
+                <td style='font-size:11px; border:1px solid #000'></td>  <!-- REEMPLAZO: SI -->
+                <td style='font-size:11px; border:1px solid #000'></td>  <!-- REEMPLAZO: NO -->
+                <td style='font-size:11px; border:1px solid #000; font-weight:bold; text-align:right'></td>
+                <td style='font-size:11px; border:1px solid #000; font-weight:bold; text-align:right'>{$totalColumnaValor}</td>
+                <td style='font-size:11px; border:1px solid #000'></td>
+            </tr>
+
+
+
+
 </tbody>
 </table>";
 
@@ -911,7 +680,7 @@ class RegistrosController extends Controller
 
         $tabla .= "
             <div style='text-align: justify; margin-top: 35px; font-family: tahoma, arial, sans-serif;'>
-                <p style='font-size: 13px; margin: 0; color: #000;'>$texto1</p>
+                <p style='font-size: 12px; margin: 0; color: #000;'>$texto1</p>
             </div>
       ";
 
@@ -919,7 +688,7 @@ class RegistrosController extends Controller
 
 
         $tabla .= "
-            <table width='100%' style='margin-top: 50px; border-collapse: collapse; font-family: tahoma, arial, sans-serif; font-size: 12px;'>
+            <table width='100%' style='margin-top: 30px; border-collapse: collapse; font-family: tahoma, arial, sans-serif; font-size: 12px;'>
                 <tr>
                     <!-- Columna izquierda -->
                     <td style='width: 40%; text-align: center; vertical-align: top; padding: 10px;'>
@@ -946,7 +715,244 @@ class RegistrosController extends Controller
 
         $tabla .= "
             <div style='text-align: justify; margin-top: 35px; font-family: tahoma, arial, sans-serif;'>
-                <p style='font-size: 13px; margin: 0; color: #000;'>$texto2</p>
+                <p style='font-size: 11px; margin: 0; color: #000;'>$texto2</p>
+            </div>
+      ";
+
+
+        $stylesheet = file_get_contents('css/cssbodega.css');
+        $mpdf->WriteHTML($stylesheet,1);
+
+        $mpdf->setFooter("Página: " . '{PAGENO}' . "/" . '{nb}');
+        $mpdf->WriteHTML($tabla,2);
+
+        $mpdf->Output();
+    }
+
+
+
+    public function generarPdfSalida($idsalida){
+
+        $infoSalida = Salidas::where('id', $idsalida)->first();
+
+        $infoEmpleado = Empleado::where('id', $infoSalida->id_empleado)->first();
+        $infoUnidad = UnidadEmpleado::where('id', $infoEmpleado->id_unidad_empleado)->first();
+
+        $jefeInmediato = "";
+
+        // JEFE INMEDIATO
+        if($unid = UnidadEmpleado::where('id_empleado', $infoEmpleado->id)->first()){ // es el mismo empleado
+            $infoEm = Empleado::where('id', $unid->id_empleado_inmediato)->first();
+            $jefeInmediato = $infoEm->nombre;
+
+        }else{
+            // JEFE DE LA UNIDAD
+            if($infoJefe = Empleado::where('id_unidad_empleado', $infoEmpleado->id_unidad_empleado)
+                ->where('jefe', 1)->first()){
+                $jefeInmediato = $infoJefe->nombre;
+            }
+        }
+
+
+        $infoCargo = Cargo::where('id', $infoEmpleado->id_cargo)->first();
+        $cargo = $infoCargo->nombre;
+
+        $fechaFormat = date("d-m-Y", strtotime($infoSalida->fecha));
+
+        $arraySalidasDetalle = SalidasDetalle::where('id_salida', $idsalida)->get();
+
+        $totalColumna = 0;
+
+        foreach ($arraySalidasDetalle as $item) {
+
+            $infoEntradaDetalle = EntradasDetalle::where('id', $item->id_entrada_detalle)->first();
+            $infoMaterial = Materiales::where('id', $infoEntradaDetalle->id_material)->first();
+
+
+            // precio unitario
+            $item->precioFormat = "$" . number_format($infoEntradaDetalle->precio, 2, '.', ',');
+
+            $multiplicado = $item->cantidad_salida * $infoEntradaDetalle->precio;
+            $totalColumna += $multiplicado;
+            $item->multiplicado = "$" . number_format($multiplicado, 2, '.', ',');
+
+            $item->nombreMaterial = $infoMaterial->nombre;
+
+            $textoRecomendacion = "NO";
+            $textoReemplazo = "NO";
+            if($item->reemplazo == 1){
+                $textoReemplazo = "SI";
+            }
+            if($item->recomendacion == 1){
+                $textoRecomendacion = "SI";
+            }
+
+            $item->recomendacion = $textoRecomendacion;
+            $item->reemplazo = $textoReemplazo;
+        }
+
+        $totalColumnaValor = "$" . number_format($totalColumna, 2, '.', ',');
+
+
+        // $mpdf = new \Mpdf\Mpdf(['format' => 'LETTER']);
+        $mpdf = new \Mpdf\Mpdf(['tempDir' => sys_get_temp_dir(), 'format' => 'LETTER']);
+
+        $mpdf->SetTitle('Reporte Temporal');
+
+        // mostrar errores
+        $mpdf->showImageErrors = false;
+
+        $logoalcaldia = 'images/gobiernologo.jpg';
+        $logosantaana = 'images/logo.png';
+
+
+        $tabla = "
+            <table style='width: 100%; border-collapse: collapse;'>
+                <tr>
+                    <!-- Logo izquierdo -->
+                    <td style='width: 15%; text-align: left;'>
+                        <img src='$logosantaana' alt='Santa Ana Norte' style='max-width: 100px; height: auto;'>
+                    </td>
+                    <!-- Texto centrado -->
+                    <td style='width: 60%; text-align: center;'>
+                        <h1 style='font-size: 15px; margin: 0; color: #003366; text-transform: uppercase;'>
+                        ALCALDÍA MUNICIPAL DE SANTA ANA NORTE</h1>
+                        <h1 style='font-size: 15px; margin: 0; color: #003366; text-transform: uppercase;'>UNIDAD DE SEGURIDAD Y SALUD OCUPACIONAL.</h1>
+                        <h2 style='font-size: 13px; margin: 0; color: #003366; text-transform: uppercase;'></h2>
+                    </td>
+                    <!-- Logo derecho -->
+                    <td style='width: 10%; text-align: right;'>
+                        <img src='$logoalcaldia' alt='Gobierno de El Salvador' style='max-width: 60px; height: auto;'>
+                    </td>
+                </tr>
+            </table>
+            <hr style='border: none; border-top: 2px solid #003366; margin: 0;'>
+            ";
+
+        $tabla .= "
+
+            <div style='text-align: center; margin-top: 25px;'>
+                <h1 style='font-size: 12px; margin: 0; color: #000;'>Ficha de entrega de Equipo de Protección Personal (E.P.P.)</h1>
+            </div>
+
+             <div style='text-align: left; margin-top: 10px;'>
+                <p style='font-size: 10px; margin: 0; color: #000;'>Fecha: <strong>$fechaFormat</strong>.</p>
+            </div>
+
+            <div style='text-align: left; margin-top: 10px;'>
+                <p style='font-size: 10px; margin: 0; color: #000;'>Área: <strong>$infoUnidad->nombre</strong>; Cargo: <strong>$cargo</strong></p>
+            </div>
+             <div style='text-align: left; margin-top: 10px;'>
+                <p style='font-size: 10px; margin: 0; color: #000;'>Se entrega al colaborador(a); <strong>$infoEmpleado->nombre</strong></p>
+            </div>
+
+
+            <div style='text-align: left; margin-top: 10px;'>
+                <p style='font-size: 10px; margin: 0; color: #000;'>Jefe inmediato: <strong>$jefeInmediato</strong></p>
+            </div>
+
+
+             <div style='text-align: left; margin-top: 10px;'>
+                <p style='font-size: 10px; margin: 0; color: #000;'>Por medio de la presente hace constar el detalle siguiente:</p>
+            </div>
+      ";
+
+
+        $tabla  .= "<table width='100%' id='tablaFor' style='margin-top:15px; border-collapse:collapse'>";
+        $tabla .= "
+            <thead>
+                <tr>
+                    <th style='text-align:center; font-size:8px; width:10%;  font-weight:bold; border:1px solid #000' rowspan='2'>CANTIDAD</th>
+                    <th style='text-align:center; font-size:8px; width:25%;  font-weight:bold; border:1px solid #000' rowspan='2'>DESCRIPCION DE E.P.P.</th>
+                    <th style='text-align:center; font-size:8px; width:11%;  font-weight:bold; border:1px solid #000' colspan='2'>REEMPLAZO</th>
+                    <th style='text-align:center; font-size:8px; width:11%;  font-weight:bold; border:1px solid #000' rowspan='2'>VALOR</th>
+                    <th style='text-align:center; font-size:8px; width:11%;  font-weight:bold; border:1px solid #000' rowspan='2'>VALOR TOTAL</th>
+                    <th style='text-align:center; font-size:8px; width:18%;  font-weight:bold; border:1px solid #000' rowspan='2'>
+                        RECOMENDACIONES SOBRE EL USO Y MANTENIMIENTO DEL E.P.P. OTORGADO
+                    </th>
+                </tr>
+                <tr>
+                    <th style='text-align:center; font-size:8px; font-weight:bold; border:1px solid #000; width:5.5%'>SI</th>
+                    <th style='text-align:center; font-size:8px; font-weight:bold; border:1px solid #000; width:5.5%'>NO</th>
+                </tr>
+            </thead>
+            <tbody>";
+        foreach ($arraySalidasDetalle as $fila) {
+            $esSi = (is_numeric($fila->reemplazo) ? (intval($fila->reemplazo) === 1) : (strtoupper(trim($fila->reemplazo)) === 'SI'));
+            $si = $esSi ? 'X' : '';
+            $no = $esSi ? '' : 'X';
+
+            $tabla .= "
+    <tr>
+        <td style='font-size:10px; border:1px solid #000; text-align:center'>{$fila->cantidad_salida}</td>
+        <td style='font-size:10px; border:1px solid #000'>{$fila->nombreMaterial}</td>
+        <td style='font-size:10px; border:1px solid #000; text-align:center'>{$si}</td>
+        <td style='font-size:10px; border:1px solid #000; text-align:center'>{$no}</td>
+        <td style='font-size:10px; border:1px solid #000; text-align:right'>{$fila->precioFormat}</td>
+        <td style='font-size:10px; border:1px solid #000; text-align:right'>{$fila->multiplicado}</td>
+        <td style='font-size:10px; border:1px solid #000'>{$fila->recomendacion}</td>
+    </tr>";
+        }
+
+        $tabla .= "
+            <tr>
+                <td style='font-size:11px; border:1px solid #000'></td>
+                <td style='font-size:11px; border:1px solid #000'></td>
+                <td style='font-size:11px; border:1px solid #000'></td>  <!-- REEMPLAZO: SI -->
+                <td style='font-size:11px; border:1px solid #000'></td>  <!-- REEMPLAZO: NO -->
+                <td style='font-size:11px; border:1px solid #000; font-weight:bold; text-align:right'></td>
+                <td style='font-size:11px; border:1px solid #000; font-weight:bold; text-align:right'>{$totalColumnaValor}</td>
+                <td style='font-size:11px; border:1px solid #000'></td>
+            </tr>
+
+
+
+
+</tbody>
+</table>";
+
+
+        $texto1 = "Esperando que dicho Equipo de protección personal cumpla con lo requerido, tendiendo un total de inversión de; " . "<strong>" .$totalColumnaValor . "</strong>" . " sea utilizado de la mejor manera. Yo me comprometo a utilizar el E.P.P. dentro de las horas laborales que me correspondes, correré con el total de la inversión para su reposición echa a mi persona cuando se me compruebe la venta de este equipo, el mal uso, la perdida, el deterioro por negligencia. El cual firmo la presente para constancia de recibido.";
+
+
+        $tabla .= "
+            <div style='text-align: justify; margin-top: 35px; font-family: tahoma, arial, sans-serif;'>
+                <p style='font-size: 12px; margin: 0; color: #000;'>$texto1</p>
+            </div>
+      ";
+
+
+
+
+        $tabla .= "
+            <table width='100%' style='margin-top: 30px; border-collapse: collapse; font-family: tahoma, arial, sans-serif; font-size: 12px;'>
+                <tr>
+                    <!-- Columna izquierda -->
+                    <td style='width: 40%; text-align: center; vertical-align: top; padding: 10px;'>
+                        <p style='margin: 0; font-weight: bold;'>Firma de Entregado.</p>
+                        <p style='margin: 0;'>José Rigoberto Pinto Córdova</p>
+                        <p style='margin: 0;'>Jefe de la unidad de S.S.O.</p>
+                    </td>
+
+                    <!-- Columna derecha -->
+<td style='width: 60%; text-align: left; vertical-align: top; padding: 10px; padding-left: 120px; padding-right: 40px;'>
+    <p style='margin: 0; font-weight: bold;'>FECHA DE RECIBIDO</p>
+    <p style='margin: 0;'>
+        <span style='font-weight: bold;'>DUI #</span> $infoEmpleado->dui
+    </p>
+</td>
+
+                </tr>
+            </table>
+        ";
+
+
+
+        $texto2 = "<span style='text-decoration: underline;'>CAPITULO ll INFRACCIONES DE PARTE DE LOS TRABAJADORES Art. 85.</span> – serán objeto de sanción conforme a la legislación vigente, los trabajadores que violen las siguientes medidas de seguridad e higiene: 1) Incumplir las ordenes e instrucciones dadas para garantizar su propia seguridad y salud, las de sus compañeros de trabajo y de terceras personas que se encuentren en el entorno. <span style='background-color: yellow;'>2) No utilizar correctamente los medios y equipos de protección personal facilitados por el empleador, de acuerdo con las instrucciones y regulaciones recibidas por este. </span> 3) No haber información inmediatamente a su jefe inmediato de cualquier situación que a su juicio pueda implicar un riesgo grave e inminente para la seguridad y salud ocupacional, así como de los defectos que hubiere comprobado en los sistemas de protección. Los trabajadores que violen estas disposiciones serán objeto de sanción, de conformidad a los estipulado en el Reglamento Interno de Trabajo de la Empresa, y si la contravención es manifestada y reiterada podrá el empleador dar por terminado su contrato de trabajo, de conformidad al artículo 50 número 17 del código de trabajo.";
+
+        $tabla .= "
+            <div style='text-align: justify; margin-top: 35px; font-family: tahoma, arial, sans-serif;'>
+                <p style='font-size: 11px; margin: 0; color: #000;'>$texto2</p>
             </div>
       ";
 
