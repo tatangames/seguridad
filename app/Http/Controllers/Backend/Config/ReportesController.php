@@ -359,9 +359,9 @@ class ReportesController extends Controller
         }
 
 
-        $mpdf = new \Mpdf\Mpdf(['format' => 'LETTER']);
+        //$mpdf = new \Mpdf\Mpdf(['format' => 'LETTER']);
 
-       // $mpdf = new \Mpdf\Mpdf(['tempDir' => sys_get_temp_dir(), 'format' => 'LETTER-L']);
+        $mpdf = new \Mpdf\Mpdf(['tempDir' => sys_get_temp_dir(), 'format' => 'LETTER-L']);
 
 
         $mpdf->SetTitle('Reporte Kardex');
