@@ -17,7 +17,7 @@
                                     <th style="width: 8%">Color</th>
                                     <th style="width: 15%">Otros</th>
                                     <th style="width: 10%">Cantidad Actual (toma en cuenta las salidas)</th>
-                                    <th style="width: 10%">Fecha de Cambio Estimada</th>
+                                    <th style="width: 10%">Meses para Cambio</th>
                                     <th style="width: 13%">Opciones</th>
                                 </tr>
                                 </thead>
@@ -34,7 +34,7 @@
                                         <td>{{ $dato->color }}</td>
                                         <td>{{ $dato->otros }}</td>
                                         <td>{{ $dato->cantidadGlobal }}</td>
-                                        <td>{{ $dato->fechaFormat }}</td>
+                                        <td>{{ $dato->fecha_cambio }}</td>
                                         <td>
                                             <button type="button" class="btn btn-primary btn-xs" onclick="informacion({{ $dato->id }})">
                                                 <i class="fas fa-edit" title="Editar"></i>&nbsp; Editar

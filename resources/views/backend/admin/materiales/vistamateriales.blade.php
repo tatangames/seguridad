@@ -160,9 +160,9 @@
 
                             <div class="col-md-5">
                                 <div class="form-group">
-                                    <label>Fecha Estimada de Cambio:</label>
+                                    <label>Meses Estimado para cambio:</label>
                                     <br>
-                                    <input type="date" class="form-control" id="fechacambio-nuevo">
+                                    <input type="number" class="form-control" id="fechacambio-nuevo">
                                 </div>
                             </div>
 
@@ -274,9 +274,9 @@
 
                                     <div class="col-md-5">
                                         <div class="form-group">
-                                            <label>Fecha Estimada de Cambio:</label>
+                                            <label>Meses Estimado para cambio:</label>
                                             <br>
-                                            <input type="date" class="form-control" id="fechacambio-editar">
+                                            <input type="number" class="form-control" id="fechacambio-editar">
                                         </div>
                                     </div>
 
@@ -470,6 +470,7 @@
             var color = document.getElementById('select-color-nuevo').value;
             var talla = document.getElementById('select-talla-nuevo').value;
             var otros = document.getElementById('otros-nuevo').value;
+
             var fechaCambio = document.getElementById('fechacambio-nuevo').value;
 
             if(nombre === ''){
@@ -493,6 +494,35 @@
             }
 
             // COLOR Y TALLA OPCIONAL
+
+
+
+            var reglaNumeroEntero = /^[0-9]\d*$/;
+
+            //*************
+
+            if(fechaCambio !== ''){
+
+                if(!fechaCambio.match(reglaNumeroEntero)) {
+                    toastr.error('Fecha cambio debe ser número entero y no Negativo');
+                    return;
+                }
+
+                if(fechaCambio <= 0){
+                    toastr.error('Fecha cambio no debe ser negativo o cero');
+                    return;
+                }
+
+                if(fechaCambio > 20){
+                    toastr.error('Fecha cambio máximo 20 meses');
+                    return;
+                }
+            }
+
+
+
+
+
 
             openLoading();
             var formData = new FormData();
@@ -623,7 +653,7 @@
             var color = document.getElementById('select-color-editar').value;
             var talla = document.getElementById('select-talla-editar').value;
             var otros = document.getElementById('otros-editar').value;
-            var fechacambio = document.getElementById('fechacambio-editar').value;
+            var fechaCambio = document.getElementById('fechacambio-editar').value;
 
             if(nombre === ''){
                 toastr.error('Nombre es requerido');
@@ -645,6 +675,28 @@
                 return
             }
 
+            var reglaNumeroEntero = /^[0-9]\d*$/;
+
+            //*************
+
+            if(fechaCambio !== ''){
+
+                if(!fechaCambio.match(reglaNumeroEntero)) {
+                    toastr.error('Fecha cambio debe ser número entero y no Negativo');
+                    return;
+                }
+
+                if(fechaCambio <= 0){
+                    toastr.error('Fecha cambio no debe ser negativo o cero');
+                    return;
+                }
+
+                if(fechaCambio > 20){
+                    toastr.error('Fecha cambio máximo 20 meses');
+                    return;
+                }
+            }
+
             // COLOR Y TALLA ES OPCIONAL
 
             openLoading();
@@ -658,7 +710,7 @@
             formData.append('color', color);
             formData.append('talla', talla);
             formData.append('otros', otros);
-            formData.append('fecha', fechacambio);
+            formData.append('fecha', fechaCambio);
 
             axios.post(url+'/materiales/editar', formData, {
             })
