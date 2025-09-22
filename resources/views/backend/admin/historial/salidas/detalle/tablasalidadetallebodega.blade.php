@@ -44,11 +44,6 @@
                                     </td>
                                     <td>
 
-                                        <button type="button" class="btn btn-info btn-xs"
-                                                onclick="infoMovimientos({{ $dato->id }})">
-                                            <i class="fas fa-edit" title="Movimientos"></i>&nbsp; Movimientos
-                                        </button>
-
 
                                         <button style="margin: 3px" type="button" class="btn btn-danger btn-xs"
                                                 onclick="infoBorrar({{ $dato->id }})">

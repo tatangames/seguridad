@@ -67,6 +67,10 @@ class MaterialesController extends Controller
             $fila->talla = $talla;
 
 
+            if($fila->fecha_cambio != null){
+                $fila->fechaFormat = date("d-m-Y", strtotime($fila->fecha_cambio));
+            }
+
 
 
             // CANTIDAD GLOBAL QUE TENGO DE ESE PRODUCTO
@@ -88,7 +92,7 @@ class MaterialesController extends Controller
             'normativa' => 'required',
         );
 
-        // codigo, otros, color, talla
+        // codigo, otros, color, talla, fecha
 
         $validar = Validator::make($request->all(), $regla);
 
@@ -103,6 +107,7 @@ class MaterialesController extends Controller
         $registro->nombre = $request->nombre;
         $registro->codigo = $request->codigo;
         $registro->otros = $request->otros;
+        $registro->fecha_cambio = $request->fecha;
 
         if($registro->save()){
             return ['success' => 1];
@@ -145,7 +150,7 @@ class MaterialesController extends Controller
             'normativa' => 'required',
         );
 
-        // codigo, COLOR Y TALLA, otros
+        // codigo, COLOR Y TALLA, otros, fecha
 
         $validar = Validator::make($request->all(), $regla);
 
@@ -159,7 +164,8 @@ class MaterialesController extends Controller
             'id_talla' => $request->talla,
             'nombre' => $request->nombre,
             'codigo' => $request->codigo,
-            'otros' => $request->otros
+            'otros' => $request->otros,
+            'fecha_cambio' => $request->fecha
         ]);
 
         return ['success' => 1];

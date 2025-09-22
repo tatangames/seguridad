@@ -291,7 +291,6 @@ class ReportesController extends Controller
         }
 
 
-
         // obtener listado de id entradas que tiene este material
 
         $pilaIdEntradas = array();
@@ -301,14 +300,17 @@ class ReportesController extends Controller
             array_push($pilaIdEntradas, $fila->id_entradas);
         }
 
+        // AQUI ESTAN LAS ENTRADAS DE ESE ID MATERIAL
         $arrayEntradas = Entradas::whereIn('id', $pilaIdEntradas)->orderBy('fecha', 'ASC')->get();
+
+
 
         $resultsBloque = array();
         $index = 0;
 
 
-        $totalRecibido = 0;
-        $totalEntregado = 0;
+        $sumaTotalRecibido = 0;
+        $sumaTotalEntregado = 0;
 
         foreach ($arrayEntradas as $fila) {
             array_push($resultsBloque,$fila);
@@ -319,21 +321,21 @@ class ReportesController extends Controller
                 ->where('id_entradas', $fila->id)
                 ->sum('cantidad_inicial');
 
+
             // buscar todas sus salidas
             $arraySalidas = DB::table('salidas_detalle AS sd')
                 ->join('entradas_detalle AS ed', 'sd.id_entrada_detalle', '=', 'ed.id')
                 ->select('ed.id_entradas', 'ed.cantidad', 'ed.cantidad_inicial', 'ed.cantidad_entregada',
-                'ed.precio', 'sd.cantidad_salida', 'sd.id_salida')
+                'ed.precio', 'sd.cantidad_salida', 'sd.id_salida', 'ed.id_material')
+                ->where('ed.id_material', $idmaterial)
                 ->where('ed.id_entradas', $fila->id)
                 ->get();
 
-
             foreach ($arraySalidas as $filaSalida) {
 
-                $totalEntregado += $filaSalida->cantidad_entregada;
+                $sumaTotalEntregado += $filaSalida->cantidad_entregada;
 
                 $infoSalida = Salidas::where('id', $filaSalida->id_salida)->first();
-                $filaSalida->fechaFormat = date("d-m-Y", strtotime($infoSalida->fecha));
 
                 $infoEmpleado = Empleado::where('id', $infoSalida->id_empleado)->first();
                 $infoUnidad = UnidadEmpleado::where('id', $infoEmpleado->id_unidad_empleado)->first();
@@ -342,11 +344,14 @@ class ReportesController extends Controller
                 $filaSalida->nombreEmpleado = $infoEmpleado->nombre;
                 $filaSalida->nombreUnidad = $infoUnidad->nombre;
                 $filaSalida->nombreDistrito = $infoDistrito->nombre;
+
+                $filaSalida->fechaOriginal = $infoSalida->fecha;
+                $filaSalida->fechaFormat   = date("d-m-Y", strtotime($infoSalida->fecha));
             }
 
-            $arraySalidaDetalleSORT = $arraySalidas->sortBy('fecha');
+            $arraySalidaDetalleSORT = $arraySalidas->sortBy('fechaOriginal');
 
-            $totalRecibido += $conteoInicial;
+            $sumaTotalRecibido += $conteoInicial;
             $fila->cantidadInicial = $conteoInicial;
 
             $resultsBloque[$index]->detalle = $arraySalidaDetalleSORT;
@@ -354,10 +359,9 @@ class ReportesController extends Controller
         }
 
 
-        //$mpdf = new \Mpdf\Mpdf(['format' => 'LETTER']);
-        //$mpdf = new \Mpdf\Mpdf(['tempDir' => sys_get_temp_dir(), 'format' => 'LETTER']);
-        //$mpdf = new \Mpdf\Mpdf(['format' => 'LETTER-L']);
-        $mpdf = new \Mpdf\Mpdf(['tempDir' => sys_get_temp_dir(), 'format' => 'LETTER-L']);
+        $mpdf = new \Mpdf\Mpdf(['format' => 'LETTER']);
+
+       // $mpdf = new \Mpdf\Mpdf(['tempDir' => sys_get_temp_dir(), 'format' => 'LETTER-L']);
 
 
         $mpdf->SetTitle('Reporte Kardex');
@@ -477,28 +481,16 @@ class ReportesController extends Controller
                 $tabla .= "</tbody></table>";
             }
 
-
-
-
-
-
-
         }
 
 
-
-
-
-
-
-        $totalActual = $totalRecibido - $totalEntregado;
-
+        $totalBodega = $sumaTotalRecibido - $sumaTotalEntregado;
 
         $tabla .= "
             <div style='text-align: left; margin-top: 35px; margin-left: 15px'>
-                <p style='font-size: 15px; margin: 0; color: #000;'><strong>Total Recibido: $totalRecibido </strong> </p>
-                 <p style='font-size: 15px; margin: 0; color: #000;'><strong>Total Entregado: $totalEntregado </strong> </p>
-                   <p style='font-size: 15px; margin: 0; color: #000;'><strong>Total Actual: $totalActual </strong> </p>
+                <p style='font-size: 15px; margin: 0; color: #000;'><strong>Total Recibido: $sumaTotalRecibido </strong> </p>
+                 <p style='font-size: 15px; margin: 0; color: #000;'><strong>Total Entregado: $sumaTotalEntregado </strong> </p>
+                   <p style='font-size: 15px; margin: 0; color: #000;'><strong>Total Actual: $totalBodega</strong> </p>
             </div>
       ";
 
