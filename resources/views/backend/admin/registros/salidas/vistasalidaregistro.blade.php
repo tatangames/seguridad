@@ -393,6 +393,7 @@
 
     <script>
 
+        // DENTRO DE LA FILA SE OBTIENE EL CAMPO LLAMADO INFO, AHI VIENE NOMBRE O NO
         $('#select-empleado').on('change', function() {
             let info = $(this).find(':selected').data('info');
             if(info != '0'){

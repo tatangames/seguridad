@@ -825,8 +825,20 @@ class ConfiguracionController extends Controller
             $item->nombreCompleto = $item->nombre . ' (' . $infoCargo->nombre . ')';
 
             if($item->jefe == 1){
+
+                $nombreJefe = "";
+
                 // PORQUE SOY YO MISMO EL JEFE
-                $item->jefe = "";
+                // ENTONCES BUSCAR SI QUIEN ES MI JEFE SUPERIOR
+                if($datauni = UnidadEmpleado::where('id_empleado', $item->id)->first()){
+                    if($datauni->id_empleado_inmediato != null){
+                        $datoE = Empleado::where('id', $datauni->id_empleado_inmediato)->first();
+                        $nombreJefe = $datoE->nombre;
+                    }
+                }
+
+
+                $item->jefe = $nombreJefe;
             }else{
 
                 // BUSCAR EL JEFE DONDE PERTENEZCO EN LA UNIDAD
