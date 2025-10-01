@@ -699,7 +699,7 @@ class RegistrosController extends Controller
 
                     <!-- Columna derecha -->
 <td style='width: 60%; text-align: left; vertical-align: top; padding: 10px; padding-left: 120px; padding-right: 40px;'>
-    <p style='margin: 0; font-weight: bold;'>FECHA DE RECIBIDO</p>
+    <p style='margin: 0; font-weight: bold;'>FIRMA DE RECIBIDO</p>
     <p style='margin: 0;'>
         <span style='font-weight: bold;'>DUI #</span> $infoEmpleado->dui
     </p>
@@ -936,7 +936,7 @@ class RegistrosController extends Controller
 
                     <!-- Columna derecha -->
 <td style='width: 60%; text-align: left; vertical-align: top; padding: 10px; padding-left: 120px; padding-right: 40px;'>
-    <p style='margin: 0; font-weight: bold;'>FECHA DE RECIBIDO</p>
+    <p style='margin: 0; font-weight: bold;'>FIRMA DE RECIBIDO</p>
     <p style='margin: 0;'>
         <span style='font-weight: bold;'>DUI #</span> $infoEmpleado->dui
     </p>
