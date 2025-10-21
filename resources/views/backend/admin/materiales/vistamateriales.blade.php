@@ -571,7 +571,7 @@
                         $('#nombre-editar').val(response.data.material.nombre);
                         $('#codigo-editar').val(response.data.material.codigo);
                         $('#otros-editar').val(response.data.material.otros);
-                        $('#fechacambio-editar').val(response.data.material.fecha_cambio);
+                        $('#fechacambio-editar').val(response.data.material.meses_cambio);
 
                         document.getElementById("select-unidad-editar").options.length = 0;
                         document.getElementById("select-marca-editar").options.length = 0;
