@@ -167,7 +167,7 @@
                         <th style="width: 6%">Salida</th>
                         <th style="width: 6%">Reemplazo</th>
                         <th style="width: 6%">Recomendación</th>
-
+                        <th style="width: 6%">Mes Reemplazo</th>
 
 
                         <th style="width: 5%">Opciones</th>
@@ -290,6 +290,7 @@
                                             <th style="width: 5%">Factura</th>
                                             <th style="width: 5%">Valor</th>
                                             <th style="width: 5%">Proveedor</th>
+                                            <th style="width: 5%">Meses Reemplazo</th>
 
                                             <th style="width: 5%">Reemplazo</th>
                                             <th style="width: 5%">Recomendación</th>
@@ -510,6 +511,17 @@
 
 
                                 "<td>" +
+                                "<input " +
+                                "class='form-control' name='arrayMesesReemplazo[]' value='0' min='0' max='100' " +
+                                "type='number' " +
+                                "onkeydown=\"return validateInput(event);\" " +
+                                "oninput=\"validateCantidadMaxReemplazo(this, " + 100 + ");\">" +
+                                "</td>" +
+
+
+
+
+                                "<td>" +
                                 "<select name='arraySelect1[]' class='form-control' >" +
                                 "<option value='1'>SI</option>" +
                                 "<option value='0'>NO</option>" +
@@ -567,6 +579,13 @@
             // checkbox Retornara
           //  var checkboxes = $("input[name='arrayRetornara[]']");
 
+            var arrayMesesReemplazo = $("input[name='arrayMesesReemplazo[]']").map(function(){return $(this).val();}).get();
+
+
+
+
+
+
             // REEMPLAZO
             // JS: tomar los valores (asegúrate de ejecutar esto después de pintar la tabla)
             var arraySelectReemplazo = $("select[name='arraySelect1[]']").map(function () {
@@ -577,7 +596,6 @@
                 return $(this).val(); // '1' o '0'
             }).get();
 
-
             colorBlancoTabla()
             var habraSalida = true;
 
@@ -586,6 +604,7 @@
 
                 let filaCantidad = arrayCantidadSalida[a];
                 let infoFilaCantidadActual = arrayCantidadActual[a];
+                let infoMesReemplazo = arrayMesesReemplazo[a];
 
                 if(filaCantidad !== ''){
                     if(filaCantidad <= 0){
@@ -602,6 +621,12 @@
                     alertaMensaje('info', 'Error', 'En la Fila #' + (a+1) + " La cantidad de Salida supera a la Cantidad Actual");
                     return
                 }
+
+                if(infoMesReemplazo < 0){
+                    colorRojoTabla(a);
+                    alertaMensaje('info', 'Error', 'En la Fila #' + (a+1) + " El Mes de reemplazo no debe ser Negativo");
+                }
+
             }
 
             if(habraSalida){
@@ -623,6 +648,8 @@
 
                 let valorReemplazo = arraySelectReemplazo[z];
                 let valorRecomendacion = arraySelectRecomendacion[z];
+
+                let valorMesReemplazo = arrayMesesReemplazo[z];
 
                 var textoReemplazo = "NO";
                 if(valorReemplazo == 1) textoReemplazo = "SI"
@@ -656,6 +683,11 @@
                             "<td>" +
                             "<input name='reArrayRecomendacion[]' disabled data-idvalorRecomendacion='" + valorRecomendacion + "'" +
                             " value='" + textoRecomendacion + "' class='form-control' type='text'>" +
+                            "</td>" +
+
+                            "<td>" +
+                            "<input name='reArrayMesReemplazo[]' disabled data-idvalorMesReemplazo='" + valorMesReemplazo + "'" +
+                            " value='" + valorMesReemplazo + "' class='form-control' type='text'>" +
                             "</td>" +
 
 
@@ -739,6 +771,9 @@
             var arrayReemplazo = $("input[name='reArrayReemplazo[]']").map(function(){return $(this).attr("data-idvalorReemplazo");}).get();
             var arrayRecomendacion = $("input[name='reArrayRecomendacion[]']").map(function(){return $(this).attr("data-idvalorRecomendacion");}).get();
 
+            var arrayMesReemplazo = $("input[name='reArrayMesReemplazo[]']").map(function(){return $(this).attr("data-idvalorMesReemplazo");}).get();
+
+
 
             // checkbox Retornara
            // var checkboxes = $("input[name='retornoArray[]']").map(function(){return $(this).attr("data-retorno");}).get();
@@ -787,7 +822,9 @@
                 let infoReemplazo = arrayReemplazo[p];
                 let infoRecomendacion = arrayRecomendacion[p];
 
-                contenedorArray.push({ infoIdEntradaDeta, infoCantidad, infoReemplazo, infoRecomendacion});
+                let infoMesReemplazo = arrayMesReemplazo[p];
+
+                contenedorArray.push({ infoIdEntradaDeta, infoCantidad, infoReemplazo, infoRecomendacion, infoMesReemplazo});
             }
 
             openLoading();
@@ -918,6 +955,19 @@
                 input.value = maxCantidad; // Restringe el valor al máximo permitido
             }
         }
+
+
+        function validateCantidadMaxReemplazo(input, maxCantidad) {
+            // Remueve caracteres no numéricos
+            input.value = input.value.replace(/[^0-9]/g, '');
+
+            // Convierte el valor a número y verifica el límite
+            if (Number(input.value) > maxCantidad) {
+                input.value = maxCantidad; // Restringe el valor al máximo permitido
+            }
+        }
+
+
 
 
 

@@ -266,5 +266,11 @@ Route::get('/admin/reportes/pdf/kardex-material/{id}', [ReportesController::clas
 
 
 
+// REEMPLAZO MES
+Route::get('/admin/reemplazomes/index', [HistorialController::class,'indexReemplazoMes'])->name('admin.reemplazo.mes.index');
+Route::get('/admin/reemplazomes/tabla', [HistorialController::class,'tablaReemplazoMes']);
+
+
+
 
 

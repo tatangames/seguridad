@@ -26,7 +26,12 @@ return new class extends Migration
             $table->boolean('recomendacion');
 
             // FECHA DE CAMBIO PARA EL USUARIO
-            $table->integer('cambio_meses')->nullable();
+            $table->integer('mes_reemplazo')->nullable();
+
+            // CUANDO SE COMPLETE EL CAMBIO DE ITEM
+            $table->boolean('completado')->default(0);
+
+
 
             $table->foreign('id_salida')->references('id')->on('salidas');
             $table->foreign('id_entrada_detalle')->references('id')->on('entradas_detalle');

@@ -333,6 +333,10 @@ class RegistrosController extends Controller
 
             $precioFormat = "$" . number_format($fila->precio, 2, '.', ',');
             $fila->precioFormat = $precioFormat;
+
+
+            // Meses reemplazo
+            $fila->mesesreemplazo = $infoMaterial->meses_cambio;
         }
 
         $disponible = 0;
@@ -363,7 +367,7 @@ class RegistrosController extends Controller
             'empleado' => 'required',
         );
 
-        //  descripcion, (infoIdEntradaDeta, infoCantidad, infoReemplazo, infoRecomendacion)
+        //  descripcion, (infoIdEntradaDeta, infoCantidad, infoReemplazo, infoRecomendacion, infoMesReemplazo)
 
         $validar = Validator::make($request->all(), $regla);
 
@@ -411,6 +415,8 @@ class RegistrosController extends Controller
                 $detalle->tipo_regresa = 0;
                 $detalle->reemplazo = $filaArray['infoReemplazo'];
                 $detalle->recomendacion = $filaArray['infoRecomendacion'];
+                $detalle->mes_reemplazo = $filaArray['infoMesReemplazo'];
+                $detalle->completado = 0;
                 $detalle->save();
 
                 // ACTUALIZAR CANTIDADES DE SALIDA

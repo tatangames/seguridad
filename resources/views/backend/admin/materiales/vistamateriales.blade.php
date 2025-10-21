@@ -162,7 +162,7 @@
                                 <div class="form-group">
                                     <label>Meses Estimado para cambio:</label>
                                     <br>
-                                    <input type="number" class="form-control" id="fechacambio-nuevo">
+                                    <input type="number" min="0" max="100" value="0" class="form-control" id="fechacambio-nuevo">
                                 </div>
                             </div>
 
@@ -276,7 +276,7 @@
                                         <div class="form-group">
                                             <label>Meses Estimado para cambio:</label>
                                             <br>
-                                            <input type="number" class="form-control" id="fechacambio-editar">
+                                            <input type="number" min="0" max="100" value="0" class="form-control" id="fechacambio-editar">
                                         </div>
                                     </div>
 

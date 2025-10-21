@@ -19,6 +19,7 @@ use App\Models\SalidasDetalle;
 use App\Models\Talla;
 use App\Models\UnidadEmpleado;
 use App\Models\UnidadMedida;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -448,8 +449,6 @@ class HistorialController extends Controller
     }
 
 
-
-
     public function historialEntradaDetalleBorrarItem(Request $request)
     {
         $regla = array(
@@ -494,8 +493,6 @@ class HistorialController extends Controller
     }
 
 
-
-
     public function indexNuevoIngresoEntradaDetalle($id)
     {
         // id: es de entradas
@@ -503,7 +500,6 @@ class HistorialController extends Controller
 
         return view('backend.admin.historial.entradas.detalle.vistaingresoextra', compact('id', 'info'));
     }
-
 
     public function registrarProductosExtras(Request $request)
     {
@@ -548,10 +544,6 @@ class HistorialController extends Controller
     }
 
 
-
-
-
-
     public function indexHistorialRetornos()
     {
         return view('backend.admin.historial.retornos.vistahistorialretornos');
@@ -594,16 +586,84 @@ class HistorialController extends Controller
             }
             $fila->nombreTalla = $talla;
 
-
-
-
-
             $fila->lote = $infoEntrada->lote;
             $fila->nombreMaterial = $infoMaterial->nombre;
         }
 
         return view('backend.admin.historial.retornos.tablahistorialretornos', compact('listado'));
     }
+
+
+
+
+
+
+    // =========== REEMPLAZO MES ==============
+
+
+    public function indexReemplazoMes()
+    {
+        return view('backend.admin.reemplazo.vistamesreemplazo');
+    }
+
+    public function tablaReemplazoMes()
+    {
+        $arrayListado = SalidasDetalle::where('completado', 0)
+            ->get()
+            ->map(function ($item) {
+
+                $infoSalida = Salidas::where('id', $item->id_salida)->first();
+                $item->fechaSalida = date("d-m-Y", strtotime($infoSalida->fecha));
+
+                // === Calcular fecha de reemplazo ===
+                $fechaSalida = Carbon::parse($infoSalida->fecha);
+                $mesesReemplazo = (int) $item->mes_reemplazo;
+
+                // Sumar los meses al campo fecha
+                $fechaReemplazo = $fechaSalida->copy()->addMonths($mesesReemplazo);
+
+                // Obtener fecha actual de El Salvador
+                $fechaActual = Carbon::now('America/El_Salvador');
+
+                // Comparar si ya llegó o pasó la fecha de reemplazo
+                if ($fechaActual->greaterThanOrEqualTo($fechaReemplazo)) {
+                    $item->venceHoyOVencido = 1;
+                } else {
+                    $item->venceHoyOVencido = 0;
+                }
+
+                // (opcional) agregar formato legible de fecha de reemplazo
+                $item->fechaReemplazo = $fechaReemplazo->format('d-m-Y');
+
+                return $item;
+            });
+
+
+        return $arrayListado;
+
+        return view('backend.admin.reemplazo.tablamesreemplazo');
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -34,7 +34,7 @@
                                         <td>{{ $dato->color }}</td>
                                         <td>{{ $dato->otros }}</td>
                                         <td>{{ $dato->cantidadGlobal }}</td>
-                                        <td>{{ $dato->fecha_cambio }}</td>
+                                        <td>{{ $dato->meses_cambio }}</td>
                                         <td>
                                             <button type="button" class="btn btn-primary btn-xs" onclick="informacion({{ $dato->id }})">
                                                 <i class="fas fa-edit" title="Editar"></i>&nbsp; Editar

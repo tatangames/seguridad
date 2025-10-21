@@ -25,7 +25,7 @@ return new class extends Migration
             $table->string('otros', 500)->nullable();
 
             // ESTIMADO PARA CADA MATERIAL
-            $table->integer('fecha_cambio')->nullable();
+            $table->integer('meses_cambio')->nullable();
 
 
             $table->foreign('id_medida')->references('id')->on('unidad_medida');

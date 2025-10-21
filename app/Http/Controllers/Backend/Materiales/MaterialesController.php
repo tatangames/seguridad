@@ -107,7 +107,7 @@ class MaterialesController extends Controller
         $registro->nombre = $request->nombre;
         $registro->codigo = $request->codigo;
         $registro->otros = $request->otros;
-        $registro->fecha_cambio = $request->fecha;
+        $registro->meses_cambio = $request->fecha;
 
         if($registro->save()){
             return ['success' => 1];
@@ -165,7 +165,7 @@ class MaterialesController extends Controller
             'nombre' => $request->nombre,
             'codigo' => $request->codigo,
             'otros' => $request->otros,
-            'fecha_cambio' => $request->fecha
+            'meses_cambio' => $request->fecha
         ]);
 
         return ['success' => 1];
