@@ -508,21 +508,16 @@
                     return;
                 }
 
-                if(fechaCambio <= 0){
+                if(fechaCambio < 0){
                     toastr.error('Fecha cambio no debe ser negativo o cero');
                     return;
                 }
 
-                if(fechaCambio > 20){
-                    toastr.error('Fecha cambio máximo 20 meses');
+                if(fechaCambio > 100){
+                    toastr.error('Fecha cambio máximo 100 meses');
                     return;
                 }
             }
-
-
-
-
-
 
             openLoading();
             var formData = new FormData();

@@ -3,8 +3,6 @@
 namespace App\Http\Controllers\Controles;
 
 use App\Http\Controllers\Controller;
-use App\Models\P_Departamento;
-use App\Models\P_UsuarioDepartamento;
 use Illuminate\Support\Facades\Auth;
 
 class ControlController extends Controller

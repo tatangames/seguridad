@@ -931,7 +931,7 @@ class RegistrosController extends Controller
 
 
         $tabla .= "
-            <table width='100%' style='margin-top: 30px; border-collapse: collapse; font-family: tahoma, arial, sans-serif; font-size: 12px;'>
+            <table width='100%' style='margin-top: 75px; border-collapse: collapse; font-family: tahoma, arial, sans-serif; font-size: 12px;'>
                 <tr>
                     <!-- Columna izquierda -->
                     <td style='width: 40%; text-align: center; vertical-align: top; padding: 10px;'>
@@ -941,12 +941,12 @@ class RegistrosController extends Controller
                     </td>
 
                     <!-- Columna derecha -->
-<td style='width: 60%; text-align: left; vertical-align: top; padding: 10px; padding-left: 120px; padding-right: 40px;'>
-    <p style='margin: 0; font-weight: bold;'>FIRMA DE RECIBIDO</p>
-    <p style='margin: 0;'>
-        <span style='font-weight: bold;'>DUI #</span> $infoEmpleado->dui
-    </p>
-</td>
+                        <td style='width: 60%; text-align: left; vertical-align: top; padding: 10px; padding-left: 120px; padding-right: 40px;'>
+                            <p style='margin: 0; font-weight: bold;'>FIRMA DE RECIBIDO</p>
+                            <p style='margin: 0;'>
+                                <span style='font-weight: bold;'>DUI #</span> $infoEmpleado->dui
+                            </p>
+                        </td>
 
                 </tr>
             </table>
