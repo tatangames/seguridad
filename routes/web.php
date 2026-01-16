@@ -271,6 +271,8 @@ Route::get('/admin/reemplazomes/index', [HistorialController::class,'indexReempl
 Route::get('/admin/reemplazomes/tabla', [HistorialController::class,'tablaReemplazoMes']);
 
 
+Route::get('/admin/existencia/general/index', [HistorialController::class,'indexExistencias'])->name('admin.existencias.general.index');
+Route::get('/admin/existencia/pdf/generar', [HistorialController::class,'reportePdfExistencias']);
 
 
 

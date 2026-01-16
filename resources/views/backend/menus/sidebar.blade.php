@@ -232,6 +232,18 @@
                                 <p>General</p>
                             </a>
                         </li>
+
+
+                        <li class="nav-item">
+                            <a href="{{ route('admin.existencias.general.index') }}" target="frameprincipal" class="nav-link">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Existencia</p>
+                            </a>
+                        </li>
+
+
+
+
                     </ul>
                 </li>
 

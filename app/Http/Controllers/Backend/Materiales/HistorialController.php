@@ -646,8 +646,157 @@ class HistorialController extends Controller
 
 
 
+    public function indexExistencias()
+    {
+        return view('backend.admin.reportes.existencia.vistaexistencias');
+    }
 
 
+
+    public function reportePdfExistencias()
+    {
+
+        $mpdf = new \Mpdf\Mpdf([
+            'tempDir' => sys_get_temp_dir(),
+            'format' => 'LETTER',
+            'orientation' => 'L'
+        ]);
+
+        $mpdf->SetTitle('Existencias');
+
+        // mostrar errores
+        $mpdf->showImageErrors = false;
+
+        $logoalcaldia = 'images/gobiernologo.jpg';
+        $logosantaana = 'images/logo.png';
+
+        $fechaFormat = date("d-m-Y", strtotime(Carbon::now('America/El_Salvador')));
+
+
+
+        $existencias = DB::table('entradas_detalle as ed')
+            ->join('materiales as m', 'm.id', '=', 'ed.id_material')
+            ->join('unidad_medida as um', 'um.id', '=', 'm.id_medida')
+            ->join('marca as ma', 'ma.id', '=', 'm.id_marca')
+            ->join('color as c', 'c.id', '=', 'm.id_color')
+            ->join('talla as t', 't.id', '=', 'm.id_talla')
+            ->select(
+                'm.codigo',
+                'm.nombre as material',
+                'um.nombre as unidad',
+                'ma.nombre as marca',
+                'c.nombre as color',
+                't.nombre as talla',
+                DB::raw('SUM(ed.cantidad_inicial - ed.cantidad_entregada) as existencia'),
+                DB::raw('SUM((ed.cantidad_inicial - ed.cantidad_entregada) * ed.precio) as valor_total')
+            )
+            ->whereRaw('(ed.cantidad_inicial - ed.cantidad_entregada) > 0')
+            ->groupBy(
+                'm.codigo', 'm.nombre', 'um.nombre',
+                'ma.nombre', 'c.nombre', 't.nombre'
+            )
+            ->orderBy('m.nombre')
+            ->get();
+
+
+
+
+
+        $tabla = "
+
+            <table style='width: 100%; border-collapse: collapse; font-family: Arial, normal, sans-serif; font-size:11px;' >
+                <tr>
+                    <!-- Logo izquierdo -->
+                    <td style='width: 15%; text-align: left;'>
+                        <img src='$logosantaana' alt='Santa Ana Norte' style='max-width: 100px; height: auto;'>
+                    </td>
+                    <!-- Texto centrado -->
+                    <td style='width: 60%; text-align: center;'>
+                        <h1 style='font-size: 15px; margin: 0; color: #003366; text-transform: uppercase;'>
+                        ALCALDÍA MUNICIPAL DE SANTA ANA NORTE</h1>
+                        <h1 style='font-size: 15px; margin: 0; color: #003366; text-transform: uppercase;'>UNIDAD DE SEGURIDAD Y SALUD OCUPACIONAL.</h1> <br>
+                        <h2 style='font-size: 13px; margin: 0; color: #003366; text-transform: uppercase;'>REPORTE DE EXISTENCIAS</h2>
+                    </td>
+                    <!-- Logo derecho -->
+                    <td style='width: 10%; text-align: right;'>
+                        <img src='$logoalcaldia' alt='Gobierno de El Salvador' style='max-width: 60px; height: auto;'>
+                    </td>
+                </tr>
+            </table>
+            <hr style='border: none; border-top: 2px solid #003366; margin: 0;'>
+            ";
+
+
+        $tabla .= "
+        <p>Fecha Generado: $fechaFormat</p>
+        ";
+
+
+        $tabla .= "
+<br>
+<table width='100%' border='1' cellspacing='0' cellpadding='5'>
+    <thead>
+        <tr style='background-color:#f0f0f0; font-size:12px'>
+            <th>#</th>
+            <th>Código</th>
+            <th>Material</th>
+            <th>Marca</th>
+            <th>Color</th>
+            <th>Talla</th>
+            <th>Unidad</th>
+            <th>Existencia</th>
+            <th>Valor</th>
+        </tr>
+    </thead>
+    <tbody>
+";
+
+        $totalExistencia = 0;
+        $totalValor = 0;
+        $cont = 1;
+
+        foreach ($existencias as $item) {
+            $totalExistencia += $item->existencia;
+            $totalValor += $item->valor_total;
+
+            $tabla .= "
+        <tr style='font-size:11px'>
+            <td>{$cont}</td>
+            <td>{$item->codigo}</td>
+            <td>{$item->material}</td>
+            <td>{$item->marca}</td>
+            <td>{$item->color}</td>
+            <td>{$item->talla}</td>
+            <td>{$item->unidad}</td>
+            <td align='right'>{$item->existencia}</td>
+            <td align='right'>$ ".number_format($item->valor_total,2)."</td>
+        </tr>
+    ";
+            $cont++;
+        }
+
+        $tabla .= "
+    </tbody>
+    <tfoot>
+        <tr style='font-weight:bold; background-color:#e6e6e6'>
+            <td colspan='7' align='right'>TOTALES</td>
+            <td align='right'>{$totalExistencia}</td>
+            <td align='right'>$ ".number_format($totalValor,2)."</td>
+        </tr>
+    </tfoot>
+</table>
+";
+
+
+        $stylesheet = file_get_contents('css/cssbodega.css');
+        $mpdf->WriteHTML($stylesheet,1);
+
+        $mpdf->setFooter("Página: " . '{PAGENO}' . "/" . '{nb}');
+        $mpdf->WriteHTML($tabla,2);
+
+        $mpdf->Output();
+
+    }
 
 
 
