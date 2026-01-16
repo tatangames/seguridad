@@ -377,6 +377,28 @@ class RegistrosController extends Controller
 
         try {
 
+            $infoEmpleado = Empleado::where('id', $request->empleado)->first();
+            $infoUnidad = UnidadEmpleado::where('id', $infoEmpleado->id_unidad_empleado)->first();
+
+            $infoCargo = Cargo::where('id', $infoEmpleado->id_cargo)->first();
+            $cargo = $infoCargo->nombre;
+
+            $jefeInmediato = "";
+
+            // JEFE INMEDIATO
+            if($unid = UnidadEmpleado::where('id_empleado', $infoEmpleado->id)->first()){ // es el mismo empleado
+                $infoEm = Empleado::where('id', $unid->id_empleado_inmediato)->first();
+                $jefeInmediato = $infoEm->nombre;
+
+            }else{
+                // JEFE DE LA UNIDAD
+                if($infoJefe = Empleado::where('id_unidad_empleado', $infoEmpleado->id_unidad_empleado)
+                    ->where('jefe', 1)->first()){
+                    $jefeInmediato = $infoJefe->nombre;
+                }
+            }
+
+
             $datosContenedor = json_decode($request->contenedorArray, true);
 
             // EVITAR QUE VENGA VACIO
@@ -388,6 +410,13 @@ class RegistrosController extends Controller
             $reg->fecha = $request->fecha;
             $reg->id_empleado = $request->empleado;
             $reg->descripcion = $request->descripcion;
+
+            $reg->area = $infoUnidad->nombre;
+            $reg->cargo = $cargo;
+            $reg->colaborador = $infoEmpleado->nombre;
+            $reg->jefe_inmediato = $jefeInmediato;
+
+
             $reg->save();
 
             // infoIdEntradaDetalle, filaCantidadSalida
@@ -498,7 +527,6 @@ class RegistrosController extends Controller
 
 
     // **** GENERAR PDF TEMPORAL ****
-
 
     public function generarPdfTemporal(){
 
@@ -736,6 +764,46 @@ class RegistrosController extends Controller
     }
 
 
+    public function actualizarCampos(){
+
+        $arraySalidas = Salidas::all();
+
+        foreach ($arraySalidas as $item) {
+
+            $infoEmpleado = Empleado::where('id', $item->id_empleado)->first();
+            $infoUnidad = UnidadEmpleado::where('id', $infoEmpleado->id_unidad_empleado)->first();
+
+            $jefeInmediato = "";
+
+            // JEFE INMEDIATO
+            if($unid = UnidadEmpleado::where('id_empleado', $infoEmpleado->id)->first()){ // es el mismo empleado
+                $infoEm = Empleado::where('id', $unid->id_empleado_inmediato)->first();
+                $jefeInmediato = $infoEm->nombre;
+
+            }else{
+                // JEFE DE LA UNIDAD
+                if($infoJefe = Empleado::where('id_unidad_empleado', $infoEmpleado->id_unidad_empleado)
+                    ->where('jefe', 1)->first()){
+                    $jefeInmediato = $infoJefe->nombre;
+                }
+            }
+
+            $infoCargo = Cargo::where('id', $infoEmpleado->id_cargo)->first();
+            $cargo = $infoCargo->nombre;
+
+            Salidas::where('id', $item->id)->update([
+                'area' => $infoUnidad->nombre,
+                'cargo' =>$cargo,
+                'colaborador' => $infoEmpleado->nombre,
+                'jefe_inmediato' => $jefeInmediato,
+            ]);
+        }
+
+
+        return "completado";
+
+    }
+
 
     public function generarPdfSalida($idsalida){
 
@@ -846,15 +914,15 @@ class RegistrosController extends Controller
             </div>
 
             <div style='text-align: left; margin-top: 10px;'>
-                <p style='font-size: 10px; margin: 0; color: #000;'>Área: <strong>$infoUnidad->nombre</strong>; Cargo: <strong>$cargo</strong></p>
+                <p style='font-size: 10px; margin: 0; color: #000;'>Área: <strong>$infoSalida->area</strong>; Cargo: <strong>$infoSalida->cargo</strong></p>
             </div>
              <div style='text-align: left; margin-top: 10px;'>
-                <p style='font-size: 10px; margin: 0; color: #000;'>Se entrega al colaborador(a); <strong>$infoEmpleado->nombre</strong></p>
+                <p style='font-size: 10px; margin: 0; color: #000;'>Se entrega al colaborador(a); <strong>$infoSalida->colaborador</strong></p>
             </div>
 
 
             <div style='text-align: left; margin-top: 10px;'>
-                <p style='font-size: 10px; margin: 0; color: #000;'>Jefe inmediato: <strong>$jefeInmediato</strong></p>
+                <p style='font-size: 10px; margin: 0; color: #000;'>Jefe inmediato: <strong>$infoSalida->jefe_inmediato</strong></p>
             </div>
 
 

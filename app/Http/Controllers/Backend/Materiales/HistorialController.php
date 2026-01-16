@@ -639,7 +639,7 @@ class HistorialController extends Controller
             });
 
 
-        return $arrayListado;
+
 
         return view('backend.admin.reemplazo.tablamesreemplazo');
     }

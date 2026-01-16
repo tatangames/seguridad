@@ -774,7 +774,6 @@
             var arrayMesReemplazo = $("input[name='reArrayMesReemplazo[]']").map(function(){return $(this).attr("data-idvalorMesReemplazo");}).get();
 
 
-
             // checkbox Retornara
            // var checkboxes = $("input[name='retornoArray[]']").map(function(){return $(this).attr("data-retorno");}).get();
 

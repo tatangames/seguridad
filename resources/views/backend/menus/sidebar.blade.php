@@ -66,13 +66,6 @@
                     </a>
                 </li>
 
-                <li class="nav-item">
-                    <a href="{{ route('admin.reemplazo.mes.index') }}" target="frameprincipal" class="nav-link">
-                        <i class="far fa-circle nav-icon"></i>
-                        <p>Reemplazo Mes</p>
-                    </a>
-                </li>
-
 
 
                 <li class="nav-item">

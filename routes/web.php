@@ -88,14 +88,12 @@ Route::post('/admin/color/nuevo', [ConfiguracionController::class,'nuevoColor'])
 Route::post('/admin/color/informacion', [ConfiguracionController::class,'infoColor']);
 Route::post('/admin/color/editar', [ConfiguracionController::class,'actualizarColor']);
 
-
 // TALLA
 Route::get('/admin/talla/index', [ConfiguracionController::class,'vistaTalla'])->name('admin.talla.index');
 Route::get('/admin/talla/tabla', [ConfiguracionController::class,'tablaTalla']);
 Route::post('/admin/talla/nuevo', [ConfiguracionController::class,'nuevoTalla']);
 Route::post('/admin/talla/informacion', [ConfiguracionController::class,'infoTalla']);
 Route::post('/admin/talla/editar', [ConfiguracionController::class,'actualizarTalla']);
-
 
 // MATERIALES
 Route::get('/admin/materiales/index', [MaterialesController::class,'indexMateriales'])->name('admin.materiales.index');
@@ -104,16 +102,14 @@ Route::post('/admin/materiales/nuevo', [MaterialesController::class, 'nuevoMater
 Route::post('/admin/materiales/informacion', [MaterialesController::class, 'informacionMaterial']);
 Route::post('/admin/materiales/editar', [MaterialesController::class, 'editarMaterial']);
 
-// buscar material para obtener categoria codigo
+// BUSCAR MATERIAL PARA OBTENER CATEGORIA CODIGO
 Route::post('/admin/materiales/buscarmaterial',  [MaterialesController::class,'buscadorMaterialCodigoCategoria']);
 
-
-
-// - Detalle
+// DETALLE
 Route::get('/admin/material/detalle/{id}', [MaterialesController::class,'vistaDetalleMaterial']);
 Route::get('/admin/material/detalle/tabla/{id}', [MaterialesController::class,'tablaDetalleMaterial']);
 
-// Movimientos detalle
+// MOVIMIENTOS DETALLE
 Route::get('/admin/material/movimientos/detalle/{id}', [MaterialesController::class,'vistaMovimientosDetalleMaterial']);
 Route::get('/admin/material/movimientos/detalle/tabla/{id}', [MaterialesController::class,'tablaMovimientosDetalleMaterial']);
 
@@ -135,14 +131,12 @@ Route::post('/admin/unidadempleado/editar', [ConfiguracionController::class,'act
 Route::post('/admin/unidadempleado/jefeinmediato/informacion', [ConfiguracionController::class,'informacionJefeInmediato']);
 Route::post('/admin/unidadempleado/jefeinmediato/editar', [ConfiguracionController::class,'editarJefeInmediato']);
 
-
 // CARGOS
 Route::get('/admin/cargo/index', [ConfiguracionController::class,'vistaCargo'])->name('admin.cargo.index');
 Route::get('/admin/cargo/tabla', [ConfiguracionController::class,'tablaCargo']);
 Route::post('/admin/cargo/nuevo', [ConfiguracionController::class,'nuevoCargo']);
 Route::post('/admin/cargo/informacion', [ConfiguracionController::class,'infoCargo']);
 Route::post('/admin/cargo/editar', [ConfiguracionController::class,'actualizarCargo']);
-
 
 // EMPLEADO
 Route::get('/admin/empleados/index', [ConfiguracionController::class,'vistaEmpleados'])->name('admin.empleados.index');
@@ -169,27 +163,15 @@ Route::post('/admin/proveedor/editar', [ConfiguracionController::class,'actualiz
 
 
 
-
-
-
-
-
-
-
-
-
 // REGISTRO DE ENTRADAS
 Route::get('/admin/entradas/vista', [RegistrosController::class,'indexRegistroEntrada'])->name('admin.entrada.registro.index');
 Route::post('/admin/buscar/material',  [RegistrosController::class,'buscadorMaterialGlobal']);
 Route::post('/admin/entradas/guardar',  [RegistrosController::class,'guardarEntrada']);
 
-
-
 // REGISTRO DE SALIDAS
 Route::get('/admin/salidas/vista', [RegistrosController::class,'indexRegistroSalida'])->name('admin.salidas.registro.index');
 Route::post('/admin/buscar/material/disponible',  [RegistrosController::class,'buscadorMaterialDisponible']);
 Route::post('/admin/buscar/material/disponibilidad', [RegistrosController::class, 'infoBodegaMaterialDetalleFila']);
-
 
 Route::post('/admin/salida/guardar',  [RegistrosController::class,'guardarSalidaMateriales']);
 
@@ -276,3 +258,4 @@ Route::get('/admin/existencia/pdf/generar', [HistorialController::class,'reporte
 
 
 
+Route::get('/admin/campos', [RegistrosController::class,'actualizarCampos']);
