@@ -674,12 +674,12 @@ class HistorialController extends Controller
 
 
 
-        $existencias = DB::table('entradas_detalle as ed')
-            ->join('materiales as m', 'm.id', '=', 'ed.id_material')
-            ->join('unidad_medida as um', 'um.id', '=', 'm.id_medida')
-            ->join('marca as ma', 'ma.id', '=', 'm.id_marca')
-            ->join('color as c', 'c.id', '=', 'm.id_color')
-            ->join('talla as t', 't.id', '=', 'm.id_talla')
+        $existencias = DB::table('materiales as m')
+            ->leftJoin('entradas_detalle as ed', 'ed.id_material', '=', 'm.id')
+            ->leftJoin('unidad_medida as um', 'um.id', '=', 'm.id_medida')
+            ->leftJoin('marca as ma', 'ma.id', '=', 'm.id_marca')
+            ->leftJoin('color as c', 'c.id', '=', 'm.id_color')
+            ->leftJoin('talla as t', 't.id', '=', 'm.id_talla')
             ->select(
                 'm.codigo',
                 'm.nombre as material',
@@ -687,15 +687,16 @@ class HistorialController extends Controller
                 'ma.nombre as marca',
                 'c.nombre as color',
                 't.nombre as talla',
-                DB::raw('SUM(ed.cantidad_inicial - ed.cantidad_entregada) as existencia'),
+                DB::raw('COALESCE(SUM(ed.cantidad_inicial - ed.cantidad_entregada),0) as existencia'),
                 DB::raw('SUM((ed.cantidad_inicial - ed.cantidad_entregada) * ed.precio) as valor_total')
             )
-            ->whereRaw('(ed.cantidad_inicial - ed.cantidad_entregada) > 0')
+
             ->groupBy(
-                'm.codigo', 'm.nombre', 'um.nombre',
-                'ma.nombre', 'c.nombre', 't.nombre'
+                'm.id', 'm.codigo', 'm.nombre',
+                'um.nombre', 'ma.nombre', 'c.nombre', 't.nombre'
             )
             ->orderBy('m.nombre')
+            ->having('existencia', '>', 0)
             ->get();
 
 
@@ -733,7 +734,6 @@ class HistorialController extends Controller
 
 
         $tabla .= "
-<br>
 <table width='100%' border='1' cellspacing='0' cellpadding='5'>
     <thead>
         <tr style='background-color:#f0f0f0; font-size:12px'>
@@ -745,19 +745,24 @@ class HistorialController extends Controller
             <th>Talla</th>
             <th>Unidad</th>
             <th>Existencia</th>
-            <th>Valor</th>
+            <th>Valor ($)</th>
         </tr>
     </thead>
     <tbody>
 ";
 
+        $cont = 1;
         $totalExistencia = 0;
         $totalValor = 0;
-        $cont = 1;
+
 
         foreach ($existencias as $item) {
-            $totalExistencia += $item->existencia;
-            $totalValor += $item->valor_total;
+
+            $existencia = (int) $item->existencia;
+            $valor = (float) $item->valor_total;
+
+            $totalExistencia += $existencia;
+            $totalValor += $valor;
 
             $tabla .= "
         <tr style='font-size:11px'>
@@ -768,10 +773,11 @@ class HistorialController extends Controller
             <td>{$item->color}</td>
             <td>{$item->talla}</td>
             <td>{$item->unidad}</td>
-            <td align='right'>{$item->existencia}</td>
-            <td align='right'>$ ".number_format($item->valor_total,2)."</td>
+            <td align='right'>{$existencia}</td>
+            <td align='right'>$ ".number_format($valor, 2)."</td>
         </tr>
     ";
+
             $cont++;
         }
 
@@ -779,13 +785,14 @@ class HistorialController extends Controller
     </tbody>
     <tfoot>
         <tr style='font-weight:bold; background-color:#e6e6e6'>
-            <td colspan='7' align='right'>TOTALES</td>
-            <td align='right'>{$totalExistencia}</td>
-            <td align='right'>$ ".number_format($totalValor,2)."</td>
+            <td colspan='8' align='right'>TOTAL GENERAL</td>
+
+            <td align='right'>$ ".number_format($totalValor, 2)."</td>
         </tr>
     </tfoot>
 </table>
 ";
+
 
 
         $stylesheet = file_get_contents('css/cssbodega.css');

@@ -14,6 +14,7 @@ use App\Models\Retorno;
 use App\Models\Talla;
 use App\Models\UnidadMedida;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class MaterialesController extends Controller
@@ -41,8 +42,10 @@ class MaterialesController extends Controller
 
         $lista = Materiales::orderBy('nombre', 'ASC')->get();
 
-        foreach ($lista as $fila) {
 
+        $conteo = 0;
+
+        foreach ($lista as $fila) {
             $infoUnidad = UnidadMedida::where('id', $fila->id_medida)->first();
             $fila->unidadMedida = $infoUnidad->nombre;
 
@@ -71,14 +74,18 @@ class MaterialesController extends Controller
                 $fila->fechaFormat = date("d-m-Y", strtotime($fila->fecha_cambio));
             }
 
-
-
             // CANTIDAD GLOBAL QUE TENGO DE ESE PRODUCTO
             $totalCantidadMate = EntradasDetalle::where('id_material', $fila->id)->sum('cantidad');
             $totalCantidadEntregada = EntradasDetalle::where('id_material', $fila->id)->sum('cantidad_entregada');
 
             $fila->cantidadGlobal = ($totalCantidadMate - $totalCantidadEntregada);
+
+            if($fila->cantidadGlobal > 0){
+                $conteo++;
+            }
         }
+
+        Log::info("CONTEO: " . $conteo);
 
         return view('backend.admin.materiales.tablamateriales', compact('lista'));
     }
