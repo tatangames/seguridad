@@ -258,4 +258,3 @@ Route::get('/admin/existencia/pdf/generar', [HistorialController::class,'reporte
 
 
 
-Route::get('/admin/campos', [RegistrosController::class,'actualizarCampos']);

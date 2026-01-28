@@ -148,28 +148,67 @@ class ReportesController extends Controller
         $fechaFormat = date("d-m-Y", strtotime(Carbon::now('America/El_Salvador')));
 
 
+
+
+
         $tabla = "
-            <table style='width: 100%; border-collapse: collapse;'>
-                <tr>
-                    <!-- Logo izquierdo -->
-                    <td style='width: 15%; text-align: left;'>
-                        <img src='$logosantaana' alt='Santa Ana Norte' style='max-width: 100px; height: auto;'>
-                    </td>
-                    <!-- Texto centrado -->
-                    <td style='width: 60%; text-align: center;'>
-                        <h1 style='font-size: 15px; margin: 0; color: #003366; text-transform: uppercase;'>
-                        ALCALDÍA MUNICIPAL DE SANTA ANA NORTE</h1>
-                        <h1 style='font-size: 15px; margin: 0; color: #003366; text-transform: uppercase;'>UNIDAD DE SEGURIDAD Y SALUD OCUPACIONAL.</h1>
-                        <h2 style='font-size: 13px; margin: 0; color: #003366; text-transform: uppercase;'></h2>
-                    </td>
-                    <!-- Logo derecho -->
-                    <td style='width: 10%; text-align: right;'>
-                        <img src='$logoalcaldia' alt='Gobierno de El Salvador' style='max-width: 60px; height: auto;'>
-                    </td>
-                </tr>
-            </table>
-            <hr style='border: none; border-top: 2px solid #003366; margin: 0;'>
-            ";
+           <table width='100%' style='border-collapse:collapse; font-family: Arial, sans-serif;'>
+            <tr>
+                <td style='width:25%; border:0.8px solid #000; padding:6px 8px;'>
+                    <table width='100%'>
+                        <tr>
+                            <td style='width:30%; text-align:left;'>
+                                <img src='{$logoalcaldia}' style='height:38px'>
+                            </td>
+                            <td style='width:70%; text-align:left; color:#104e8c; font-size:13px; font-weight:bold; line-height:1.3;'>
+                                SANTA ANA NORTE<br>EL SALVADOR
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+                <td style='width:50%; border-top:0.8px solid #000; border-bottom:0.8px solid #000; padding:6px 8px; text-align:center; font-size:15px; font-weight:bold;'>
+                    FICHA DE ENTREGA DE EQUIPO DE<br>
+                    PROTECCION PERSONAL (E.P.P)
+                </td>
+                <td style='width:25%; border:0.8px solid #000; padding:0; vertical-align:top;'>
+                    <table width='100%' style='font-size:10px;'>
+                        <tr>
+                            <td width='40%' style='border-right:0.8px solid #000; border-bottom:0.8px solid #000; padding:4px 6px;'><strong>Código:</strong></td>
+                            <td width='60%' style='border-bottom:0.8px solid #000; padding:4px 6px; text-align:center;'>SEAC-002-FICH</td>
+                        </tr>
+                        <tr>
+                            <td style='border-right:0.8px solid #000; border-bottom:0.8px solid #000; padding:4px 6px;'><strong>Versión:</strong></td>
+                            <td style='border-bottom:0.8px solid #000; padding:4px 6px; text-align:center;'>000</td>
+                        </tr>
+                        <tr>
+                            <td style='border-right:0.8px solid #000; padding:4px 6px;'><strong>Fecha de vigencia:</strong></td>
+                            <td style='padding:4px 6px; text-align:center;'>22/10/2025</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+        <br>";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         $tabla .= "
             <div style='text-align: center; margin-top: 20px;'>
@@ -210,7 +249,7 @@ class ReportesController extends Controller
             $tabla .= "<table width='100%' id='tablaFor'>
                     <thead>
                         <tr>
-                            <th style='font-weight: bold; width: 8%; font-size: 12px; text-align: center;'>Factura</th>
+                            <th style='font-weight: bold; width: 11%; font-size: 12px; text-align: center;'>Factura</th>
                             <th style='font-weight: bold; width: 22%; font-size: 12px; text-align: center;'>Material</th>
                             <th style='font-weight: bold; width: 13%; font-size: 12px; text-align: center;'>Marca</th>
                             <th style='font-weight: bold; width: 12%; font-size: 12px; text-align: center;'>U/M</th>
