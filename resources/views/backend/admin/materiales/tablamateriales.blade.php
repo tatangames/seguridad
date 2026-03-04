@@ -16,7 +16,7 @@
                                     <th style="width: 8%">Talla</th>
                                     <th style="width: 8%">Color</th>
                                     <th style="width: 15%">Otros</th>
-                                    <th style="width: 10%">Cantidad Actual (toma en cuenta las salidas)</th>
+                                    <th style="width: 10%">Cantidad Actual</th>
                                     <th style="width: 10%">Meses para Cambio</th>
                                     <th style="width: 13%">Opciones</th>
                                 </tr>

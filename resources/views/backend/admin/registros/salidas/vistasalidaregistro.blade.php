@@ -11,7 +11,6 @@
 
 <style>
     table{
-        /*Ajustar tablas*/
         table-layout:fixed;
     }
 
@@ -34,13 +33,11 @@
     }
 
     #modalCantidad .modal-dialog {
-        max-width: 95%; /* o en px, ej. 1400px */
+        max-width: 95%;
     }
-
 </style>
 
 <div id="divcontenedor" style="display: none">
-
 
     <div class="card-body">
         <div class="tab-content">
@@ -66,7 +63,6 @@
                                                 </div>
                                             </div>
 
-
                                             <div class="form-group col-md-6">
                                                 <label>Distrito:</label>
                                                 <br>
@@ -78,14 +74,12 @@
                                                 </select>
                                             </div>
 
-
                                             <div class="form-group col-md-6">
                                                 <label>Unidad:</label>
                                                 <br>
-                                                <select width="100%"  class="form-control" id="select-unidad" onchange="buscarEmpleado(this)">
+                                                <select width="100%" class="form-control" id="select-unidad" onchange="buscarEmpleado(this)">
                                                 </select>
                                             </div>
-
 
                                             <div class="row">
                                                 <div class="form-group col-md-8">
@@ -102,6 +96,13 @@
                                                 </div>
                                             </div>
 
+                                            <br>
+
+                                            <div class="form-group">
+                                                <label>MATERIAL LINEA</label>
+                                                <input type="text" maxlength="100" class="form-control" id="linea-editar" autocomplete="off">
+                                            </div>
+
                                             <hr>
 
                                             <div class="form-group" style="margin-top: 20px">
@@ -113,14 +114,16 @@
                                                 <br>
                                                 <button type="button" onclick="verPDfTemporal()" class="btn btn-success btn-sm float-right"
                                                         style="margin-top:10px; margin-right: 15px;">
-                                                    <i class="fas fa-search" title="PDF"></i> PDF Temporal</button>
+                                                    <i class="fas fa-file-pdf" title="PDF"></i> PDF Temporal
+                                                </button>
                                             </div>
 
                                             <div class="form-group" style="float: right">
                                                 <br>
                                                 <button type="button" id="botonaddmaterial" onclick="abrirModal()" class="btn btn-primary btn-sm float-right"
                                                         style="margin-top:10px; margin-right: 15px;">
-                                                    <i class="fas fa-search" title="Buscar Material"></i> Buscar Material</button>
+                                                    <i class="fas fa-search" title="Buscar Material"></i> Buscar Material
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -132,17 +135,8 @@
                 </div>
             </form>
 
-
-
-            <!-- fin - Tabs -->
         </div>
     </div>
-
-
-
-    <!-- LISTADO DE MATERIALES A DESCARGAR DEL BUSCADOR -->
-
-
 
     <section class="content-header">
         <div class="row mb-2">
@@ -168,13 +162,10 @@
                         <th style="width: 6%">Reemplazo</th>
                         <th style="width: 6%">Recomendación</th>
                         <th style="width: 6%">Mes Reemplazo</th>
-
-
                         <th style="width: 5%">Opciones</th>
                     </tr>
                     </thead>
                     <tbody>
-
                     </tbody>
                 </table>
 
@@ -187,7 +178,8 @@
     </div>
 
 
-    <div class="modal fade" id="modalRepuesto" >
+    <!-- MODAL BUSCAR MATERIAL -->
+    <div class="modal fade" id="modalRepuesto">
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
@@ -202,27 +194,28 @@
                         <div class="card-body">
 
                             <div class="form-group">
-                                <label class="control-label" style="font-size: 14px">Material (Regresa: Nombre - Medida - Marca - Normativa - Color - Talla) (SOLO REGRESA MATERIAL CON INVENTARIO)</label>
+                                <label class="control-label" style="font-size: 14px">
+                                    Material (Regresa: Nombre - Medida - Marca - Normativa - Color - Talla) (SOLO REGRESA MATERIAL CON INVENTARIO)
+                                </label>
 
                                 <table class="table" id="matriz-busqueda" data-toggle="table">
                                     <tbody>
                                     <tr>
                                         <td>
-                                            <input id="inputBuscador" autocomplete="off" class='form-control' style='width:100%' onkeyup='buscarMaterial(this)' maxlength='300' type='text'>
-                                            <div class='droplista' id="midropmenu" style='position: absolute; z-index: 9; width: 95% !important;'></div>
+                                            <input id="inputBuscador" autocomplete="off" class='form-control' style='width:100%'
+                                                   onkeyup='buscarMaterial(this)' maxlength='300' type='text'>
+                                            <div class='droplista' id="midropmenu"
+                                                 style='position: absolute; z-index: 9; width: 95% !important;'></div>
                                         </td>
                                     </tr>
                                     </tbody>
                                 </table>
                             </div>
 
-                            <!-- cargara vista de selección -->
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-md-12">
-                                        <div id="tablaRepuesto">
-
-                                        </div>
+                                        <div id="tablaRepuesto"></div>
                                     </div>
                                 </div>
                             </div>
@@ -238,6 +231,7 @@
         </div>
     </div>
 
+    <!-- MODAL CANTIDAD / SALIDA DE MATERIAL -->
     <div class="modal fade" id="modalCantidad">
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
@@ -254,7 +248,7 @@
                                 <div class="col-md-12">
 
                                     <div class="form-group">
-                                        <input type="hidden" disabled class="form-control" id="id-entradadetalle" autocomplete="off">
+                                        <input type="hidden" class="form-control" id="id-material-seleccionado" autocomplete="off">
                                     </div>
 
                                     <div class="form-group">
@@ -281,8 +275,6 @@
 
                                     <hr>
 
-                                    <!-- ** TABLA ** -->
-
                                     <table class="table" id="matrizM" data-toggle="table" style="margin-right: 15px; margin-left: 15px;">
                                         <thead>
                                         <tr>
@@ -291,16 +283,13 @@
                                             <th style="width: 5%">Valor</th>
                                             <th style="width: 5%">Proveedor</th>
                                             <th style="width: 5%">Meses Reemplazo</th>
-
                                             <th style="width: 5%">Reemplazo</th>
                                             <th style="width: 5%">Recomendación</th>
-
                                             <th style="width: 4%">Cantidad Actual</th>
                                             <th style="width: 4%">Cantidad Salida</th>
                                         </tr>
                                         </thead>
                                         <tbody>
-
                                         </tbody>
                                     </table>
 
@@ -311,7 +300,10 @@
                 </div>
                 <div class="modal-footer justify-content-between">
                     <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
-                    <button type="button" style="font-weight: bold; background-color: #28a745; color: white !important;" class="button button-rounded button-pill button-small" onclick="agregarAlDetalle()">Agregar</button>
+                    <button type="button"
+                            style="font-weight: bold; background-color: #28a745; color: white !important;"
+                            class="button button-rounded button-pill button-small"
+                            onclick="agregarAlDetalle()">Agregar</button>
                 </div>
             </div>
         </div>
@@ -324,7 +316,6 @@
 
     <script src="{{ asset('js/jquery.dataTables.js') }}" type="text/javascript"></script>
     <script src="{{ asset('js/dataTables.bootstrap4.js') }}" type="text/javascript"></script>
-
     <script src="{{ asset('js/toastr.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('js/axios.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('js/sweetalert2.all.min.js') }}"></script>
@@ -333,196 +324,131 @@
     <script src="{{ asset('js/bootstrap-input-spinner.js') }}" type="text/javascript"></script>
     <script src="{{ asset('js/custom-editors.js') }}" type="text/javascript"></script>
 
-
-
     <script type="text/javascript">
-        $(document).ready(function(){
+        $(document).ready(function () {
             document.getElementById("divcontenedor").style.display = "block";
 
             var fecha = new Date();
-            document.getElementById('fecha').value = fecha.toJSON().slice(0,10);
+            document.getElementById('fecha').value = fecha.toJSON().slice(0, 10);
 
             window.seguroBuscador = true;
 
-            $(document).click(function(){
+            $(document).click(function () {
                 $(".droplista").hide();
             });
 
-            $(document).ready(function() {
-                $('[data-toggle="popover"]').popover({
-                    placement: 'top',
-                    trigger: 'hover'
-                });
+            $('[data-toggle="popover"]').popover({
+                placement: 'top',
+                trigger: 'hover'
             });
-
-
-
-
 
             $('#select-distrito').select2({
                 theme: "bootstrap-5",
-                "language": {
-                    "noResults": function(){
-                        return "Busqueda no encontrada";
-                    }
-                },
+                language: { noResults: function () { return "Busqueda no encontrada"; } }
             });
 
             $('#select-unidad').select2({
                 theme: "bootstrap-5",
-                "language": {
-                    "noResults": function(){
-                        return "Busqueda no encontrada";
-                    }
-                },
+                language: { noResults: function () { return "Busqueda no encontrada"; } }
             });
-
-
 
             $('#select-empleado').select2({
                 theme: "bootstrap-5",
-                "language": {
-                    "noResults": function(){
-                        return "Busqueda no encontrada";
-                    }
-                },
+                language: { noResults: function () { return "Busqueda no encontrada"; } }
             });
-
-
         });
     </script>
 
     <script>
 
-        // DENTRO DE LA FILA SE OBTIENE EL CAMPO LLAMADO INFO, AHI VIENE NOMBRE O NO
-        $('#select-empleado').on('change', function() {
+        // ── Jefe inmediato al cambiar empleado ────────────────────────────
+        $('#select-empleado').on('change', function () {
             let info = $(this).find(':selected').data('info');
-            if(info != '0'){
-                $('#jefe-inmediato').val(info);
-            }else{
-                $('#jefe-inmediato').val('');
-            }
-
+            $('#jefe-inmediato').val(info != '0' ? info : '');
         });
 
-
-
-        function abrirModal(){
+        // ── Abrir modal buscador ──────────────────────────────────────────
+        function abrirModal() {
             document.getElementById('tablaRepuesto').innerHTML = "";
             document.getElementById("formulario-repuesto").reset();
             $('#modalRepuesto').modal('show');
         }
 
+        // ── Validar teclas numéricas ──────────────────────────────────────
         function validateInput(event) {
             const key = event.key;
-
-            // Permitir teclas de navegación y control
-            if (["Backspace", "ArrowLeft", "ArrowRight", "Delete", "Tab"].includes(key)) {
-                return true;
-            }
-
-            // Bloquear la tecla "e", signos negativos y todos excepto números
-            if (key === "e" || key === "E" || key === "-" || isNaN(Number(key))) {
-                return false;
-            }
-
+            if (["Backspace", "ArrowLeft", "ArrowRight", "Delete", "Tab"].includes(key)) return true;
+            if (key === "e" || key === "E" || key === "-" || isNaN(Number(key))) return false;
             return true;
         }
 
-        function buscarMaterial(e){
-
-            // seguro para evitar errores de busqueda continua
-            if(seguroBuscador){
+        // ── Buscar material en el buscador ────────────────────────────────
+        function buscarMaterial(e) {
+            if (seguroBuscador) {
                 seguroBuscador = false;
-
                 var row = $(e).closest('tr');
                 let texto = e.value;
 
-                axios.post(url+'/buscar/material/disponible', {
-                    'query' : texto,
-                })
+                axios.post(url + '/buscar/material/disponible', { 'query': texto })
                     .then((response) => {
-
                         seguroBuscador = true;
-                        $(row).each(function (index, element) {
+                        $(row).each(function () {
                             $(this).find(".droplista").fadeIn();
                             $(this).find(".droplista").html(response.data);
                         });
                     })
-                    .catch((error) => {
-                        seguroBuscador = true;
-                    });
+                    .catch(() => { seguroBuscador = true; });
             }
         }
 
+        // ── Seleccionar material del buscador → abrir modal cantidades ────
         function modificarValor(edrop) {
-
-            openLoading()
+            openLoading();
 
             var formData = new FormData();
-            formData.append('id', edrop.id); // entradas_detalle
+            formData.append('id', edrop.id); // id_material
+
             $("#matrizM tbody tr").remove();
 
-            axios.post(url+'/buscar/material/disponibilidad', formData, {
-            })
+            axios.post(url + '/buscar/material/disponibilidad', formData, {})
                 .then((response) => {
                     closeLoading();
 
-                    if(response.data.success === 1){
+                    if (response.data.success === 1) {
 
-                        if(response.data.disponible === 1){
+                        if (response.data.disponible === 1) {
                             toastr.info('NO HAY INVENTARIO');
-                            return
+                            return;
                         }
 
-                        $('#id-entradadetalle').val(edrop.id);
+                        $('#id-material-seleccionado').val(edrop.id);
                         $('#info-material').val(response.data.nombreMaterial);
                         $('#info-medida').val(response.data.nombreMedida);
                         $('#info-marca').val(response.data.nombreMarca);
                         $('#info-normativa').val(response.data.nombreNormativa);
 
-                        $.each(response.data.arrayIngreso, function( key, val ){
+                        $.each(response.data.arrayIngreso, function (key, val) {
 
-                            /*var nFilas = $('#matrizM >tbody >tr').length;
-                            nFilas += 1;*/
-
-                            var nombreLote = "";
-                            if(val.lote != null){
-                                nombreLote = val.lote
-                            }
+                            var nombreLote = val.lote != null ? val.lote : "";
 
                             var markup = "<tr>" +
 
-                                "<td>" +
-                                "<input disabled value='" + val.fechaIngreso + "' class='form-control' type='text'>" +
-                                "</td>" +
+                                "<td><input disabled value='" + val.fechaIngreso + "' class='form-control' type='text'></td>" +
+
+                                "<td><input disabled value='" + nombreLote + "' class='form-control' type='text'></td>" +
+
+                                "<td><input disabled value='" + val.precioFormat + "' class='form-control' type='text'></td>" +
+
+                                "<td><input disabled value='" + val.proveedor + "' class='form-control' type='text'></td>" +
 
                                 "<td>" +
-                                "<input disabled value='" + nombreLote + "' class='form-control' type='text'>" +
-                                "</td>" +
-
-                                "<td>" +
-                                "<input disabled value='" + val.precioFormat + "' class='form-control' type='text'>" +
-                                "</td>" +
-
-                                "<td>" +
-                                "<input disabled value='" + val.proveedor + "' class='form-control' type='text'>" +
-                                "</td>" +
-
-
-                                "<td>" +
-                                "<input " +
-                                "class='form-control' name='arrayMesesReemplazo[]' value='0' min='0' max='100' " +
-                                "type='number' " +
+                                "<input class='form-control' name='arrayMesesReemplazo[]' value='0' min='0' max='100' type='number' " +
                                 "onkeydown=\"return validateInput(event);\" " +
-                                "oninput=\"validateCantidadMaxReemplazo(this, " + 100 + ");\">" +
+                                "oninput=\"validateCantidadMaxReemplazo(this, 100);\">" +
                                 "</td>" +
 
-
-
-
                                 "<td>" +
-                                "<select name='arraySelect1[]' class='form-control' >" +
+                                "<select name='arraySelect1[]' class='form-control'>" +
                                 "<option value='1'>SI</option>" +
                                 "<option value='0'>NO</option>" +
                                 "</select>" +
@@ -536,15 +462,18 @@
                                 "</td>" +
 
                                 "<td>" +
-                                "<input name='arrayCantidadActual[]' disabled data-cantidadActualFila='" + val.cantidadActual + "'  value='" + val.cantidadActual + "' class='form-control' type='number'>" +
+                                "<input name='arrayCantidadActual[]' disabled " +
+                                "data-cantidadActualFila='" + val.cantidadActual + "' " +
+                                "value='" + val.cantidadActual + "' class='form-control' type='number'>" +
                                 "</td>" +
 
                                 "<td>" +
-                                "<input " +
-                                "class='form-control' data-idfilaentradadetalle='" + val.id + "' name='arrayCantidadSalida[]' min='0' max='" + val.cantidad + "' " +
+                                "<input class='form-control' " +
+                                "data-idfilaentradadetalle='" + val.id + "' " +
+                                "name='arrayCantidadSalida[]' min='0' max='" + val.cantidadActual + "' " +
                                 "type='number' " +
                                 "onkeydown=\"return validateInput(event);\" " +
-                                "oninput=\"validateCantidadSalida(this, " + val.cantidad + ");\">" +
+                                "oninput=\"validateCantidadSalida(this, " + val.cantidadActual + ");\">" +
                                 "</td>" +
 
                                 "</tr>";
@@ -553,156 +482,118 @@
                         });
 
                         $('#modalCantidad').modal('show');
-                    }
-                    else {
+                    } else {
                         toastr.error('Error');
                     }
                 })
-                .catch((error) => {
+                .catch(() => {
                     toastr.error('Error');
                     closeLoading();
                 });
         }
 
+        // ── Agregar filas al detalle principal ────────────────────────────
+        function agregarAlDetalle() {
 
+            var arrayIdEntradaDetalle  = $("input[name='arrayCantidadSalida[]']").map(function () { return $(this).attr("data-idfilaentradadetalle"); }).get();
+            var arrayCantidadSalida    = $("input[name='arrayCantidadSalida[]']").map(function () { return $(this).val(); }).get();
+            var arrayCantidadActual    = $("input[name='arrayCantidadActual[]']").map(function () { return $(this).attr("data-cantidadActualFila"); }).get();
+            var arrayMesesReemplazo    = $("input[name='arrayMesesReemplazo[]']").map(function () { return $(this).val(); }).get();
+            var arraySelectReemplazo   = $("select[name='arraySelect1[]']").map(function () { return $(this).val(); }).get();
+            var arraySelectRecomendacion = $("select[name='arraySelect2[]']").map(function () { return $(this).val(); }).get();
 
-
-        // AGREGAR AL DETALLE
-        function agregarAlDetalle(){
-
-            // id entrada_detalle
-            var arrayIdEntradaDetalle = $("input[name='arrayCantidadSalida[]']").map(function(){return $(this).attr("data-idfilaentradadetalle");}).get();
-            // cantidad salida
-            var arrayCantidadSalida = $("input[name='arrayCantidadSalida[]']").map(function(){return $(this).val();}).get();
-            // cantidad actual de cada fila
-            var arrayCantidadActual = $("input[name='arrayCantidadActual[]']").map(function(){return $(this).attr("data-cantidadActualFila");}).get();
-            // checkbox Retornara
-          //  var checkboxes = $("input[name='arrayRetornara[]']");
-
-            var arrayMesesReemplazo = $("input[name='arrayMesesReemplazo[]']").map(function(){return $(this).val();}).get();
-
-
-
-
-
-
-            // REEMPLAZO
-            // JS: tomar los valores (asegúrate de ejecutar esto después de pintar la tabla)
-            var arraySelectReemplazo = $("select[name='arraySelect1[]']").map(function () {
-                return $(this).val(); // '1' o '0'
-            }).get();
-
-            var arraySelectRecomendacion = $("select[name='arraySelect2[]']").map(function () {
-                return $(this).val(); // '1' o '0'
-            }).get();
-
-            colorBlancoTabla()
+            colorBlancoTabla();
             var habraSalida = true;
 
-            // recorrer y verificar
-            for(var a = 0; a < arrayCantidadSalida.length; a++){
-
-                let filaCantidad = arrayCantidadSalida[a];
+            for (var a = 0; a < arrayCantidadSalida.length; a++) {
+                let filaCantidad         = arrayCantidadSalida[a];
                 let infoFilaCantidadActual = arrayCantidadActual[a];
-                let infoMesReemplazo = arrayMesesReemplazo[a];
+                let infoMesReemplazo     = arrayMesesReemplazo[a];
 
-                if(filaCantidad !== ''){
-                    if(filaCantidad <= 0){
+                if (filaCantidad !== '') {
+                    if (filaCantidad <= 0) {
                         colorRojoTabla(a);
-                        alertaMensaje('info', 'Error', 'En la Fila #' + (a+1) + " No se permite ingreso de Cero, por favor borrarlo");
-                        return
+                        alertaMensaje('info', 'Error', 'En la Fila #' + (a + 1) + " No se permite ingreso de Cero, por favor borrarlo");
+                        return;
                     }
                     habraSalida = false;
                 }
 
-                // VERIFICAR QUE NO SUPERE CANTIDAD SALIDA AL CANTIDAD ACTUAL DE CADA FILA DE LA TABLA
-                if(filaCantidad > Number(infoFilaCantidadActual)){
+                if (filaCantidad > Number(infoFilaCantidadActual)) {
                     colorRojoTabla(a);
-                    alertaMensaje('info', 'Error', 'En la Fila #' + (a+1) + " La cantidad de Salida supera a la Cantidad Actual");
-                    return
+                    alertaMensaje('info', 'Error', 'En la Fila #' + (a + 1) + " La cantidad de Salida supera a la Cantidad Actual");
+                    return;
                 }
 
-                if(infoMesReemplazo < 0){
+                if (infoMesReemplazo < 0) {
                     colorRojoTabla(a);
-                    alertaMensaje('info', 'Error', 'En la Fila #' + (a+1) + " El Mes de reemplazo no debe ser Negativo");
+                    alertaMensaje('info', 'Error', 'En la Fila #' + (a + 1) + " El Mes de reemplazo no debe ser Negativo");
+                    return;
                 }
-
             }
 
-            if(habraSalida){
+            if (habraSalida) {
                 toastr.error('Registrar mínimo 1 salida');
-                return
+                return;
             }
 
-
-            // RECORRER PARA AGREGAR CADA UNA AL DETALLE
-
-            // nombre TXT del material
             var nombreTexto = document.getElementById('info-material').value;
-            var nFilas = $('#matriz >tbody >tr').length;
+            var nFilas      = $('#matriz >tbody >tr').length;
 
-            for(var z = 0; z < arrayCantidadSalida.length; z++){
-                nFilas += 1;
+            for (var z = 0; z < arrayCantidadSalida.length; z++) {
+
                 let infoFilaIdEntradaDetalle = arrayIdEntradaDetalle[z];
-                let filaCantidad = arrayCantidadSalida[z];
+                let filaCantidad             = arrayCantidadSalida[z];
+                let valorReemplazo           = arraySelectReemplazo[z];
+                let valorRecomendacion       = arraySelectRecomendacion[z];
+                let valorMesReemplazo        = arrayMesesReemplazo[z];
 
-                let valorReemplazo = arraySelectReemplazo[z];
-                let valorRecomendacion = arraySelectRecomendacion[z];
+                var textoReemplazo    = valorReemplazo    == 1 ? "SI" : "NO";
+                var textoRecomendacion = valorRecomendacion == 1 ? "SI" : "NO";
 
-                let valorMesReemplazo = arrayMesesReemplazo[z];
+                if (filaCantidad !== '' && filaCantidad != 0) {
+                    nFilas += 1;
 
-                var textoReemplazo = "NO";
-                if(valorReemplazo == 1) textoReemplazo = "SI"
+                    var markup = "<tr>" +
 
-                var textoRecomendacion = "NO";
-                if(valorRecomendacion == 1) textoRecomendacion = "SI"
+                        "<td>" +
+                        "<p id='fila" + nFilas + "' class='form-control' style='max-width: 65px'>" + nFilas + "</p>" +
+                        "</td>" +
 
-                if(filaCantidad !== ''){
-                    if(filaCantidad !== 0){
-                        var markup = "<tr>" +
+                        "<td>" +
+                        "<input name='idmaterialArray[]' type='hidden' data-idmaterialArray='" + infoFilaIdEntradaDetalle + "'>" +
+                        "<input disabled value='" + nombreTexto + "' class='form-control' type='text'>" +
+                        "</td>" +
 
-                            "<td>" +
-                            "<p id='fila" + (nFilas) + "' class='form-control' style='max-width: 65px'>" + (nFilas) + "</p>" +
-                            "</td>" +
+                        "<td>" +
+                        "<input name='salidaArray[]' disabled data-cantidadSalida='" + filaCantidad + "'" +
+                        " value='" + filaCantidad + "' class='form-control' type='text'>" +
+                        "</td>" +
 
-                            "<td>" +
-                            "<input name='idmaterialArray[]' type='hidden' data-idmaterialArray='" + infoFilaIdEntradaDetalle + "'>" +
-                            "<input disabled value='" + nombreTexto + "' class='form-control' type='text'>" +
-                            "</td>" +
+                        "<td>" +
+                        "<input name='reArrayReemplazo[]' disabled data-idvalorReemplazo='" + valorReemplazo + "'" +
+                        " value='" + textoReemplazo + "' class='form-control' type='text'>" +
+                        "</td>" +
 
-                            "<td>" +
-                            "<input name='salidaArray[]' disabled data-cantidadSalida='" + filaCantidad + "'" +
-                            " value='" + filaCantidad + "' class='form-control' type='text'>" +
-                            "</td>" +
+                        "<td>" +
+                        "<input name='reArrayRecomendacion[]' disabled data-idvalorRecomendacion='" + valorRecomendacion + "'" +
+                        " value='" + textoRecomendacion + "' class='form-control' type='text'>" +
+                        "</td>" +
 
-                            "<td>" +
-                            "<input name='reArrayReemplazo[]' disabled data-idvalorReemplazo='" + valorReemplazo + "'" +
-                            " value='" + textoReemplazo + "' class='form-control' type='text'>" +
-                            "</td>" +
+                        "<td>" +
+                        "<input name='reArrayMesReemplazo[]' disabled data-idvalorMesReemplazo='" + valorMesReemplazo + "'" +
+                        " value='" + valorMesReemplazo + "' class='form-control' type='text'>" +
+                        "</td>" +
 
-                            "<td>" +
-                            "<input name='reArrayRecomendacion[]' disabled data-idvalorRecomendacion='" + valorRecomendacion + "'" +
-                            " value='" + textoRecomendacion + "' class='form-control' type='text'>" +
-                            "</td>" +
+                        "<td>" +
+                        "<button type='button' class='btn btn-block btn-danger' onclick='borrarFila(this)'>Borrar</button>" +
+                        "</td>" +
 
-                            "<td>" +
-                            "<input name='reArrayMesReemplazo[]' disabled data-idvalorMesReemplazo='" + valorMesReemplazo + "'" +
-                            " value='" + valorMesReemplazo + "' class='form-control' type='text'>" +
-                            "</td>" +
+                        "</tr>";
 
-
-                            "<td>" +
-                            "<button type='button' class='btn btn-block btn-danger' onclick='borrarFila(this)'>Borrar</button>" +
-                            "</td>" +
-
-                            "</tr>";
-
-                        $("#matriz tbody").append(markup);
-                    }
+                    $("#matriz tbody").append(markup);
                 }
             }
-
-
 
             $('#modalCantidad').modal('hide');
             document.getElementById('inputBuscador').value = '';
@@ -713,15 +604,15 @@
                 title: 'Agregado al Detalle',
                 showConfirmButton: false,
                 timer: 1500
-            })
+            });
         }
 
-        function preguntaGuardar(){
+        // ── Preguntar antes de guardar ────────────────────────────────────
+        function preguntaGuardar() {
             colorBlancoTabla();
 
             Swal.fire({
                 title: 'Guardar Salida?',
-                text: "",
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: '#28a745',
@@ -729,454 +620,281 @@
                 cancelButtonText: 'Cancelar',
                 confirmButtonText: 'Si'
             }).then((result) => {
-                if (result.isConfirmed) {
-                    guardarSalida();
-                }
-            })
+                if (result.isConfirmed) guardarSalida();
+            });
         }
 
+        // ── Guardar salida definitiva ─────────────────────────────────────
+        function guardarSalida() {
 
-
-
-        function guardarSalida(){
-
-            // fecha
-            var fecha = document.getElementById('fecha').value;
-            var empleado = document.getElementById('select-empleado').value;
-            // descripcion
+            var fecha       = document.getElementById('fecha').value;
+            var empleado    = document.getElementById('select-empleado').value;
             var descripcion = document.getElementById('descripcion').value;
+            var lineaMaterial = document.getElementById('linea-editar').value;
 
-            if(fecha === ''){
-                toastr.error('Fecha es requerida');
-                return
-            }
-
-            if(empleado === ''){
-                toastr.error('Empleado es requerido');
-                return
-            }
-
+            if (fecha === '')    { toastr.error('Fecha es requerida');    return; }
+            if (empleado === '') { toastr.error('Empleado es requerido'); return; }
 
             var reglaNumeroEntero = /^[0-9]\d*$/;
-            var nRegistro = $('#matriz > tbody >tr').length;
-
-            if (nRegistro <= 0){
+            if ($('#matriz > tbody >tr').length <= 0) {
                 toastr.error('Registro Salida son requeridos');
                 return;
             }
 
-            var idEntradaDetalle = $("input[name='idmaterialArray[]']").map(function(){return $(this).attr("data-idmaterialArray");}).get();
-            var salidaCantidad = $("input[name='salidaArray[]']").map(function(){return $(this).attr("data-cantidadSalida");}).get();
+            var idEntradaDetalle  = $("input[name='idmaterialArray[]']").map(function () { return $(this).attr("data-idmaterialArray"); }).get();
+            var salidaCantidad    = $("input[name='salidaArray[]']").map(function ()     { return $(this).attr("data-cantidadSalida"); }).get();
+            var arrayReemplazo    = $("input[name='reArrayReemplazo[]']").map(function () { return $(this).attr("data-idvalorReemplazo"); }).get();
+            var arrayRecomendacion = $("input[name='reArrayRecomendacion[]']").map(function () { return $(this).attr("data-idvalorRecomendacion"); }).get();
+            var arrayMesReemplazo = $("input[name='reArrayMesReemplazo[]']").map(function () { return $(this).attr("data-idvalorMesReemplazo"); }).get();
 
-            var arrayReemplazo = $("input[name='reArrayReemplazo[]']").map(function(){return $(this).attr("data-idvalorReemplazo");}).get();
-            var arrayRecomendacion = $("input[name='reArrayRecomendacion[]']").map(function(){return $(this).attr("data-idvalorRecomendacion");}).get();
-
-            var arrayMesReemplazo = $("input[name='reArrayMesReemplazo[]']").map(function(){return $(this).attr("data-idvalorMesReemplazo");}).get();
-
-
-            // checkbox Retornara
-           // var checkboxes = $("input[name='retornoArray[]']").map(function(){return $(this).attr("data-retorno");}).get();
-
-            //*******************
-
-            // VERIFICAR LO QUE SE INGRESARA
-            for(var a = 0; a < idEntradaDetalle.length; a++){
-
-                //let infoIDEntradaDeta = idEntradaDetalle[a];
+            for (var a = 0; a < idEntradaDetalle.length; a++) {
                 let infoCantidad = salidaCantidad[a];
-
-                if (infoCantidad === '') {
-                    colorRojoTabla(a);
-                    toastr.error('Fila #' + (a + 1) + ' Cantidad es requerida');
-                    return;
-                }
-
-                if (!infoCantidad.match(reglaNumeroEntero)) {
-                    colorRojoTabla(a);
-                    toastr.error('Fila #' + (a + 1) + ' Cantidad debe ser Entero y no negativo');
-                    return;
-                }
-
-                if (infoCantidad <= 0) {
-                    colorRojoTabla(a);
-                    toastr.error('Fila #' + (a + 1) + ' Cantidad no debe ser negativo');
-                    return;
-                }
-
-                // Máximo 1 millón
-                if (infoCantidad > 1000000) {
-                    colorRojoTabla(a);
-                    toastr.error('Fila #' + (a + 1) + ' Cantidad máximo 1 millón');
-                    return;
-                }
+                if (infoCantidad === '')                      { colorRojoTabla(a); toastr.error('Fila #' + (a + 1) + ' Cantidad es requerida');                return; }
+                if (!infoCantidad.match(reglaNumeroEntero))   { colorRojoTabla(a); toastr.error('Fila #' + (a + 1) + ' Cantidad debe ser Entero y no negativo'); return; }
+                if (infoCantidad <= 0)                        { colorRojoTabla(a); toastr.error('Fila #' + (a + 1) + ' Cantidad no debe ser negativo');         return; }
+                if (infoCantidad > 1000000)                   { colorRojoTabla(a); toastr.error('Fila #' + (a + 1) + ' Cantidad máximo 1 millón');              return; }
             }
 
             let formData = new FormData();
             const contenedorArray = [];
 
-            for(var p = 0; p < salidaCantidad.length; p++){
-                let infoIdEntradaDeta = idEntradaDetalle[p];
-                let infoCantidad = salidaCantidad[p];
-
-                let infoReemplazo = arrayReemplazo[p];
-                let infoRecomendacion = arrayRecomendacion[p];
-
-                let infoMesReemplazo = arrayMesReemplazo[p];
-
-                contenedorArray.push({ infoIdEntradaDeta, infoCantidad, infoReemplazo, infoRecomendacion, infoMesReemplazo});
+            for (var p = 0; p < salidaCantidad.length; p++) {
+                contenedorArray.push({
+                    infoIdEntradaDeta: idEntradaDetalle[p],
+                    infoCantidad:      salidaCantidad[p],
+                    infoReemplazo:     arrayReemplazo[p],
+                    infoRecomendacion: arrayRecomendacion[p],
+                    infoMesReemplazo:  arrayMesReemplazo[p]
+                });
             }
 
             openLoading();
+            formData.append('fecha',           fecha);
+            formData.append('empleado',         empleado);
+            formData.append('descripcion',      descripcion);
+            formData.append('lineaEditar',      lineaMaterial);
 
-            formData.append('fecha', fecha);
-            formData.append('empleado', empleado);
-            formData.append('descripcion', descripcion);
-            formData.append('contenedorArray', JSON.stringify(contenedorArray));
+            formData.append('contenedorArray',  JSON.stringify(contenedorArray));
 
-            axios.post(url+'/salida/guardar', formData, {
-            })
+            axios.post(url + '/salida/guardar', formData, {})
                 .then((response) => {
                     closeLoading();
-
-                    if(response.data.success === 1){
-                        // cuando va vacio la salida
-                        toastr.error('Se requiere item de Salida');
-                    }
-                    else if(response.data.success === 2){
-                        // VERIFICACION:NO SUPERAR LA CANTIDAD_ENTREGADA TOTAL DE ESE MATERIAL-LOTE
-                        let fila = response.data.fila
-                        toastr.error('Fila #' + fila + " Supera a las unidades existentes disponibles");
-                    }
-                    else if(response.data.success === 10){
-                        reporteFinal(response.data.idsalida)
-                        msgActualizado()
-                    }
-                    else{
-                        toastr.error('error al guardar');
-                    }
+                    if      (response.data.success === 1)  { toastr.error('Se requiere item de Salida'); }
+                    else if (response.data.success === 2)  { toastr.error('Fila #' + response.data.fila + " Supera a las unidades existentes disponibles"); }
+                    else if (response.data.success === 10) { reporteFinal(response.data.idsalida); msgActualizado(); }
+                    else                                   { toastr.error('error al guardar'); }
                 })
-                .catch((error) => {
-                    toastr.error('Error al guardar');
-                    closeLoading();
+                .catch(() => { toastr.error('Error al guardar'); closeLoading(); });
+        }
+
+        // ── PDF Temporal — POST directo sin guardar en BD ─────────────────
+        function verPDfTemporal() {
+
+            var fecha       = document.getElementById('fecha').value;
+            var empleado    = document.getElementById('select-empleado').value;
+            var descripcion = document.getElementById('descripcion').value;
+            var lineaMaterial = document.getElementById('linea-editar').value;
+
+            if (fecha === '')    { toastr.error('Fecha es requerida');    return; }
+            if (empleado === '') { toastr.error('Empleado es requerido'); return; }
+
+            var reglaNumeroEntero = /^[0-9]\d*$/;
+            if ($('#matriz > tbody >tr').length <= 0) {
+                toastr.error('Registro Salida son requeridos');
+                return;
+            }
+
+            var idEntradaDetalle  = $("input[name='idmaterialArray[]']").map(function () { return $(this).attr("data-idmaterialArray"); }).get();
+            var salidaCantidad    = $("input[name='salidaArray[]']").map(function ()     { return $(this).attr("data-cantidadSalida"); }).get();
+            var arrayReemplazo    = $("input[name='reArrayReemplazo[]']").map(function () { return $(this).attr("data-idvalorReemplazo"); }).get();
+            var arrayRecomendacion = $("input[name='reArrayRecomendacion[]']").map(function () { return $(this).attr("data-idvalorRecomendacion"); }).get();
+
+            for (var a = 0; a < idEntradaDetalle.length; a++) {
+                let infoCantidad = salidaCantidad[a];
+                if (infoCantidad === '')                     { colorRojoTabla(a); toastr.error('Fila #' + (a + 1) + ' Cantidad es requerida');                return; }
+                if (!infoCantidad.match(reglaNumeroEntero))  { colorRojoTabla(a); toastr.error('Fila #' + (a + 1) + ' Cantidad debe ser Entero y no negativo'); return; }
+                if (infoCantidad <= 0)                       { colorRojoTabla(a); toastr.error('Fila #' + (a + 1) + ' Cantidad no debe ser negativo');         return; }
+                if (infoCantidad > 1000000)                  { colorRojoTabla(a); toastr.error('Fila #' + (a + 1) + ' Cantidad máximo 1 millón');              return; }
+            }
+
+            const contenedorArray = [];
+            for (var p = 0; p < salidaCantidad.length; p++) {
+                contenedorArray.push({
+                    infoIdEntradaDeta: idEntradaDetalle[p],
+                    infoCantidad:      salidaCantidad[p],
+                    infoReemplazo:     arrayReemplazo[p],
+                    infoRecomendacion: arrayRecomendacion[p]
                 });
+            }
+
+            // ✅ Enviar por POST con form dinámico → abre PDF en nueva pestaña
+            reporteTemporal(contenedorArray, fecha, empleado, descripcion, lineaMaterial);
         }
 
-        function msgError(fila){
+        // ── Generar form dinámico POST para PDF temporal ──────────────────
+        function reporteTemporal(contenedorArray, fecha, empleado, descripcion, lineaMaterial) {
+            var form = document.createElement('form');
+            form.method = 'POST';
+            form.action  = "{{ URL::to('admin/salidas/pdf-temporal') }}";
+            form.target  = '_blank'; // abre en nueva pestaña
 
-            let msg = "En la Fila: " + fila + ": Se esta superando la cantidad disponible, revisar la salida del mismo Material";
+            // CSRF token de Laravel
+            var tokenInput   = document.createElement('input');
+            tokenInput.type  = 'hidden';
+            tokenInput.name  = '_token';
+            tokenInput.value = '{{ csrf_token() }}';
+            form.appendChild(tokenInput);
 
-            Swal.fire({
-                title: 'Error',
-                text: msg,
-                icon: 'info',
-                showCancelButton: false,
-                allowOutsideClick: false,
-                confirmButtonColor: '#28a745',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Aceptar'
-            }).then((result) => {
-                if (result.isConfirmed) {
+            // Campos
+            var campos = {
+                contenedorArray: JSON.stringify(contenedorArray),
+                fecha:           fecha,
+                empleado:        empleado,
+                descripcion:     descripcion,
+                lineaMaterial:     lineaMaterial
+            };
 
-                }
-            })
+            for (var key in campos) {
+                var input   = document.createElement('input');
+                input.type  = 'hidden';
+                input.name  = key;
+                input.value = campos[key];
+                form.appendChild(input);
+            }
+
+            document.body.appendChild(form);
+            form.submit();
+            document.body.removeChild(form);
         }
 
-        function msgActualizado(){
+        // ── Reporte final guardado ────────────────────────────────────────
+        function reporteFinal(idsalida) {
+            window.open("{{ URL::to('admin/salidas/pdfcompleto') }}/" + idsalida);
+        }
+
+        // ── Mensajes ──────────────────────────────────────────────────────
+        function msgActualizado() {
             Swal.fire({
                 title: 'Salida Registrada',
-                text: "",
                 icon: 'success',
                 showCancelButton: false,
                 allowOutsideClick: false,
                 confirmButtonColor: '#28a745',
-                cancelButtonColor: '#d33',
                 confirmButtonText: 'Aceptar'
             }).then((result) => {
-                if (result.isConfirmed) {
-                    location.reload();
-                }
-            })
+                if (result.isConfirmed) location.reload();
+            });
         }
 
-
-
-        function divColorRojo(pos){
-            var divs = document.getElementsByClassName('arraycolor');
-            $(divs[pos]).css("background-color", "red");
+        function msgError(fila) {
+            Swal.fire({
+                title: 'Error',
+                text: "En la Fila: " + fila + ": Se esta superando la cantidad disponible, revisar la salida del mismo Material",
+                icon: 'info',
+                allowOutsideClick: false,
+                confirmButtonColor: '#28a745',
+                confirmButtonText: 'Aceptar'
+            });
         }
 
-        function borrarFila(elemento){
+        // ── Utilidades tabla ──────────────────────────────────────────────
+        function borrarFila(elemento) {
             var tabla = elemento.parentNode.parentNode;
             tabla.parentNode.removeChild(tabla);
-            setearFila()
+            setearFila();
         }
 
-        // cambiar # de fila cada vez que se borra la fila de
-        // tabla nuevo material
-        function setearFila(){
-
-            var table = document.getElementById('matriz');
+        function setearFila() {
+            var table  = document.getElementById('matriz');
             var conteo = 0;
             for (var r = 1, n = table.rows.length; r < n; r++) {
-                conteo +=1;
+                conteo++;
                 var element = table.rows[r].cells[0].children[0];
-                document.getElementById(element.id).innerHTML = ""+conteo;
+                document.getElementById(element.id).innerHTML = "" + conteo;
             }
         }
 
-        function colorRojoTabla(index){
-            $("#matriz tr:eq("+(index+1)+")").css('background', '#F1948A');
+        function colorRojoTabla(index) {
+            $("#matriz tr:eq(" + (index + 1) + ")").css('background', '#F1948A');
         }
 
-        function colorBlancoTabla(){
+        function colorBlancoTabla() {
             $("#matriz tbody tr").css('background', 'white');
         }
 
-        function limpiar(){
+        function limpiar() {
             document.getElementById('descripcion').value = '';
-            document.getElementById('numero-salida').value = '';
             $('#jefe-inmediato').val("");
             $("#matriz tbody tr").remove();
         }
-
-        function borrarTabla(e){
-            $("#matriz tbody tr").remove();
-            $("#tablaInventario tbody tr").remove();
-        }
-
 
         function validateCantidadSalida(input, maxCantidad) {
-            // Remueve caracteres no numéricos
             input.value = input.value.replace(/[^0-9]/g, '');
-
-            // Convierte el valor a número y verifica el límite
-            if (Number(input.value) > maxCantidad) {
-                input.value = maxCantidad; // Restringe el valor al máximo permitido
-            }
+            if (Number(input.value) > maxCantidad) input.value = maxCantidad;
         }
-
 
         function validateCantidadMaxReemplazo(input, maxCantidad) {
-            // Remueve caracteres no numéricos
             input.value = input.value.replace(/[^0-9]/g, '');
-
-            // Convierte el valor a número y verifica el límite
-            if (Number(input.value) > maxCantidad) {
-                input.value = maxCantidad; // Restringe el valor al máximo permitido
-            }
+            if (Number(input.value) > maxCantidad) input.value = maxCantidad;
         }
 
-
-
-
-
-        function buscarUnidad(){
+        // ── Distrito → Unidad ─────────────────────────────────────────────
+        function buscarUnidad() {
             let id = document.getElementById('select-distrito').value;
-
-            if(id == '0'){
-                document.getElementById("select-unidad").options.length = 0;
+            if (id == '0') {
+                document.getElementById("select-unidad").options.length   = 0;
                 document.getElementById("select-empleado").options.length = 0;
                 return false;
             }
 
             $('#jefe-inmediato').val("");
-
             openLoading();
 
-            axios.post(url+'/empleados/buscarunidad',{
-                'id': id
-            })
+            axios.post(url + '/empleados/buscarunidad', { 'id': id })
                 .then((response) => {
                     closeLoading();
-                    if(response.data.success === 1){
-
-                        document.getElementById("select-unidad").options.length = 0;
+                    if (response.data.success === 1) {
+                        document.getElementById("select-unidad").options.length   = 0;
                         document.getElementById("select-empleado").options.length = 0;
-
                         $('#select-unidad').append('<option value=0 disabled selected>Seleccionar opción</option>');
-
-                        // unidad de medida
-                        $.each(response.data.arrayUnidad, function( key, val ){
-                            $('#select-unidad').append('<option value="' +val.id +'">'+ val.nombre +'</option>');
+                        $.each(response.data.arrayUnidad, function (key, val) {
+                            $('#select-unidad').append('<option value="' + val.id + '">' + val.nombre + '</option>');
                         });
-
-                    }else{
+                    } else {
                         toastr.error('Información no encontrada');
                     }
                 })
-                .catch((error) => {
-                    closeLoading();
-                    toastr.error('Información no encontrada');
-                });
+                .catch(() => { closeLoading(); toastr.error('Información no encontrada'); });
         }
 
-        function buscarEmpleado(){
+        // ── Unidad → Empleado ─────────────────────────────────────────────
+        function buscarEmpleado() {
             let id = document.getElementById('select-unidad').value;
-
-            if(id == '0'){
-                document.getElementById("select-unidad").options.length = 0;
+            if (id == '0') {
+                document.getElementById("select-unidad").options.length   = 0;
                 document.getElementById("select-empleado").options.length = 0;
                 return false;
             }
 
             $('#jefe-inmediato').val("");
-
             openLoading();
 
-            axios.post(url+'/empleados/buscarunidad-empleado',{
-                'id': id
-            })
+            axios.post(url + '/empleados/buscarunidad-empleado', { 'id': id })
                 .then((response) => {
                     closeLoading();
-                    if(response.data.success === 1){
-
+                    if (response.data.success === 1) {
                         document.getElementById("select-empleado").options.length = 0;
-
                         $('#select-empleado').append('<option value=0 disabled selected>Seleccionar opción</option>');
-
-                        // empleado
-                        $.each(response.data.arrayEmpleados, function( key, val ){
+                        $.each(response.data.arrayEmpleados, function (key, val) {
                             $('#select-empleado').append('<option value="' + val.id + '" data-info="' + val.jefe + '">' + val.nombreCompleto + '</option>');
                         });
-
-                    }else{
+                    } else {
                         toastr.error('Información no encontrada');
                     }
                 })
-                .catch((error) => {
-                    closeLoading();
-                    toastr.error('Información no encontrada');
-                });
+                .catch(() => { closeLoading(); toastr.error('Información no encontrada'); });
         }
-
-
-
-        // ******** PARA GENERAR UN REPORTE TEMPORAL ******************
-
-
-
-        function verPDfTemporal(){
-
-            // fecha
-            var fecha = document.getElementById('fecha').value;
-            var empleado = document.getElementById('select-empleado').value;
-            // descripcion
-            var descripcion = document.getElementById('descripcion').value;
-
-            if(fecha === ''){
-                toastr.error('Fecha es requerida');
-                return
-            }
-
-            if(empleado === ''){
-                toastr.error('Empleado es requerido');
-                return
-            }
-
-
-            var reglaNumeroEntero = /^[0-9]\d*$/;
-            var nRegistro = $('#matriz > tbody >tr').length;
-
-            if (nRegistro <= 0){
-                toastr.error('Registro Salida son requeridos');
-                return;
-            }
-
-            var idEntradaDetalle = $("input[name='idmaterialArray[]']").map(function(){return $(this).attr("data-idmaterialArray");}).get();
-            var salidaCantidad = $("input[name='salidaArray[]']").map(function(){return $(this).attr("data-cantidadSalida");}).get();
-
-            var arrayReemplazo = $("input[name='reArrayReemplazo[]']").map(function(){return $(this).attr("data-idvalorReemplazo");}).get();
-            var arrayRecomendacion = $("input[name='reArrayRecomendacion[]']").map(function(){return $(this).attr("data-idvalorRecomendacion");}).get();
-
-
-            //*******************
-
-            // VERIFICAR LO QUE SE INGRESARA
-            for(var a = 0; a < idEntradaDetalle.length; a++){
-
-                //let infoIDEntradaDeta = idEntradaDetalle[a];
-                let infoCantidad = salidaCantidad[a];
-
-                if (infoCantidad === '') {
-                    colorRojoTabla(a);
-                    toastr.error('Fila #' + (a + 1) + ' Cantidad es requerida');
-                    return;
-                }
-
-                if (!infoCantidad.match(reglaNumeroEntero)) {
-                    colorRojoTabla(a);
-                    toastr.error('Fila #' + (a + 1) + ' Cantidad debe ser Entero y no negativo');
-                    return;
-                }
-
-                if (infoCantidad <= 0) {
-                    colorRojoTabla(a);
-                    toastr.error('Fila #' + (a + 1) + ' Cantidad no debe ser negativo');
-                    return;
-                }
-
-                // Máximo 1 millón
-                if (infoCantidad > 1000000) {
-                    colorRojoTabla(a);
-                    toastr.error('Fila #' + (a + 1) + ' Cantidad máximo 1 millón');
-                    return;
-                }
-            }
-
-            let formData = new FormData();
-            const contenedorArray = [];
-
-            for(var p = 0; p < salidaCantidad.length; p++){
-                let infoIdEntradaDeta = idEntradaDetalle[p];
-                let infoCantidad = salidaCantidad[p];
-
-                let infoReemplazo = arrayReemplazo[p];
-                let infoRecomendacion = arrayRecomendacion[p];
-
-                contenedorArray.push({ infoIdEntradaDeta, infoCantidad, infoReemplazo, infoRecomendacion});
-            }
-
-            openLoading();
-
-            formData.append('fecha', fecha);
-            formData.append('empleado', empleado);
-            formData.append('descripcion', descripcion);
-            formData.append('contenedorArray', JSON.stringify(contenedorArray));
-
-            axios.post(url+'/salida/guardar-temporal', formData, {
-            })
-                .then((response) => {
-                    closeLoading();
-
-                    if(response.data.success === 1){
-                        // cuando va vacio la salida
-                        toastr.error('Se requiere item de Salida');
-                    }
-                    else if(response.data.success === 10){
-                        // SIEMPRE SERA EL MISMO ID POR SER EL TEMPORAL
-
-                        reporteTemporal()
-                    }
-                    else{
-                        toastr.error('error al guardar');
-                    }
-                })
-                .catch((error) => {
-                    toastr.error('Error al guardar');
-                    closeLoading();
-                });
-        }
-
-        function reporteTemporal(){
-            window.open("{{ URL::to('admin/salidas/pdf-temporal') }}");
-        }
-
-        function reporteFinal(idsalida){
-            window.open("{{ URL::to('admin/salidas/pdfcompleto') }}/" + idsalida);
-        }
-
 
     </script>
-
 
 @endsection

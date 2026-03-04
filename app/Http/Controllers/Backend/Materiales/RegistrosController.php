@@ -9,7 +9,6 @@ use App\Models\Distrito;
 use App\Models\Empleado;
 use App\Models\Entradas;
 use App\Models\EntradasDetalle;
-use App\Models\JefeInmediato;
 use App\Models\Marca;
 use App\Models\Materiales;
 use App\Models\Normativa;
@@ -158,8 +157,6 @@ class RegistrosController extends Controller
                 $detalle = new EntradasDetalle();
                 $detalle->id_entradas = $registro->id;
                 $detalle->id_material = $filaArray['idMaterial'];
-                $detalle->cantidad = $filaArray['infoCantidad']; // ESTO PODRA MODIFICARSE POR DESCARTADO
-                $detalle->cantidad_entregada = 0;
                 $detalle->cantidad_inicial = $filaArray['infoCantidad'];
                 $detalle->precio = $filaArray['infoPrecio'];
                 $detalle->save();
@@ -194,81 +191,76 @@ class RegistrosController extends Controller
         return view('backend.admin.registros.salidas.vistasalidaregistro', compact('arrayDistritos'));
     }
 
-    public function buscadorMaterialDisponible(Request $request){
-
-        if($request->get('query')){
+    public function buscadorMaterialDisponible(Request $request)
+    {
+        if ($request->get('query')) {
 
             $query = $request->get('query');
 
-            $pilaArrayIdMaterial = array();
-
-
-            // TODOS LOS ID MATERIALES QUE COINCIDA CON LA BUSQUEDA
-            $arrayMateriales = Materiales::where('nombre', 'LIKE', "%{$query}%")
+            $materiales = Materiales::where('nombre', 'LIKE', "%{$query}%")
                 ->orWhere('codigo', 'LIKE', "%{$query}%")
+                ->pluck('id');
+
+            if ($materiales->isEmpty()) {
+                return '';
+            }
+
+            // ✅ Agrupar por id_material y SUMAR todos los disponibles
+            $listado = DB::table('entradas_detalle as ed')
+                ->leftJoin(
+                    DB::raw('(
+            SELECT id_entrada_detalle, SUM(cantidad_salida) as total_salido
+            FROM salidas_detalle
+            GROUP BY id_entrada_detalle
+        ) as sd'),
+                    'sd.id_entrada_detalle', '=', 'ed.id'
+                )
+                ->select(
+                    'ed.id_material',
+                    DB::raw('SUM(ed.cantidad_inicial) as total_inicial'),
+                    DB::raw('COALESCE(SUM(sd.total_salido), 0) as total_salido'),
+                    DB::raw('(SUM(ed.cantidad_inicial) - COALESCE(SUM(sd.total_salido), 0)) as disponible')
+                )
+                ->whereIn('ed.id_material', $materiales)
+                ->groupBy('ed.id_material')
+                ->havingRaw('disponible > 0')
+                ->orderBy('ed.id_material')
                 ->get();
 
-            foreach ($arrayMateriales as $fila) {
-                array_push($pilaArrayIdMaterial, $fila->id);
+            if ($listado->isEmpty()) {
+                return '';
             }
 
+            $output = '<ul class="dropdown-menu" style="display:block; position:relative; overflow:auto; max-height:300px; width:800px">';
 
-            // SOLO MATERIAL DISPONIBLE
-            $listado = EntradasDetalle::whereIn('id_material', $pilaArrayIdMaterial)
-                ->whereColumn('cantidad_entregada', '<', 'cantidad')
-                ->orderBy('id') // Ordenar para obtener el primer registro de cada material
-                ->get()
-                ->unique('id_material') // Filtrar en PHP si la consulta no lo resuelve
-                ->values();
-
-
-            $output = '<ul class="dropdown-menu" style="display:block; position:relative; overflow: auto; max-height: 300px; width: 800px">';
-            $tiene = true;
             foreach ($listado as $row) {
 
-                $infoMaterial = Materiales::where('id', $row->id_material)->first();
-                $infoMarca = Marca::where('id', $infoMaterial->id_marca)->first();
-                $infoMedida = UnidadMedida::where('id', $infoMaterial->id_medida)->first();
-                $infoNormativa = Normativa::where('id', $infoMaterial->id_normativa)->first();
+                $infoMaterial = Materiales::with(['marca','unidadMedida','normativa','color','talla'])
+                    ->find($row->id_material);
 
+                if (!$infoMaterial) continue;
 
-                $color = "";
-                $talla = "";
-                if($info = Color::where('id', $infoMaterial->id_color)->first()){
-                    $color = $info->nombre;
-                }
-                if($info = Talla::where('id', $infoMaterial->id_talla)->first()){
-                    $talla = $info->nombre;
-                }
+                $nombreCompleto = $infoMaterial->nombre .
+                    " (" . optional($infoMaterial->unidadMedida)->nombre . ")" .
+                    " (" . optional($infoMaterial->marca)->nombre . ")" .
+                    " (" . optional($infoMaterial->normativa)->nombre . ")" .
+                    " (" . optional($infoMaterial->color)->nombre . ")" .
+                    " (" . optional($infoMaterial->talla)->nombre . ")";
 
-                $nombreCompleto = $infoMaterial->nombre . " (" . $infoMedida->nombre . ")" .
-                    " (" . $infoMarca->nombre . ")" . " (" . $infoNormativa->nombre . ")" .
-                    " (" . $color . ")" . " (" . $talla . ")"
-                ;
-
-                // si solo hay 1 fila, No mostrara el hr, salto de linea
-                if (count($listado) == 1) {
-                    if (!empty($row)) {
-                        $tiene = false;
-                        $output .= '
-                 <li class="cursor-pointer" onclick="modificarValor(this)" id="' . $row->id . '">' .$nombreCompleto . '</li>
+                // ✅ Usar id_material como id del <li> para el onclick
+                $output .= '
+                    <li class="cursor-pointer" onclick="modificarValor(this)"
+                        id="' . $row->id_material . '"
+                        data-tipo="material">
+                        ' . $nombreCompleto . ' - Disponible: ' . $row->disponible . '
+                    </li>
+                    <hr>
                 ';
-                    }
-                } else {
-                    if (!empty($row)) {
-                        $tiene = false;
-                        $output .= '
-                 <li class="cursor-pointer" onclick="modificarValor(this)" id="' . $row->id . '">' . $nombreCompleto . '</li>
-                   <hr>
-                ';
-                    }
-                }
             }
+
             $output .= '</ul>';
-            if ($tiene) {
-                $output = '';
-            }
-            echo $output;
+
+            return $output;
         }
     }
 
@@ -276,83 +268,86 @@ class RegistrosController extends Controller
     // UTILIZADO PARA LLENAR EL ARRAY DEL MODAL DE UN MATERIAL
     public function infoBodegaMaterialDetalleFila(Request $request)
     {
-        $regla = array(
-            'id' => 'required',
-        );
+        $regla = [
+            'id' => 'required', // ahora 'id' es el id_material
+        ];
 
         $validar = Validator::make($request->all(), $regla);
+        if ($validar->fails()) {
+            return ['success' => 0];
+        }
 
-        if ($validar->fails()){ return ['success' => 0];}
+        // ✅ Buscar el material directamente por id (ya no por entradas_detalle)
+        $infoMaterial = Materiales::find($request->id);
+        if (!$infoMaterial) {
+            return ['success' => 0];
+        }
 
-        $infoEntradaDeta = EntradasDetalle::where('id', $request->id)->first();
-        $infoMaterial = Materiales::where('id', $infoEntradaDeta->id_material)->first();
-
-        $infoMedida = UnidadMedida::where('id', $infoMaterial->id_medida)->first();
-        $infoMarca = Marca::where('id', $infoMaterial->id_marca)->first();
-        $infoNormativa = Normativa::where('id', $infoMaterial->id_normativa)->first();
+        $infoMedida    = UnidadMedida::find($infoMaterial->id_medida);
+        $infoMarca     = Marca::find($infoMaterial->id_marca);
+        $infoNormativa = Normativa::find($infoMaterial->id_normativa);
 
         $color = "";
+        if ($infoMaterial->id_color) {
+            $infoColor = Color::find($infoMaterial->id_color);
+            $color = $infoColor ? $infoColor->nombre : "";
+        }
+
         $talla = "";
-        if($info = Color::where('id', $infoMaterial->id_color)->first()){
-            $color = $info->nombre;
+        if ($infoMaterial->id_talla) {
+            $infoTalla = Talla::find($infoMaterial->id_talla);
+            $talla = $infoTalla ? $infoTalla->nombre : "";
         }
 
-        if($info = Talla::where('id', $infoMaterial->id_talla)->first()){
-            $talla = $info->nombre;
-        }
-
-
-        // BUSCAR SOLO DE LAS 'ENTRADAS' DEL PROYECTO
-        $pilaArrayIdEntradas = array();
-        $arrayEntradas = Entradas::all();
-        foreach ($arrayEntradas as $fila) {
-            array_push($pilaArrayIdEntradas, $fila->id);
-        }
-
-        $listado = EntradasDetalle::whereIn('id_entradas', $pilaArrayIdEntradas)
-            ->where('id_material', $infoEntradaDeta->id_material)
-            ->whereColumn('cantidad_entregada', '<', 'cantidad')
+        // ✅ Subquery para evitar multiplicación de filas por múltiples salidas
+        $listado = DB::table('entradas_detalle as ed')
+            ->leftJoin(
+                DB::raw('(
+                SELECT id_entrada_detalle, SUM(cantidad_salida) as total_salido
+                FROM salidas_detalle
+                GROUP BY id_entrada_detalle
+            ) as sd'),
+                'sd.id_entrada_detalle', '=', 'ed.id'
+            )
+            ->leftJoin('entradas as e', 'e.id', '=', 'ed.id_entradas')
+            ->leftJoin('proveedor as p', 'p.id', '=', 'e.id_proveedor')
+            ->select(
+                'ed.id',
+                'ed.id_entradas',
+                'ed.cantidad_inicial',
+                'ed.precio',
+                'e.lote',
+                'e.fecha',
+                'p.nombre as proveedor',
+                DB::raw('COALESCE(sd.total_salido, 0) as total_salido'),
+                DB::raw('(ed.cantidad_inicial - COALESCE(sd.total_salido, 0)) as cantidadActual')
+            )
+            // ✅ Filtrar directamente por id_material
+            ->where('ed.id_material', $request->id)
+            ->havingRaw('cantidadActual > 0')
+            ->orderBy('ed.id')
             ->get();
 
-        foreach ($listado as $fila){
-            $infoPadre = Entradas::where('id', $fila->id_entradas)->first();
-            $fila->lote = $infoPadre->lote;
-
-            $proveedor = "";
-            if($infoProveedor = Proveedor::where('id', $infoPadre->id_proveedor)->first()){
-                $proveedor = $infoProveedor->nombre;
-            }
-            $fila->proveedor = $proveedor;
-
-            // cantidad actual que hay
-            $resta = $fila->cantidad - $fila->cantidad_entregada;
-            $fila->cantidadActual = $resta;
-
-            $fecha = date("d-m-Y", strtotime($infoPadre->fecha));
-            $fila->fechaIngreso = $fecha;
-
-            $precioFormat = "$" . number_format($fila->precio, 2, '.', ',');
-            $fila->precioFormat = $precioFormat;
-
-
-            // Meses reemplazo
-            $fila->mesesreemplazo = $infoMaterial->meses_cambio;
+        foreach ($listado as $fila) {
+            $fila->fechaIngreso  = date("d-m-Y", strtotime($fila->fecha));
+            $fila->precioFormat  = "$" . number_format($fila->precio, 2, '.', ',');
+            $fila->mesesreemplazo = $infoMaterial->meses_cambio ?? 0;
+            // 'cantidad' alias para que el JS use el mismo campo en max de input
+            $fila->cantidad = $fila->cantidadActual;
         }
 
-        $disponible = 0;
-        if ($listado->isEmpty()) {
-            $disponible = 1;
-        }
+        $disponible = $listado->isEmpty() ? 1 : 0;
 
-        return ['success' => 1, 'nombreMaterial' => $infoMaterial->nombre,
-            'nombreMarca' => $infoMarca->nombre,
-            'nombreNormativa' => $infoNormativa->nombre,
-            'nombreMedida' => $infoMedida->nombre,
-            'nombreColor' => $color,
-            'nombreTalla' => $talla,
-
-            'arrayIngreso' => $listado,
-            'disponible' => $disponible
+        return [
+            'success'         => 1,
+            'nombreMaterial'  => $infoMaterial->nombre ?? '',
+            'nombreMarca'     => $infoMarca->nombre ?? '',
+            'nombreNormativa' => $infoNormativa->nombre ?? '',
+            'nombreMedida'    => $infoMedida->nombre ?? '',
+            'nombreColor'     => $color,
+            'nombreTalla'     => $talla,
+            'arrayIngreso'    => $listado,
+            'disponible'      => $disponible,
         ];
     }
 
@@ -360,103 +355,100 @@ class RegistrosController extends Controller
 
 
 
-    public function guardarSalidaMateriales(Request  $request)
+    public function guardarSalidaMateriales(Request $request)
     {
         $regla = array(
-            'fecha' => 'required',
+            'fecha'    => 'required',
             'empleado' => 'required',
         );
 
-        //  descripcion, (infoIdEntradaDeta, infoCantidad, infoReemplazo, infoRecomendacion, infoMesReemplazo)
-
         $validar = Validator::make($request->all(), $regla);
-
-        if ($validar->fails()){ return ['success' => 0];}
+        if ($validar->fails()) {
+            return ['success' => 0];
+        }
 
         DB::beginTransaction();
 
         try {
 
             $infoEmpleado = Empleado::where('id', $request->empleado)->first();
-            $infoUnidad = UnidadEmpleado::where('id', $infoEmpleado->id_unidad_empleado)->first();
-
-            $infoCargo = Cargo::where('id', $infoEmpleado->id_cargo)->first();
-            $cargo = $infoCargo->nombre;
+            $infoUnidad   = UnidadEmpleado::where('id', $infoEmpleado->id_unidad_empleado)->first();
+            $infoCargo    = Cargo::where('id', $infoEmpleado->id_cargo)->first();
+            $cargo        = $infoCargo->nombre;
 
             $jefeInmediato = "";
 
-            // JEFE INMEDIATO
-            if($unid = UnidadEmpleado::where('id_empleado', $infoEmpleado->id)->first()){ // es el mismo empleado
-                $infoEm = Empleado::where('id', $unid->id_empleado_inmediato)->first();
+            if ($unid = UnidadEmpleado::where('id_empleado', $infoEmpleado->id)->first()) {
+                $infoEm        = Empleado::where('id', $unid->id_empleado_inmediato)->first();
                 $jefeInmediato = $infoEm->nombre;
-
-            }else{
-                // JEFE DE LA UNIDAD
-                if($infoJefe = Empleado::where('id_unidad_empleado', $infoEmpleado->id_unidad_empleado)
-                    ->where('jefe', 1)->first()){
+            } else {
+                if ($infoJefe = Empleado::where('id_unidad_empleado', $infoEmpleado->id_unidad_empleado)
+                    ->where('jefe', 1)->first()) {
                     $jefeInmediato = $infoJefe->nombre;
                 }
             }
 
-
             $datosContenedor = json_decode($request->contenedorArray, true);
 
-            // EVITAR QUE VENGA VACIO
-            if($datosContenedor == null){
+            if ($datosContenedor == null) {
                 return ['success' => 1];
             }
 
-            $reg = new Salidas();
-            $reg->fecha = $request->fecha;
-            $reg->id_empleado = $request->empleado;
-            $reg->descripcion = $request->descripcion;
-
-            $reg->area = $infoUnidad->nombre;
-            $reg->cargo = $cargo;
-            $reg->colaborador = $infoEmpleado->nombre;
+            $reg                = new Salidas();
+            $reg->fecha         = $request->fecha;
+            $reg->id_empleado   = $request->empleado;
+            $reg->descripcion   = $request->descripcion;
+            $reg->area          = $infoUnidad->nombre;
+            $reg->cargo         = $cargo;
+            $reg->colaborador   = $infoEmpleado->nombre;
             $reg->jefe_inmediato = $jefeInmediato;
-
-
             $reg->save();
 
-            // infoIdEntradaDetalle, filaCantidadSalida
             $filaContada = 0;
+
             foreach ($datosContenedor as $filaArray) {
                 $filaContada++;
 
-                // verificar cantidad que hay en la entrada_detalla
                 $infoFilaEntradaDetalle = EntradasDetalle::where('id', $filaArray['infoIdEntradaDeta'])->first();
 
-                // VERIFICACION:NO SUPERAR LA CANTIDAD_ENTREGADA TOTAL DE ESE MATERIAL-LOTE
-                // SEA MAYOR A LA CANTIDAD INGRESADA POR EL BODEGUERO DE ESE MATERIAL-LOTE
-                $suma1 = $infoFilaEntradaDetalle->cantidad_entregada + $filaArray['infoCantidad'];
-                if($suma1 > $infoFilaEntradaDetalle->cantidad){
+                if (!$infoFilaEntradaDetalle) {
+                    DB::rollback();
                     return ['success' => 2, 'fila' => $filaContada];
                 }
 
-                // Pasa validaciones
+                // ✅ Calcular disponible real desde salidas_detalle (igual que el buscador)
+                $totalSalido = DB::table('salidas_detalle')
+                    ->where('id_entrada_detalle', $infoFilaEntradaDetalle->id)
+                    ->sum('cantidad_salida');
 
-                // GUARDAR SALIDA DETALLE
-                $detalle = new SalidasDetalle();
-                $detalle->id_salida = $reg->id;
+                $disponibleReal = $infoFilaEntradaDetalle->cantidad_inicial - $totalSalido;
+
+                // ✅ Verificar que la cantidad a salir no supere el disponible real
+                if ($filaArray['infoCantidad'] > $disponibleReal) {
+                    DB::rollback();
+                    return ['success' => 2, 'fila' => $filaContada];
+                }
+
+                // Guardar salida detalle
+                $detalle                    = new SalidasDetalle();
+                $detalle->id_salida         = $reg->id;
                 $detalle->id_entrada_detalle = $infoFilaEntradaDetalle->id;
-                $detalle->cantidad_salida = $filaArray['infoCantidad'];
-                $detalle->tipo_regresa = 0;
-                $detalle->reemplazo = $filaArray['infoReemplazo'];
-                $detalle->recomendacion = $filaArray['infoRecomendacion'];
-                $detalle->mes_reemplazo = $filaArray['infoMesReemplazo'];
-                $detalle->completado = 0;
+                $detalle->cantidad_salida   = $filaArray['infoCantidad'];
+                $detalle->tipo_regresa      = 0;
+                $detalle->reemplazo         = $filaArray['infoReemplazo'];
+                $detalle->recomendacion     = $filaArray['infoRecomendacion'];
+                $detalle->mes_reemplazo     = $filaArray['infoMesReemplazo'];
+                $detalle->completado        = 0;
                 $detalle->save();
 
-                // ACTUALIZAR CANTIDADES DE SALIDA
-                EntradasDetalle::where('id', $filaArray['infoIdEntradaDeta'])->update([
-                    'cantidad_entregada' => ($filaArray['infoCantidad'] + $infoFilaEntradaDetalle->cantidad_entregada)
-                ]);
+                // ✅ Ya no se actualiza cantidad_entregada — la disponibilidad
+                //    se calcula siempre desde salidas_detalle dinámicamente
             }
 
             DB::commit();
             return ['success' => 10, 'idsalida' => $reg->id];
-        }catch(\Throwable $e){
+
+        } catch (\Throwable $e) {
             Log::info('error ' . $e);
             DB::rollback();
             return ['success' => 99];
@@ -528,143 +520,138 @@ class RegistrosController extends Controller
 
     // **** GENERAR PDF TEMPORAL ****
 
-    public function generarPdfTemporal(){
 
-        $infoSalida = SalidaTemporal::where('id', 1)->first();
+    public function generarPdfTemporal(Request $request)
+    {
+        // ── Datos básicos ──────────────────────────────────────────────
+        $fecha       = $request->fecha;
+        $idEmpleado  = $request->empleado;
+        $descripcion = $request->descripcion;
+        $lineaMaterial = $request->lineaMaterial;
 
-        $infoEmpleado = Empleado::where('id', $infoSalida->id_empleado)->first();
-        $infoUnidad = UnidadEmpleado::where('id', $infoEmpleado->id_unidad_empleado)->first();
+        $datos       = json_decode($request->contenedorArray, true);
 
+        $infoEmpleado = Empleado::find($idEmpleado);
+        $infoUnidad   = UnidadEmpleado::find($infoEmpleado->id_unidad_empleado);
+        $infoCargo    = Cargo::find($infoEmpleado->id_cargo);
+        $cargo        = $infoCargo->nombre;
+        $fechaFormat  = date("d-m-Y", strtotime($fecha));
+
+        // ── Jefe inmediato ─────────────────────────────────────────────
         $jefeInmediato = "";
-
-        // JEFE INMEDIATO
-        if($unid = UnidadEmpleado::where('id_empleado', $infoEmpleado->id)->first()){ // es el mismo empleado
-            $infoEm = Empleado::where('id', $unid->id_empleado_inmediato)->first();
+        if ($unid = UnidadEmpleado::where('id_empleado', $infoEmpleado->id)->first()) {
+            $infoEm        = Empleado::find($unid->id_empleado_inmediato);
             $jefeInmediato = $infoEm->nombre;
-
-        }else{
-            // JEFE DE LA UNIDAD
-            if($infoJefe = Empleado::where('id_unidad_empleado', $infoEmpleado->id_unidad_empleado)
-                ->where('jefe', 1)->first()){
+        } else {
+            if ($infoJefe = Empleado::where('id_unidad_empleado', $infoEmpleado->id_unidad_empleado)
+                ->where('jefe', 1)->first()) {
                 $jefeInmediato = $infoJefe->nombre;
             }
         }
 
-
-        $infoCargo = Cargo::where('id', $infoEmpleado->id_cargo)->first();
-        $cargo = $infoCargo->nombre;
-
-        $fechaFormat = date("d-m-Y", strtotime($infoSalida->fecha));
-
-        $arraySalidasDetalle = SalidaDetalleTemporal::where('id_salida', 1)->get();
-
+        // ── Construir detalle en memoria (sin BD) ──────────────────────
+        $detalle      = [];
         $totalColumna = 0;
 
-        foreach ($arraySalidasDetalle as $item) {
+        foreach ($datos as $fila) {
+            $entradaDetalle = EntradasDetalle::find($fila['infoIdEntradaDeta']);
+            $material       = Materiales::find($entradaDetalle->id_material);
 
-            $infoEntradaDetalle = EntradasDetalle::where('id', $item->id_entrada_detalle)->first();
-            $infoMaterial = Materiales::where('id', $infoEntradaDetalle->id_material)->first();
-
-
-            // precio unitario
-            $item->precioFormat = "$" . number_format($infoEntradaDetalle->precio, 2, '.', ',');
-
-            $multiplicado = $item->cantidad_salida * $infoEntradaDetalle->precio;
+            $cantidad    = intval($fila['infoCantidad']);
+            $precio      = $entradaDetalle->precio;
+            $multiplicado = $cantidad * $precio;
             $totalColumna += $multiplicado;
-            $item->multiplicado = "$" . number_format($multiplicado, 2, '.', ',');
 
-            $item->nombreMaterial = $infoMaterial->nombre;
+            $reemplazo    = intval($fila['infoReemplazo'])    === 1 ? 'SI' : 'NO';
+            $recomendacion = intval($fila['infoRecomendacion']) === 1 ? 'SI' : 'NO';
 
-            $textoRecomendacion = "NO";
-            $textoReemplazo = "NO";
-            if($item->reemplazo == 1){
-                $textoReemplazo = "SI";
-            }
-            if($item->recomendacion == 1){
-                $textoRecomendacion = "SI";
-            }
-
-            $item->recomendacion = $textoRecomendacion;
-            $item->reemplazo = $textoReemplazo;
+            $detalle[] = [
+                'nombreMaterial' => $material->nombre,
+                'cantidad'       => $cantidad,
+                'precioFormat'   => '$' . number_format($precio, 2, '.', ','),
+                'multiplicado'   => '$' . number_format($multiplicado, 2, '.', ','),
+                'reemplazo'      => $reemplazo,
+                'recomendacion'  => $recomendacion,
+            ];
         }
 
-        $totalColumnaValor = "$" . number_format($totalColumna, 2, '.', ',');
+        $totalColumnaValor = '$' . number_format($totalColumna, 2, '.', ',');
 
-
-        // $mpdf = new \Mpdf\Mpdf(['format' => 'LETTER']);
-        $mpdf = new \Mpdf\Mpdf(['tempDir' => sys_get_temp_dir(), 'format' => 'LETTER']);
-
-        $mpdf->SetTitle('Reporte Temporal');
-
-        // mostrar errores
-        $mpdf->showImageErrors = false;
-
-        $logoalcaldia = 'images/gobiernologo.jpg';
-        $logosantaana = 'images/logo.png';
-
+        // ── HTML del PDF ───────────────────────────────────────────────
+        $logoalcaldia = 'images/logo.png';
 
         $tabla = "
-            <table style='width: 100%; border-collapse: collapse;'>
-                <tr>
-                    <!-- Logo izquierdo -->
-                    <td style='width: 15%; text-align: left;'>
-                        <img src='$logosantaana' alt='Santa Ana Norte' style='max-width: 100px; height: auto;'>
-                    </td>
-                    <!-- Texto centrado -->
-                    <td style='width: 60%; text-align: center;'>
-                        <h1 style='font-size: 15px; margin: 0; color: #003366; text-transform: uppercase;'>
+        <table style='width: 100%; border-collapse: collapse;'>
+            <tr>
+                <td style='width: 15%; text-align: left;'>
+                    <img src='$logoalcaldia' alt='Logo' style='max-width: 100px; height: auto;'>
+                </td>
+                <td style='width: 60%; text-align: center;'>
+                    <h1 style='font-size: 15px; margin: 0; color: #003366; text-transform: uppercase;'>
                         ALCALDÍA MUNICIPAL DE SANTA ANA NORTE</h1>
-                        <h1 style='font-size: 15px; margin: 0; color: #003366; text-transform: uppercase;'>UNIDAD DE SEGURIDAD Y SALUD OCUPACIONAL.</h1>
-                        <h2 style='font-size: 13px; margin: 0; color: #003366; text-transform: uppercase;'></h2>
-                    </td>
-                    <!-- Logo derecho -->
-                    <td style='width: 10%; text-align: right;'>
-                        <img src='$logoalcaldia' alt='Gobierno de El Salvador' style='max-width: 60px; height: auto;'>
-                    </td>
-                </tr>
-            </table>
-            <hr style='border: none; border-top: 2px solid #003366; margin: 0;'>
-            ";
+                    <h1 style='font-size: 15px; margin: 0; color: #003366; text-transform: uppercase;'>
+                        UNIDAD DE SEGURIDAD Y SALUD OCUPACIONAL.</h1>
+                </td>
+                <td style='width: 10%;'></td>
+            </tr>
+        </table>
+        <hr style='border: none; border-top: 2px solid #003366; margin: 0;'>
+
+        <div style='text-align: center; margin-top: 25px;'>
+            <h1 style='font-size: 12px; margin: 0; color: #000;'>
+                Ficha de entrega de Equipo de Protección Personal (E.P.P.)</h1>
+        </div>
+        ";
+
+
+
+
+        // Verificar si algún detalle de la salida tiene material_linea en historialSalidas
+        // Verificar si tiene material_linea (viene del request)
+        $tieneNumeroEquipo = !empty(trim($lineaMaterial));
+        $numeroEquipo = trim($lineaMaterial);
+
+        if ($tieneNumeroEquipo) {
+            $tabla .= "
+    <div style='text-align: right; margin-top: 6px;'>
+        <p style='font-size: 12px; margin: 0; color: #000;'><strong>Número de equipo:</strong> {$numeroEquipo}</p>
+    </div>";
+        }
+
+
+
+
+
 
         $tabla .= "
+        <div style='text-align: left; margin-top: 10px;'>
+            <p style='font-size: 10px; margin: 0;'>Fecha: <strong>$fechaFormat</strong></p>
+        </div>
+        <div style='text-align: left; margin-top: 10px;'>
+            <p style='font-size: 10px; margin: 0;'>Área: <strong>{$infoUnidad->nombre}</strong>; Cargo: <strong>$cargo</strong></p>
+        </div>
+        <div style='text-align: left; margin-top: 10px;'>
+            <p style='font-size: 10px; margin: 0;'>Se entrega al colaborador(a): <strong>{$infoEmpleado->nombre}</strong></p>
+        </div>
+        <div style='text-align: left; margin-top: 10px;'>
+            <p style='font-size: 10px; margin: 0;'>Jefe inmediato: <strong>$jefeInmediato</strong></p>
+        </div>
+        <div style='text-align: left; margin-top: 10px;'>
+            <p style='font-size: 10px; margin: 0;'>Por medio de la presente hace constar el detalle siguiente:</p>
+        </div>
+    ";
 
-            <div style='text-align: center; margin-top: 25px;'>
-                <h1 style='font-size: 12px; margin: 0; color: #000;'>Ficha de entrega de Equipo de Protección Personal (E.P.P.)</h1>
-            </div>
-
-             <div style='text-align: left; margin-top: 10px;'>
-                <p style='font-size: 10px; margin: 0; color: #000;'>Fecha: <strong>$fechaFormat</strong>.</p>
-            </div>
-
-            <div style='text-align: left; margin-top: 10px;'>
-                <p style='font-size: 10px; margin: 0; color: #000;'>Área: <strong>$infoUnidad->nombre</strong>; Cargo: <strong>$cargo</strong></p>
-            </div>
-             <div style='text-align: left; margin-top: 10px;'>
-                <p style='font-size: 10px; margin: 0; color: #000;'>Se entrega al colaborador(a); <strong>$infoEmpleado->nombre</strong></p>
-            </div>
-
-
-            <div style='text-align: left; margin-top: 10px;'>
-                <p style='font-size: 10px; margin: 0; color: #000;'>Jefe inmediato: <strong>$jefeInmediato</strong></p>
-            </div>
-
-
-             <div style='text-align: left; margin-top: 10px;'>
-                <p style='font-size: 10px; margin: 0; color: #000;'>Por medio de la presente hace constar el detalle siguiente:</p>
-            </div>
-      ";
-
-
-        $tabla  .= "<table width='100%' id='tablaFor' style='margin-top:15px; border-collapse:collapse'>";
+        // ── Tabla de detalle ───────────────────────────────────────────
         $tabla .= "
+        <table width='100%' style='margin-top:15px; border-collapse:collapse'>
             <thead>
                 <tr>
-                    <th style='text-align:center; font-size:8px; width:10%;  font-weight:bold; border:1px solid #000' rowspan='2'>CANTIDAD</th>
-                    <th style='text-align:center; font-size:8px; width:25%;  font-weight:bold; border:1px solid #000' rowspan='2'>DESCRIPCION DE E.P.P.</th>
-                    <th style='text-align:center; font-size:8px; width:11%;  font-weight:bold; border:1px solid #000' colspan='2'>REEMPLAZO</th>
-                    <th style='text-align:center; font-size:8px; width:11%;  font-weight:bold; border:1px solid #000' rowspan='2'>VALOR</th>
-                    <th style='text-align:center; font-size:8px; width:11%;  font-weight:bold; border:1px solid #000' rowspan='2'>VALOR TOTAL</th>
-                    <th style='text-align:center; font-size:8px; width:18%;  font-weight:bold; border:1px solid #000' rowspan='2'>
+                    <th style='text-align:center; font-size:8px; width:10%; font-weight:bold; border:1px solid #000' rowspan='2'>CANTIDAD</th>
+                    <th style='text-align:center; font-size:8px; width:25%; font-weight:bold; border:1px solid #000' rowspan='2'>DESCRIPCION DE E.P.P.</th>
+                    <th style='text-align:center; font-size:8px; width:11%; font-weight:bold; border:1px solid #000' colspan='2'>REEMPLAZO</th>
+                    <th style='text-align:center; font-size:8px; width:11%; font-weight:bold; border:1px solid #000' rowspan='2'>VALOR</th>
+                    <th style='text-align:center; font-size:8px; width:11%; font-weight:bold; border:1px solid #000' rowspan='2'>VALOR TOTAL</th>
+                    <th style='text-align:center; font-size:8px; width:18%; font-weight:bold; border:1px solid #000' rowspan='2'>
                         RECOMENDACIONES SOBRE EL USO Y MANTENIMIENTO DEL E.P.P. OTORGADO
                     </th>
                 </tr>
@@ -673,95 +660,91 @@ class RegistrosController extends Controller
                     <th style='text-align:center; font-size:8px; font-weight:bold; border:1px solid #000; width:5.5%'>NO</th>
                 </tr>
             </thead>
-            <tbody>";
-        foreach ($arraySalidasDetalle as $fila) {
-            $esSi = (is_numeric($fila->reemplazo) ? (intval($fila->reemplazo) === 1) : (strtoupper(trim($fila->reemplazo)) === 'SI'));
-            $si = $esSi ? 'X' : '';
-            $no = $esSi ? '' : 'X';
+            <tbody>
+    ";
+
+        foreach ($detalle as $fila) {
+            $si = $fila['reemplazo'] === 'SI' ? 'X' : '';
+            $no = $fila['reemplazo'] === 'SI' ? '' : 'X';
 
             $tabla .= "
-    <tr>
-        <td style='font-size:10px; border:1px solid #000; text-align:center'>{$fila->cantidad_salida}</td>
-        <td style='font-size:10px; border:1px solid #000'>{$fila->nombreMaterial}</td>
-        <td style='font-size:10px; border:1px solid #000; text-align:center'>{$si}</td>
-        <td style='font-size:10px; border:1px solid #000; text-align:center'>{$no}</td>
-        <td style='font-size:10px; border:1px solid #000; text-align:right'>{$fila->precioFormat}</td>
-        <td style='font-size:10px; border:1px solid #000; text-align:right'>{$fila->multiplicado}</td>
-        <td style='font-size:10px; border:1px solid #000'>{$fila->recomendacion}</td>
-    </tr>";
+            <tr>
+                <td style='font-size:10px; border:1px solid #000; text-align:center'>{$fila['cantidad']}</td>
+                <td style='font-size:10px; border:1px solid #000'>{$fila['nombreMaterial']}</td>
+                <td style='font-size:10px; border:1px solid #000; text-align:center'>$si</td>
+                <td style='font-size:10px; border:1px solid #000; text-align:center'>$no</td>
+                <td style='font-size:10px; border:1px solid #000; text-align:center'>{$fila['precioFormat']}</td>
+                <td style='font-size:10px; border:1px solid #000; text-align:center'>{$fila['multiplicado']}</td>
+                <td style='font-size:10px; border:1px solid #000; text-align:center'>{$fila['recomendacion']}</td>
+            </tr>
+        ";
         }
 
         $tabla .= "
             <tr>
                 <td style='font-size:11px; border:1px solid #000'></td>
                 <td style='font-size:11px; border:1px solid #000'></td>
-                <td style='font-size:11px; border:1px solid #000'></td>  <!-- REEMPLAZO: SI -->
-                <td style='font-size:11px; border:1px solid #000'></td>  <!-- REEMPLAZO: NO -->
-                <td style='font-size:11px; border:1px solid #000; font-weight:bold; text-align:right'></td>
-                <td style='font-size:11px; border:1px solid #000; font-weight:bold; text-align:right'>{$totalColumnaValor}</td>
+                <td style='font-size:11px; border:1px solid #000'></td>
+                <td style='font-size:11px; border:1px solid #000'></td>
+                <td style='font-size:11px; border:1px solid #000'></td>
+                <td style='font-size:11px; border:1px solid #000; font-weight:bold; text-align:center'>$totalColumnaValor</td>
                 <td style='font-size:11px; border:1px solid #000'></td>
             </tr>
+        </tbody>
+        </table>
+    ";
 
-
-
-
-</tbody>
-</table>";
-
-
-        $texto1 = "Esperando que dicho Equipo de protección personal cumpla con lo requerido, tendiendo un total de inversión de; " . "<strong>" .$totalColumnaValor . "</strong>" . " sea utilizado de la mejor manera. Yo me comprometo a utilizar el E.P.P. dentro de las horas laborales que me correspondes, correré con el total de la inversión para su reposición echa a mi persona cuando se me compruebe la venta de este equipo, el mal uso, la perdida, el deterioro por negligencia. El cual firmo la presente para constancia de recibido.";
-
+        // ── Texto compromiso ───────────────────────────────────────────
+        $texto1 = "Esperando que dicho Equipo de protección personal cumpla con lo requerido, tendiendo un total de inversión de; "
+            . "<strong>$totalColumnaValor</strong>"
+            . " sea utilizado de la mejor manera. Yo me comprometo a utilizar el E.P.P. dentro de las horas laborales que me correspondes, correré con el total de la inversión para su reposición echa a mi persona cuando se me compruebe la venta de este equipo, el mal uso, la perdida, el deterioro por negligencia. El cual firmo la presente para constancia de recibido.";
 
         $tabla .= "
-            <div style='text-align: justify; margin-top: 35px; font-family: tahoma, arial, sans-serif;'>
-                <p style='font-size: 12px; margin: 0; color: #000;'>$texto1</p>
-            </div>
-      ";
+        <div style='text-align: justify; margin-top: 35px; font-family: tahoma, arial, sans-serif;'>
+            <p style='font-size: 12px; margin: 0; color: #000;'>$texto1</p>
+        </div>
+    ";
 
-
-
-
+        // ── Firmas ─────────────────────────────────────────────────────
         $tabla .= "
-            <table width='100%' style='margin-top: 30px; border-collapse: collapse; font-family: tahoma, arial, sans-serif; font-size: 12px;'>
-                <tr>
-                    <!-- Columna izquierda -->
-                    <td style='width: 40%; text-align: center; vertical-align: top; padding: 10px;'>
-                        <p style='margin: 0; font-weight: bold;'>Firma de Entregado.</p>
-                        <p style='margin: 0;'>José Rigoberto Pinto Córdova</p>
-                        <p style='margin: 0;'>Jefe de la unidad de S.S.O.</p>
-                    </td>
+        <table width='100%' style='margin-top: 30px; border-collapse: collapse; font-family: tahoma, arial, sans-serif; font-size: 12px;'>
+            <tr>
+                <td style='width: 40%; text-align: center; vertical-align: top; padding: 10px;'>
+                    <p style='margin: 0; font-weight: bold;'>Firma de Entregado.</p>
+                    <p style='margin: 0;'>José Rigoberto Pinto Córdova</p>
+                    <p style='margin: 0;'>Jefe de la unidad de S.S.O.</p>
+                </td>
+                <td style='width: 60%; text-align: left; vertical-align: top; padding: 10px; padding-left: 120px; padding-right: 40px;'>
+                    <p style='margin: 0; font-weight: bold;'>FIRMA DE RECIBIDO</p>
+                    <p style='margin: 0;'>
+                        <span style='font-weight: bold;'>DUI #</span> {$infoEmpleado->dui}
+                    </p>
+                </td>
+            </tr>
+        </table>
+    ";
 
-                    <!-- Columna derecha -->
-<td style='width: 60%; text-align: left; vertical-align: top; padding: 10px; padding-left: 120px; padding-right: 40px;'>
-    <p style='margin: 0; font-weight: bold;'>FIRMA DE RECIBIDO</p>
-    <p style='margin: 0;'>
-        <span style='font-weight: bold;'>DUI #</span> $infoEmpleado->dui
-    </p>
-</td>
-
-                </tr>
-            </table>
-        ";
-
-
-
+        // ── Texto legal ────────────────────────────────────────────────
         $texto2 = "<span style='text-decoration: underline;'>CAPITULO ll INFRACCIONES DE PARTE DE LOS TRABAJADORES Art. 85.</span> – serán objeto de sanción conforme a la legislación vigente, los trabajadores que violen las siguientes medidas de seguridad e higiene: 1) Incumplir las ordenes e instrucciones dadas para garantizar su propia seguridad y salud, las de sus compañeros de trabajo y de terceras personas que se encuentren en el entorno. <span style='background-color: yellow;'>2) No utilizar correctamente los medios y equipos de protección personal facilitados por el empleador, de acuerdo con las instrucciones y regulaciones recibidas por este. </span> 3) No haber información inmediatamente a su jefe inmediato de cualquier situación que a su juicio pueda implicar un riesgo grave e inminente para la seguridad y salud ocupacional, así como de los defectos que hubiere comprobado en los sistemas de protección. Los trabajadores que violen estas disposiciones serán objeto de sanción, de conformidad a los estipulado en el Reglamento Interno de Trabajo de la Empresa, y si la contravención es manifestada y reiterada podrá el empleador dar por terminado su contrato de trabajo, de conformidad al artículo 50 número 17 del código de trabajo.";
 
         $tabla .= "
-            <div style='text-align: justify; margin-top: 35px; font-family: tahoma, arial, sans-serif;'>
-                <p style='font-size: 11px; margin: 0; color: #000;'>$texto2</p>
-            </div>
-      ";
+        <div style='text-align: justify; margin-top: 35px; font-family: tahoma, arial, sans-serif;'>
+            <p style='font-size: 11px; margin: 0; color: #000;'>$texto2</p>
+        </div>
+    ";
 
+        // ── Generar PDF ────────────────────────────────────────────────
+        $mpdf = new \Mpdf\Mpdf(['tempDir' => sys_get_temp_dir(), 'format' => 'LETTER']);
+        $mpdf->SetTitle('Reporte Temporal');
+        $mpdf->showImageErrors = false;
 
         $stylesheet = file_get_contents('css/cssbodega.css');
-        $mpdf->WriteHTML($stylesheet,1);
-
-        $mpdf->setFooter("Página: " . '{PAGENO}' . "/" . '{nb}');
-        $mpdf->WriteHTML($tabla,2);
-
+        $mpdf->WriteHTML($stylesheet, 1);
+        $mpdf->setFooter("Página: {PAGENO}/{nb}");
+        $mpdf->WriteHTML($tabla, 2);
         $mpdf->Output();
     }
+
 
 
     public function generarPdfSalida($idsalida){
@@ -835,8 +818,7 @@ class RegistrosController extends Controller
         // mostrar errores
         $mpdf->showImageErrors = false;
 
-        $logoalcaldia = 'images/gobiernologo.jpg';
-        $logosantaana = 'images/logo.png';
+        $logoalcaldia = 'images/logo.png';
 
         $tabla = "
            <table width='100%' style='border-collapse:collapse; font-family: Arial, sans-serif;'>
@@ -877,6 +859,32 @@ class RegistrosController extends Controller
         </table>
         <br>";
 
+
+
+
+
+
+        // Verificar si algún detalle de la salida tiene material_linea en historialSalidas
+        $tieneNumeroEquipo = false;
+        $numeroEquipo = '';
+
+        $historial = Salidas::where('id', $idsalida)
+            ->whereNotNull('material_linea')
+            ->where('material_linea', '!=', '')
+            ->first();
+
+        if ($historial) {
+            $tieneNumeroEquipo = true;
+            $numeroEquipo = $historial->material_linea;
+        }
+
+
+        if ($tieneNumeroEquipo) {
+            $tabla .= "
+            <div style='text-align: right; margin-top: 6px;'>
+                <p style='font-size: 12px; margin: 0; color: #000;'><strong>Número de equipo:</strong>{$numeroEquipo}</p>
+            </div>";
+        }
 
 
 
@@ -941,9 +949,9 @@ class RegistrosController extends Controller
         <td style='font-size:10px; border:1px solid #000'>{$fila->nombreMaterial}</td>
         <td style='font-size:10px; border:1px solid #000; text-align:center'>{$si}</td>
         <td style='font-size:10px; border:1px solid #000; text-align:center'>{$no}</td>
-        <td style='font-size:10px; border:1px solid #000; text-align:right'>{$fila->precioFormat}</td>
-        <td style='font-size:10px; border:1px solid #000; text-align:right'>{$fila->multiplicado}</td>
-        <td style='font-size:10px; border:1px solid #000'>{$fila->recomendacion}</td>
+        <td style='font-size:10px; border:1px solid #000; text-align:center'>{$fila->precioFormat}</td>
+        <td style='font-size:10px; border:1px solid #000; text-align:center'>{$fila->multiplicado}</td>
+        <td style='font-size:10px; border:1px solid #000; text-align:center'>{$fila->recomendacion}</td>
     </tr>";
         }
 
@@ -953,8 +961,8 @@ class RegistrosController extends Controller
                 <td style='font-size:11px; border:1px solid #000'></td>
                 <td style='font-size:11px; border:1px solid #000'></td>  <!-- REEMPLAZO: SI -->
                 <td style='font-size:11px; border:1px solid #000'></td>  <!-- REEMPLAZO: NO -->
-                <td style='font-size:11px; border:1px solid #000; font-weight:bold; text-align:right'></td>
-                <td style='font-size:11px; border:1px solid #000; font-weight:bold; text-align:right'>{$totalColumnaValor}</td>
+                <td style='font-size:11px; border:1px solid #000; font-weight:bold; text-align:center'></td>
+                <td style='font-size:11px; border:1px solid #000; font-weight:bold; text-align:center'>{$totalColumnaValor}</td>
                 <td style='font-size:11px; border:1px solid #000'></td>
             </tr>
 

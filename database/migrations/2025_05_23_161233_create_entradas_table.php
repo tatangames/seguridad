@@ -20,6 +20,8 @@ return new class extends Migration
 
             $table->string('lote', 100)->nullable();
 
+            $table->string('material_linea', 100)->nullable();
+
             $table->foreign('id_usuario')->references('id')->on('usuarios');
             $table->foreign('id_proveedor')->references('id')->on('proveedor');
         });

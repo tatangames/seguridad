@@ -65,7 +65,6 @@ Route::post('/admin/unidadmedida/nuevo', [ConfiguracionController::class,'nuevoU
 Route::post('/admin/unidadmedida/informacion', [ConfiguracionController::class,'infoUnidadMedida']);
 Route::post('/admin/unidadmedida/editar', [ConfiguracionController::class,'actualizarUnidadMedida']);
 
-
 // MARCA
 Route::get('/admin/marca/index', [ConfiguracionController::class,'vistaMarca'])->name('admin.marca.index');
 Route::get('/admin/marca/tabla', [ConfiguracionController::class,'tablaMarca']);
@@ -79,7 +78,6 @@ Route::get('/admin/normativa/tabla', [ConfiguracionController::class,'tablaNorma
 Route::post('/admin/normativa/nuevo', [ConfiguracionController::class,'nuevoNormativa']);
 Route::post('/admin/normativa/informacion', [ConfiguracionController::class,'infoNormativa']);
 Route::post('/admin/normativa/editar', [ConfiguracionController::class,'actualizarNormativa']);
-
 
 // COLOR
 Route::get('/admin/color/index', [ConfiguracionController::class,'vistaColor'])->name('admin.color.index');
@@ -177,7 +175,8 @@ Route::post('/admin/salida/guardar',  [RegistrosController::class,'guardarSalida
 
 // TEMPORAL PARA EL REPORTE PDF
 Route::post('/admin/salida/guardar-temporal',  [RegistrosController::class,'guardarSalidaMaterialesTemporal']);
-Route::get('/admin/salidas/pdf-temporal', [RegistrosController::class,'generarPdfTemporal']);
+
+Route::post('/admin/salidas/pdf-temporal', [RegistrosController::class, 'generarPdfTemporal']);
 Route::get('/admin/salidas/pdfcompleto/{idsalida}', [RegistrosController::class,'generarPdfSalida']);
 
 

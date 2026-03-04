@@ -114,20 +114,11 @@ class HistorialController extends Controller
             'fecha' => $request->fecha,
             'descripcion' => $request->descripcion,
             'id_empleado' => $request->empleado,
+            'material_linea' => $request->linea,
         ]);
 
         return ['success' => 1];
     }
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -608,37 +599,6 @@ class HistorialController extends Controller
 
     public function tablaReemplazoMes()
     {
-        $arrayListado = SalidasDetalle::where('completado', 0)
-            ->get()
-            ->map(function ($item) {
-
-                $infoSalida = Salidas::where('id', $item->id_salida)->first();
-                $item->fechaSalida = date("d-m-Y", strtotime($infoSalida->fecha));
-
-                // === Calcular fecha de reemplazo ===
-                $fechaSalida = Carbon::parse($infoSalida->fecha);
-                $mesesReemplazo = (int) $item->mes_reemplazo;
-
-                // Sumar los meses al campo fecha
-                $fechaReemplazo = $fechaSalida->copy()->addMonths($mesesReemplazo);
-
-                // Obtener fecha actual de El Salvador
-                $fechaActual = Carbon::now('America/El_Salvador');
-
-                // Comparar si ya llegó o pasó la fecha de reemplazo
-                if ($fechaActual->greaterThanOrEqualTo($fechaReemplazo)) {
-                    $item->venceHoyOVencido = 1;
-                } else {
-                    $item->venceHoyOVencido = 0;
-                }
-
-                // (opcional) agregar formato legible de fecha de reemplazo
-                $item->fechaReemplazo = $fechaReemplazo->format('d-m-Y');
-
-                return $item;
-            });
-
-
 
 
         return view('backend.admin.reemplazo.tablamesreemplazo');
@@ -655,7 +615,6 @@ class HistorialController extends Controller
 
     public function reportePdfExistencias()
     {
-
         $mpdf = new \Mpdf\Mpdf([
             'tempDir' => sys_get_temp_dir(),
             'format' => 'LETTER',
@@ -663,46 +622,59 @@ class HistorialController extends Controller
         ]);
 
         $mpdf->SetTitle('Existencias');
-
-        // mostrar errores
         $mpdf->showImageErrors = false;
 
-        $logoalcaldia = 'images/gobiernologo.jpg';
-        $logosantaana = 'images/logo.png';
+        $logoalcaldia = public_path('images/logo.png');
 
-        $fechaFormat = date("d-m-Y", strtotime(Carbon::now('America/El_Salvador')));
+        $fechaFormat = \Carbon\Carbon::now('America/El_Salvador')->format('d-m-Y');
 
-
-
+        // 🔥 CONSULTA CORREGIDA
         $existencias = DB::table('materiales as m')
-            ->leftJoin('entradas_detalle as ed', 'ed.id_material', '=', 'm.id')
             ->leftJoin('unidad_medida as um', 'um.id', '=', 'm.id_medida')
             ->leftJoin('marca as ma', 'ma.id', '=', 'm.id_marca')
             ->leftJoin('color as c', 'c.id', '=', 'm.id_color')
             ->leftJoin('talla as t', 't.id', '=', 'm.id_talla')
+            ->leftJoinSub(
+                DB::table('entradas_detalle')
+                    ->select(
+                        'id_material',
+                        DB::raw('SUM(cantidad_inicial) as total_ingresado'),
+                        DB::raw('SUM(cantidad_inicial * precio) as valor_ingresado')
+                    )
+                    ->groupBy('id_material'),
+                'ed',
+                'ed.id_material', '=', 'm.id'
+            )
+            ->leftJoinSub(
+                DB::table('salidas_detalle as sd')
+                    ->join('entradas_detalle as ed2', 'ed2.id', '=', 'sd.id_entrada_detalle')
+                    ->select(
+                        'ed2.id_material',
+                        DB::raw('SUM(sd.cantidad_salida) as total_salido'),
+                        DB::raw('SUM(sd.cantidad_salida * ed2.precio) as valor_salido')
+                    )
+                    ->groupBy('ed2.id_material'),
+                'sd',
+                'sd.id_material', '=', 'm.id'
+            )
             ->select(
+                'm.id',
                 'm.codigo',
                 'm.nombre as material',
                 'um.nombre as unidad',
                 'ma.nombre as marca',
                 'c.nombre as color',
                 't.nombre as talla',
-                DB::raw('COALESCE(SUM(ed.cantidad_inicial - ed.cantidad_entregada),0) as existencia'),
-                DB::raw('SUM((ed.cantidad_inicial - ed.cantidad_entregada) * ed.precio) as valor_total')
+                DB::raw('COALESCE(ed.total_ingresado, 0) as total_ingresado'),
+                DB::raw('COALESCE(sd.total_salido, 0) as total_salido'),
+                DB::raw('(COALESCE(ed.total_ingresado, 0) - COALESCE(sd.total_salido, 0)) as existencia'),
+                DB::raw('(COALESCE(ed.valor_ingresado, 0) - COALESCE(sd.valor_salido, 0)) as valor_total')
             )
-
-            ->groupBy(
-                'm.id', 'm.codigo', 'm.nombre',
-                'um.nombre', 'ma.nombre', 'c.nombre', 't.nombre'
-            )
+            ->havingRaw('existencia > 0')
             ->orderBy('m.nombre')
-            ->having('existencia', '>', 0)
             ->get();
 
-
-
-
-
+        // 🔥 HTML PDF
         $tabla = "
            <table width='100%' style='border-collapse:collapse; font-family: Arial, sans-serif;'>
             <tr>
@@ -719,8 +691,7 @@ class HistorialController extends Controller
                     </table>
                 </td>
                 <td style='width:50%; border-top:0.8px solid #000; border-bottom:0.8px solid #000; padding:6px 8px; text-align:center; font-size:15px; font-weight:bold;'>
-                    FICHA DE ENTREGA DE EQUIPO DE<br>
-                    PROTECCION PERSONAL (E.P.P)
+                    EXISTENCIAS (E.P.P)
                 </td>
                 <td style='width:25%; border:0.8px solid #000; padding:0; vertical-align:top;'>
                     <table width='100%' style='font-size:10px;'>
@@ -742,34 +713,27 @@ class HistorialController extends Controller
         </table>
         <br>";
 
-
         $tabla .= "
-        <p>Fecha Generado: $fechaFormat</p>
-        ";
-
-
-        $tabla .= "
-<table width='100%' border='1' cellspacing='0' cellpadding='5'>
-    <thead>
-        <tr style='background-color:#f0f0f0; font-size:12px'>
-            <th>#</th>
-            <th>Código</th>
-            <th>Material</th>
-            <th>Marca</th>
-            <th>Color</th>
-            <th>Talla</th>
-            <th>Unidad</th>
-            <th>Existencia</th>
-            <th>Valor ($)</th>
-        </tr>
-    </thead>
-    <tbody>
-";
+    <table width='100%' border='1' cellspacing='0' cellpadding='5'>
+        <thead>
+            <tr style='background-color:#f0f0f0; font-size:12px'>
+                <th>#</th>
+                <th>Código</th>
+                <th>Material</th>
+                <th>Marca</th>
+                <th>Color</th>
+                <th>Talla</th>
+                <th>Unidad</th>
+                <th>Existencia</th>
+                <th>Valor ($)</th>
+            </tr>
+        </thead>
+        <tbody>
+    ";
 
         $cont = 1;
         $totalExistencia = 0;
         $totalValor = 0;
-
 
         foreach ($existencias as $item) {
 
@@ -789,35 +753,32 @@ class HistorialController extends Controller
             <td>{$item->talla}</td>
             <td>{$item->unidad}</td>
             <td align='right'>{$existencia}</td>
-            <td align='right'>$ ".number_format($valor, 2)."</td>
+            <td align='right'>$ " . number_format($valor, 2) . "</td>
         </tr>
-    ";
+        ";
 
             $cont++;
         }
 
         $tabla .= "
-    </tbody>
-    <tfoot>
-        <tr style='font-weight:bold; background-color:#e6e6e6'>
-            <td colspan='8' align='right'>TOTAL GENERAL</td>
+        </tbody>
+        <tfoot>
+            <tr style='font-weight:bold; background-color:#e6e6e6'>
+                <td colspan='7' align='right'>TOTAL GENERAL</td>
+                <td align='right'>{$totalExistencia}</td>
+                <td align='right'>$ " . number_format($totalValor, 2) . "</td>
+            </tr>
+        </tfoot>
+    </table>
+    ";
 
-            <td align='right'>$ ".number_format($totalValor, 2)."</td>
-        </tr>
-    </tfoot>
-</table>
-";
-
-
-
-        $stylesheet = file_get_contents('css/cssbodega.css');
+        $stylesheet = file_get_contents(public_path('css/cssbodega.css'));
         $mpdf->WriteHTML($stylesheet,1);
 
-        $mpdf->setFooter("Página: " . '{PAGENO}' . "/" . '{nb}');
+        $mpdf->setFooter("Página: {PAGENO}/{nb}");
         $mpdf->WriteHTML($tabla,2);
 
         $mpdf->Output();
-
     }
 
 

@@ -44,7 +44,7 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title">Editar Empleado</h4>
+                    <h4 class="modal-title">Editar</h4>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -88,6 +88,13 @@
                                         <br>
                                         <select width="100%" class="form-control" id="select-empleados-editar">
                                         </select>
+                                    </div>
+
+                                    <br>
+
+                                    <div class="form-group">
+                                        <label>MATERIAL LINEA</label>
+                                        <input type="text" maxlength="100" class="form-control" id="linea-editar" autocomplete="off">
                                     </div>
 
                                 </div>
@@ -185,6 +192,7 @@
                         $('#id-editar').val(id);
                         $('#fecha-editar').val(response.data.info.fecha);
                         $('#descripcion-editar').val(response.data.info.descripcion);
+                        $('#linea-editar').val(response.data.info.material_linea);
 
                         document.getElementById("select-distrito-editar").options.length = 0;
                         document.getElementById("select-unidad-editar").options.length = 0;
@@ -299,6 +307,7 @@
             var fecha = document.getElementById('fecha-editar').value;
             var descripcion = document.getElementById('descripcion-editar').value;
             var empleado = document.getElementById('select-empleados-editar').value;
+            var materialLinea = document.getElementById('linea-editar').value;
 
             if(fecha === ''){
                 toastr.error('Fecha es requerido');
@@ -316,6 +325,9 @@
             formData.append('fecha', fecha);
             formData.append('descripcion', descripcion);
             formData.append('empleado', empleado);
+            formData.append('linea', materialLinea);
+
+
 
             axios.post(url+'/historial/salidas/editar', formData, {
             })

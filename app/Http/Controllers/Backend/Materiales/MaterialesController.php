@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Backend\Materiales;
 
 use App\Http\Controllers\Controller;
 use App\Models\Color;
-use App\Models\Encargado;
 use App\Models\Entradas;
 use App\Models\EntradasDetalle;
 use App\Models\Marca;
@@ -14,6 +13,7 @@ use App\Models\Retorno;
 use App\Models\Talla;
 use App\Models\UnidadMedida;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
@@ -38,54 +38,50 @@ class MaterialesController extends Controller
             'arrayMarcas', 'arrayNormativa', 'arrayColor', 'arrayTalla'));
     }
 
-    public function tablaMateriales(){
+    public function tablaMateriales()
+    {
+        $lista = DB::table('materiales as m')
+            ->leftJoin('unidad_medida as um', 'um.id', '=', 'm.id_medida')
+            ->leftJoin('marca as ma', 'ma.id', '=', 'm.id_marca')
+            ->leftJoin('normativa as no', 'no.id', '=', 'm.id_normativa')
+            ->leftJoin('color as co', 'co.id', '=', 'm.id_color')
+            ->leftJoin('talla as ta', 'ta.id', '=', 'm.id_talla')
 
-        $lista = Materiales::orderBy('nombre', 'ASC')->get();
+            ->select(
+                'm.*',
+                'um.nombre as unidadMedida',
+                'ma.nombre as marca',
+                'no.nombre as normativa',
+                'co.nombre as color',
+                'ta.nombre as talla',
 
+                // 🔹 Total ingresado (subconsulta)
+                DB::raw('(SELECT COALESCE(SUM(cantidad_inicial),0)
+                      FROM entradas_detalle
+                      WHERE id_material = m.id) as total_ingresado'),
 
-        $conteo = 0;
+                // 🔹 Total salido (subconsulta)
+                DB::raw('(SELECT COALESCE(SUM(sd.cantidad_salida),0)
+                      FROM salidas_detalle sd
+                      INNER JOIN entradas_detalle ed
+                          ON ed.id = sd.id_entrada_detalle
+                      WHERE ed.id_material = m.id) as total_salido'),
 
-        foreach ($lista as $fila) {
-            $infoUnidad = UnidadMedida::where('id', $fila->id_medida)->first();
-            $fila->unidadMedida = $infoUnidad->nombre;
+                // 🔹 Stock real
+                DB::raw('(
+                (SELECT COALESCE(SUM(cantidad_inicial),0)
+                 FROM entradas_detalle
+                 WHERE id_material = m.id)
+                -
+                (SELECT COALESCE(SUM(sd.cantidad_salida),0)
+                 FROM salidas_detalle sd
+                 INNER JOIN entradas_detalle ed
+                     ON ed.id = sd.id_entrada_detalle
+                 WHERE ed.id_material = m.id)
+            ) as cantidadGlobal')
+            )
 
-            $infoMarca = Marca::where('id', $fila->id_marca)->first();
-            $fila->marca = $infoMarca->nombre;
-
-            $infoNormativa = Normativa::where('id', $fila->id_normativa)->first();
-            $fila->normativa = $infoNormativa->nombre;
-
-
-            $talla = "";
-            $color = "";
-            if($infoColor = Color::where('id', $fila->id_color)->first()){
-                $color = $infoColor->nombre;
-            }
-
-            if($infoTalla = Talla::where('id', $fila->id_talla)->first()){
-                $talla = $infoTalla->nombre;
-            }
-
-            $fila->color = $color;
-            $fila->talla = $talla;
-
-
-            if($fila->fecha_cambio != null){
-                $fila->fechaFormat = date("d-m-Y", strtotime($fila->fecha_cambio));
-            }
-
-            // CANTIDAD GLOBAL QUE TENGO DE ESE PRODUCTO
-            $totalCantidadMate = EntradasDetalle::where('id_material', $fila->id)->sum('cantidad');
-            $totalCantidadEntregada = EntradasDetalle::where('id_material', $fila->id)->sum('cantidad_entregada');
-
-            $fila->cantidadGlobal = ($totalCantidadMate - $totalCantidadEntregada);
-
-            if($fila->cantidadGlobal > 0){
-                $conteo++;
-            }
-        }
-
-        Log::info("CONTEO: " . $conteo);
+            ->get();
 
         return view('backend.admin.materiales.tablamateriales', compact('lista'));
     }
@@ -172,7 +168,7 @@ class MaterialesController extends Controller
             'nombre' => $request->nombre,
             'codigo' => $request->codigo,
             'otros' => $request->otros,
-            'meses_cambio' => $request->fecha
+            'meses_cambio' => $request->fecha,
         ]);
 
         return ['success' => 1];
@@ -181,47 +177,97 @@ class MaterialesController extends Controller
 
 
 
-    public function buscadorMaterialCodigoCategoria(Request $request){
-
-        if($request->get('query')){
-            $query = $request->get('query');
-            $arrayMateriales = Materiales::where('nombre', 'LIKE', "%{$query}%")
-                ->orWhere('codigo', 'LIKE', "%{$query}%")
-                ->get();
-
-            $output = '<ul class="dropdown-menu" style="display:block; position:relative; overflow: auto; ">';
-            $tiene = true;
-            foreach($arrayMateriales as $row){
-
-
-                $nombreCompleto = "(" . $row->codigo . ") " . $row->nombre;
-
-                // si solo hay 1 fila, No mostrara el hr, salto de linea
-                if(count($arrayMateriales) == 1){
-                    if(!empty($row)){
-                        $tiene = false;
-                        $output .= '
-                 <li class="cursor-pointer" onclick="modificarValor(this)" id="'.$row->codigo.'"><a href="#" style="margin-left: 3px; color: black">'.$nombreCompleto .'</a></li>
-                ';
-                    }
-                }
-
-                else{
-                    if(!empty($row)){
-                        $tiene = false;
-                        $output .= '
-                 <li class="cursor-pointer" onclick="modificarValor(this)" id="'.$row->codigo.'"><a href="#" style="margin-left: 3px; color: black">'.$nombreCompleto .'</a></li>
-                   <hr>
-                ';
-                    }
-                }
-            }
-            $output .= '</ul>';
-            if($tiene){
-                $output = '';
-            }
-            echo $output;
+    public function buscadorMaterialCodigoCategoria(Request $request)
+    {
+        if (!$request->get('query')) {
+            return;
         }
+
+        $query = $request->get('query');
+
+        $materiales = DB::table('materiales as m')
+            ->leftJoin('entradas_detalle as ed', 'ed.id_material', '=', 'm.id')
+            ->leftJoin('salidas_detalle as sd', 'sd.id_entrada_detalle', '=', 'ed.id')
+
+            ->where(function($q) use ($query) {
+                $q->where('m.nombre', 'LIKE', "%{$query}%")
+                    ->orWhere('m.codigo', 'LIKE', "%{$query}%");
+            })
+
+            ->select(
+                'm.id',
+                'm.codigo',
+                'm.nombre',
+
+                // Total ingresado
+                DB::raw('COALESCE(SUM(ed.cantidad_inicial),0) as total_ingresado'),
+
+                // Total salido
+                DB::raw('COALESCE(SUM(sd.cantidad_salida),0) as total_salido'),
+
+                // Existencia real
+                DB::raw('(
+                COALESCE(SUM(ed.cantidad_inicial),0)
+                -
+                COALESCE(SUM(sd.cantidad_salida),0)
+            ) as existencia')
+            )
+
+            ->groupBy('m.id', 'm.codigo', 'm.nombre')
+
+            // Solo mostrar si hay stock
+            ->havingRaw('existencia > 0')
+
+            ->orderBy('m.nombre')
+
+            ->get();
+
+        if ($materiales->isEmpty()) {
+            return;
+        }
+
+        $output = '<ul class="dropdown-menu"
+                style="display:block; position:relative; overflow:auto; max-height:300px;">';
+
+        foreach ($materiales as $index => $row) {
+
+            $existencia = (int) $row->existencia;
+
+            $nombreCompleto = "({$row->codigo}) {$row->nombre}";
+
+            $badge = "
+            <span style='
+                background:#198754;
+                color:#fff;
+                border-radius:4px;
+                padding:2px 6px;
+                font-size:11px;
+                margin-left:10px;
+            '>
+                Disp: {$existencia}
+            </span>
+        ";
+
+            $output .= '
+            <li class="cursor-pointer"
+                onclick="modificarValor(this)"
+                id="' . $row->codigo . '"
+                style="padding:6px 10px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span>' . $nombreCompleto . '</span>
+                    ' . $badge . '
+                </div>
+            </li>
+        ';
+
+            if ($index !== $materiales->count() - 1) {
+                $output .= '<hr style="margin:2px 0;">';
+            }
+        }
+
+        $output .= '</ul>';
+
+        echo $output;
     }
 
 

@@ -15,6 +15,7 @@
                                 <th style="width: 10%">Unidad</th>
                                 <th style="width: 15%">Empleado</th>
                                 <th style="width: 20%">Descripción</th>
+                                <th style="width: 20%"># Equipo</th>
                                 <th style="width: 6%">Opciones</th>
                             </tr>
                             </thead>
@@ -27,7 +28,7 @@
                                     <td>{{ $dato->unidad }}</td>
                                     <td>{{ $dato->empleado }}</td>
                                     <td>{{ $dato->descripcion }}</td>
-
+                                    <td>{{ $dato->material_linea }}</td>
                                     <td>
                                         <button type="button" class="btn btn-success btn-xs"
                                                 onclick="informacion({{ $dato->id }})">
