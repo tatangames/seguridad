@@ -232,9 +232,24 @@ Route::post('/admin/historial/entrada/borrarlote', [HistorialController::class, 
 Route::post('/admin/historial/entradadetalle/borraritem', [HistorialController::class, 'historialEntradaDetalleBorrarItem']);
 
 
+// HISTORIAL MATERIAL - ENTRADAS TODOS
+Route::get('/admin/bodega/historial/entradatodos/index', [HistorialController::class, 'indexHistorialEntradasMateriales'])->name('sidebar.bodega.historial.entradasmateriales');
+Route::get('/admin/bodega/historial/entradatodos/tabla', [HistorialController::class, 'tablaHistorialEntradasMateriales']);
+
+
+
+
+
+
+
+
+
 // RETORNOS
 Route::get('/admin/historial/retornos/index', [HistorialController::class,'indexHistorialRetornos'])->name('sidebar.historial.retornos');
 Route::get('/admin/historial/retornos/tabla', [HistorialController::class,'tablaHistorialRetornos']);
+
+
+
 
 
 
@@ -243,8 +258,6 @@ Route::get('/admin/historial/retornos/tabla', [HistorialController::class,'tabla
 Route::get('/admin/reprotes/general/index', [ReportesController::class,'indexGeneralReportes'])->name('admin.historial.general.index');
 Route::get('/admin/reportes/pdf/recibe-separados/{id}', [ReportesController::class,'reporteEmpleadoRecibidos']);
 Route::get('/admin/reportes/pdf/kardex-material/{id}', [ReportesController::class,'reporteKardexMaterial']);
-
-
 
 
 // REEMPLAZO MES

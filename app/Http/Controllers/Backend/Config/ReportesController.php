@@ -141,13 +141,9 @@ class ReportesController extends Controller
         // mostrar errores
         $mpdf->showImageErrors = false;
 
-        $logoalcaldia = 'images/gobiernologo.jpg';
-        $logosantaana = 'images/logo.png';
+        $logoalcaldia = 'images/logo.png';
 
         $fechaFormat = date("d-m-Y", strtotime(Carbon::now('America/El_Salvador')));
-
-
-
 
 
         $tabla = "

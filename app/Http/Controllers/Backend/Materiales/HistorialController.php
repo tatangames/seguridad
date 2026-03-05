@@ -784,6 +784,45 @@ class HistorialController extends Controller
 
 
 
+    public function indexHistorialEntradasMateriales()
+    {
+        return view('backend.admin.historial.todosmaterial.vistatodomaterialentradas');
+    }
+
+
+
+    public function tablaHistorialEntradasMateriales()
+    {
+        $arrayEntradas = Entradas::orderBy('fecha', 'desc')->get();
+        $pilaIDEntradas = array();
+        foreach ($arrayEntradas as $fila) {
+            array_push($pilaIDEntradas, $fila->id);
+        }
+
+        $arrayEntradasDetalle = EntradasDetalle::whereIn('id_entradas', $pilaIDEntradas)->get();
+
+        foreach ($arrayEntradasDetalle as $fila) {
+            $infoEntrada  = Entradas::where('id', $fila->id_entradas)->first();
+            $infoMaterial = Materiales::where('id', $fila->id_material)->first();
+
+            $fila->fechaFormat        = date("d-m-Y", strtotime($infoEntrada->fecha));
+            $fila->lote               = $infoEntrada->lote;
+            $fila->observacion        = $infoEntrada->observacion;
+            $fila->nombreMaterial     = $infoMaterial->nombre;
+            $fila->precio_ordencompra = (float)($infoEntrada->precio_ordencompra ?? 0);
+
+            $fila->cantidad_entregada = SalidasDetalle::where('id_entrada_detalle', $fila->id)
+                ->sum('cantidad_salida');
+
+            $fila->stock_restante     = $fila->cantidad_inicial - $fila->cantidad_entregada;
+        }
+
+        return view('backend.admin.historial.todosmaterial.tablatodomaterialentradas', compact('arrayEntradasDetalle'));
+    }
+
+
+
+
 
 
 

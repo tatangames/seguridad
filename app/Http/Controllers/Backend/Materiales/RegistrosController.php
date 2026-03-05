@@ -402,6 +402,7 @@ class RegistrosController extends Controller
             $reg->cargo         = $cargo;
             $reg->colaborador   = $infoEmpleado->nombre;
             $reg->jefe_inmediato = $jefeInmediato;
+            $reg->material_linea = $request->lineaEditar;
             $reg->save();
 
             $filaContada = 0;
@@ -752,7 +753,6 @@ class RegistrosController extends Controller
         $infoSalida = Salidas::where('id', $idsalida)->first();
 
         $infoEmpleado = Empleado::where('id', $infoSalida->id_empleado)->first();
-        $infoUnidad = UnidadEmpleado::where('id', $infoEmpleado->id_unidad_empleado)->first();
 
         $jefeInmediato = "";
 
@@ -769,9 +769,6 @@ class RegistrosController extends Controller
             }
         }
 
-
-        $infoCargo = Cargo::where('id', $infoEmpleado->id_cargo)->first();
-        $cargo = $infoCargo->nombre;
 
         $fechaFormat = date("d-m-Y", strtotime($infoSalida->fecha));
 
@@ -882,7 +879,7 @@ class RegistrosController extends Controller
         if ($tieneNumeroEquipo) {
             $tabla .= "
             <div style='text-align: right; margin-top: 6px;'>
-                <p style='font-size: 12px; margin: 0; color: #000;'><strong>Número de equipo:</strong>{$numeroEquipo}</p>
+                <p style='font-size: 12px; margin: 0; color: #000;'><strong>Número de equipo: </strong>{$numeroEquipo}</p>
             </div>";
         }
 
