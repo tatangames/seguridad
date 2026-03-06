@@ -122,12 +122,23 @@ Route::post('/admin/distrito/editar', [ConfiguracionController::class,'actualiza
 
 // UNIDAD EMPLEADO
 Route::get('/admin/unidadempleado/index', [ConfiguracionController::class,'vistaUnidadEmpleado'])->name('admin.unidad.empleado.index');
-Route::get('/admin/unidadempleado/tabla', [ConfiguracionController::class,'tablaUnidadEmpleado']);
 Route::post('/admin/unidadempleado/nuevo', [ConfiguracionController::class,'nuevoUnidadEmpleado']);
 Route::post('/admin/unidadempleado/informacion', [ConfiguracionController::class,'infoUnidadEmpleado']);
 Route::post('/admin/unidadempleado/editar', [ConfiguracionController::class,'actualizarUnidadEmpleado']);
-Route::post('/admin/unidadempleado/jefeinmediato/informacion', [ConfiguracionController::class,'informacionJefeInmediato']);
 Route::post('/admin/unidadempleado/jefeinmediato/editar', [ConfiguracionController::class,'editarJefeInmediato']);
+
+Route::post('/admin/unidadempleado/jefes/informacion', [ConfiguracionController::class, 'informacionJefesUnidad']);
+Route::post('/admin/unidadempleado/jefes/agregar',     [ConfiguracionController::class, 'agregarJefeUnidad']);
+Route::post('/admin/unidadempleado/jefes/quitar',      [ConfiguracionController::class, 'quitarJefeUnidad']);
+
+
+
+
+
+
+
+
+
 
 // CARGOS
 Route::get('/admin/cargo/index', [ConfiguracionController::class,'vistaCargo'])->name('admin.cargo.index');
@@ -146,6 +157,12 @@ Route::post('/admin/empleados/buscarunidad-empleado', [ConfiguracionController::
 Route::post('/admin/empleados/nuevo', [ConfiguracionController::class,'nuevoEmpleados']);
 Route::post('/admin/empleados/informacion', [ConfiguracionController::class,'infoEmpleados']);
 Route::post('/admin/empleados/editar', [ConfiguracionController::class,'actualizarEmpleados']);
+
+
+
+
+
+
 
 // PROVEEDORES
 Route::get('/admin/proveedor/index', [ConfiguracionController::class,'vistaProveedor'])->name('admin.proveedor.index');

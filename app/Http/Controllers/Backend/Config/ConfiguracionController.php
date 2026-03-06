@@ -520,79 +520,53 @@ class ConfiguracionController extends Controller
     {
         $arrayDistritos = Distrito::orderBy('nombre', 'ASC')->get();
 
-        return view('backend.admin.config.empleados.unidadempleado.vistaunidadempleados', compact('arrayDistritos'));
-    }
+        // jefes: relación many-to-many via jefe_unidad
+        $listado = UnidadEmpleado::with(['distrito', 'jefesACargo.cargo'])
+            ->orderBy('nombre', 'ASC')
+            ->get()
+            ->map(function ($item) {
+                $item->distrito = $item->distrito->nombre ?? '—';
+                $item->jefes    = $item->jefesACargo;      // colección de empleados jefe
+                return $item;
+            });
 
-    public function tablaUnidadEmpleado()
-    {
-        $listado = UnidadEmpleado::orderBy('nombre', 'ASC')->get();
-
-        foreach ($listado as $item) {
-            $infoDistrito = Distrito::where('id', $item->id_distrito)->first();
-            $item->distrito = $infoDistrito->nombre;
-
-            $jefeUnidad = "";
-            $jefeInmediato = "";
-
-            if($infoEmpleado = Empleado::where('id', $item->id_empleado)->first()){
-                $jefeUnidad = $infoEmpleado->nombre;
-            }
-
-            if($infoEmpleado = Empleado::where('id', $item->id_empleado_inmediato)->first()){
-                $jefeInmediato = $infoEmpleado->nombre;
-            }
-
-            $item->jefeUnidad = $jefeUnidad;
-            $item->jefeInmediato = $jefeInmediato;
-        }
-
-        return view('backend.admin.config.empleados.unidadempleado.tablaunidadempleados', compact('listado'));
+        return view('backend.admin.config.empleados.unidadempleado.vistaunidadempleados',
+            compact('arrayDistritos', 'listado'));
     }
 
 
     public function nuevoUnidadEmpleado(Request $request)
     {
-        $regla = array(
+        $validar = Validator::make($request->all(), [
             'nombre' => 'required',
-            'unidad' => 'required'
-        );
+            'unidad' => 'required',
+        ]);
 
-        $validar = Validator::make($request->all(), $regla);
+        if ($validar->fails()) return ['success' => 0];
 
-        if ($validar->fails()) {
-            return ['success' => 0];
-        }
         DB::beginTransaction();
-
         try {
             $dato = new UnidadEmpleado();
             $dato->id_distrito = $request->unidad;
-            $dato->nombre = $request->nombre;
+            $dato->nombre      = $request->nombre;
             $dato->save();
 
             DB::commit();
             return ['success' => 1];
         } catch (\Throwable $e) {
-            Log::info('error ' . $e);
+            Log::error('nuevoUnidadEmpleado: ' . $e);
             DB::rollback();
             return ['success' => 99];
         }
     }
 
+
     public function infoUnidadEmpleado(Request $request)
     {
-        $regla = array(
-            'id' => 'required'
-        );
+        $validar = Validator::make($request->all(), ['id' => 'required']);
+        if ($validar->fails()) return ['success' => 0];
 
-        $validar = Validator::make($request->all(), $regla);
-
-        if ($validar->fails()) {
-            return ['success' => 0];
-        }
-
-        $info = UnidadEmpleado::where('id', $request->id)->first();
-
+        $info          = UnidadEmpleado::findOrFail($request->id);
         $arrayDistrito = Distrito::orderBy('nombre', 'ASC')->get();
 
         return ['success' => 1, 'info' => $info, 'arrayDistrito' => $arrayDistrito];
@@ -601,20 +575,15 @@ class ConfiguracionController extends Controller
 
     public function actualizarUnidadEmpleado(Request $request)
     {
-        $regla = array(
-            'id' => 'required',
-            'nombre' => 'required',
-            'distrito' => 'required'
-        );
-
-        $validar = Validator::make($request->all(), $regla);
-
-        if ($validar->fails()) {
-            return ['success' => 0];
-        }
+        $validar = Validator::make($request->all(), [
+            'id'       => 'required',
+            'nombre'   => 'required',
+            'distrito' => 'required',
+        ]);
+        if ($validar->fails()) return ['success' => 0];
 
         UnidadEmpleado::where('id', $request->id)->update([
-            'nombre' => $request->nombre,
+            'nombre'      => $request->nombre,
             'id_distrito' => $request->distrito,
         ]);
 
@@ -623,36 +592,111 @@ class ConfiguracionController extends Controller
 
 
 
-    public function informacionJefeInmediato(Request $request)
+    public function informacionJefesUnidad(Request $request)
     {
-        $regla = array(
-            'id' => 'required' // id unidad empleado
-        );
+        $validar = Validator::make($request->all(), ['id' => 'required']);
+        if ($validar->fails()) return ['success' => 0];
 
-        $validar = Validator::make($request->all(), $regla);
+        // Todos los empleados con jefe=true para poblar el select
+        $arrayJefes = Empleado::with('cargo')
+            ->where('jefe', true)
+            ->orderBy('nombre', 'ASC')
+            ->get()
+            ->map(function ($e) {
+                $e->nombre_completo = $e->nombre . ' (' . ($e->cargo->nombre ?? '—') . ')';
+                return $e;
+            });
 
-        if ($validar->fails()) {
-            return ['success' => 0];
-        }
+        // Jefes ya asignados a esta unidad
+        $asignados = DB::table('jefe_unidad')
+            ->join('empleado', 'empleado.id', '=', 'jefe_unidad.id_empleado')
+            ->join('cargo', 'cargo.id', '=', 'empleado.id_cargo')
+            ->where('jefe_unidad.id_unidad_empleado', $request->id)
+            ->select(
+                'jefe_unidad.id as pivot_id',
+                'empleado.nombre',
+                'cargo.nombre as cargo'
+            )
+            ->get();
 
-        $infoUniEmpleado = UnidadEmpleado::where('id', $request->id)->first();
-        $arrayEmpleado = Empleado::orderBy('nombre', 'ASC')->get();
-
-        foreach ($arrayEmpleado as $item) {
-
-            // nombre cargo unidad distrito
-
-            $infoCargo = Cargo::where('id', $item->id_cargo)->first();
-            $infoUnidad = UnidadEmpleado::where('id', $item->id_unidad_empleado)->first();
-            $infoDistrito = Distrito::where('id', $infoUnidad->id_distrito)->first();
-
-            $completo = $item->nombre . " (" . $infoCargo->nombre . ")" . " (" . $infoUnidad->nombre . ")" . " (" . $infoDistrito->nombre . ")";
-
-            $item->completo = $completo;
-        }
-
-        return ['success' => 1, 'info' => $infoUniEmpleado, 'arrayEmpleados' => $arrayEmpleado];
+        return ['success' => 1, 'arrayJefes' => $arrayJefes, 'asignados' => $asignados];
     }
+
+
+
+
+
+
+
+    // ── Agregar jefe a unidad ──
+    public function agregarJefeUnidad(Request $request)
+    {
+        $validar = Validator::make($request->all(), [
+            'id_unidad'   => 'required',
+            'id_empleado' => 'required',
+        ]);
+        if ($validar->fails()) return ['success' => 0];
+
+        // Verificar que no esté duplicado
+        $existe = DB::table('jefe_unidad')
+            ->where('id_unidad_empleado', $request->id_unidad)
+            ->where('id_empleado', $request->id_empleado)
+            ->exists();
+
+        if ($existe) return ['success' => 2]; // ya asignado
+
+        DB::table('jefe_unidad')->insert([
+            'id_empleado'        => $request->id_empleado,
+            'id_unidad_empleado' => $request->id_unidad,
+        ]);
+
+        // Devolver lista actualizada
+        $asignados = $this->getAsignados($request->id_unidad);
+
+        return ['success' => 1, 'asignados' => $asignados];
+    }
+
+
+// ── Quitar jefe de unidad ──
+    public function quitarJefeUnidad(Request $request)
+    {
+        $validar = Validator::make($request->all(), ['pivot_id' => 'required']);
+        if ($validar->fails()) return ['success' => 0];
+
+        $pivot = DB::table('jefe_unidad')->where('id', $request->pivot_id)->first();
+        if (!$pivot) return ['success' => 0];
+
+        DB::table('jefe_unidad')->where('id', $request->pivot_id)->delete();
+
+        $asignados = $this->getAsignados($pivot->id_unidad_empleado);
+
+        return ['success' => 1, 'asignados' => $asignados];
+    }
+
+
+// ── Helper privado: obtener jefes asignados de una unidad ──
+    private function getAsignados($idUnidad)
+    {
+        return DB::table('jefe_unidad')
+            ->join('empleado', 'empleado.id', '=', 'jefe_unidad.id_empleado')
+            ->join('cargo', 'cargo.id', '=', 'empleado.id_cargo')
+            ->where('jefe_unidad.id_unidad_empleado', $idUnidad)
+            ->select(
+                'jefe_unidad.id as pivot_id',
+                'empleado.nombre',
+                'cargo.nombre as cargo'
+            )
+            ->get();
+    }
+
+
+
+
+
+
+
+
+
 
 
     public function editarJefeInmediato(Request $request)
@@ -758,17 +802,44 @@ class ConfiguracionController extends Controller
 
 
 
-    //******************** EMPLEADOS *************************************************************
 
+
+
+
+    //******************** EMPLEADOS *************************************************************
 
     public function vistaEmpleados()
     {
-        $arrayDistrito = Distrito::orderBy('nombre', 'ASC')->get();
-        $arrayUnidad = UnidadEmpleado::orderBy('nombre', 'ASC')->get();
-        $arrayCargo = Cargo::orderBy('nombre', 'ASC')->get();
+        // $listado con eager loading — sin N+1
+        $listado = Empleado::with(['unidadEmpleado.distrito', 'cargo', 'jefe'])
+            ->orderBy('nombre', 'ASC')
+            ->get()
+            ->map(function ($item) {
+                $item->unidad      = $item->unidadEmpleado->nombre          ?? '—';
+                $item->distrito    = $item->unidadEmpleado->distrito->nombre ?? '—';
+                $item->cargo       = $item->cargo->nombre                   ?? '—';
+                $item->jefe_nombre = $item->jefe->nombre                    ?? null;
+                return $item;
+            });
 
-        return view('backend.admin.config.empleados.vistaempleados', compact('arrayDistrito', 'arrayUnidad', 'arrayCargo'));
+        $arrayDistrito  = Distrito::orderBy('nombre', 'ASC')->get();
+        $arrayCargo     = Cargo::orderBy('nombre', 'ASC')->get();
+
+        // Solo jefes para el select "Jefe Directo" en el modal
+        $arrayEmpleados = Empleado::with('cargo')
+            ->where('jefe', true)
+            ->orderBy('nombre', 'ASC')
+            ->get()
+            ->map(function ($e) {
+                $e->cargo_nombre = $e->cargo->nombre ?? '—';
+                return $e;
+            });
+
+        return view('backend.admin.config.empleados.vistaempleados',
+            compact('listado', 'arrayDistrito', 'arrayCargo', 'arrayEmpleados'));
     }
+
+
 
     public function tablaEmpleados()
     {
@@ -857,40 +928,29 @@ class ConfiguracionController extends Controller
 
     public function nuevoEmpleados(Request $request)
     {
-        $regla = array(
+        $validar = Validator::make($request->all(), [
             'nombre' => 'required',
             'unidad' => 'required',
-            'cargo' => 'required',
-            'jefe' => 'required'
-        );
+            'cargo'  => 'required',
+            'jefe'   => 'required',
+        ]);
+        if ($validar->fails()) return ['success' => 0];
 
-        $validar = Validator::make($request->all(), $regla);
-
-        if ($validar->fails()) {
-            return ['success' => 0];
-        }
         DB::beginTransaction();
-
         try {
-
-            if($request->jefe == 1){
-                Empleado::where('id_unidad_empleado', $request->unidad)->update([
-                    'jefe' => 0
-                ]);
-            }
-
             $dato = new Empleado();
-            $dato->nombre = $request->nombre;
+            $dato->nombre             = $request->nombre;
             $dato->id_unidad_empleado = $request->unidad;
-            $dato->id_cargo = $request->cargo;
-            $dato->jefe = $request->jefe;
-            $dato->dui = $request->dui;
+            $dato->id_cargo           = $request->cargo;
+            $dato->jefe               = $request->jefe;
+            $dato->dui                = $request->dui;
+            $dato->id_jefe            = $request->id_jefe ?: null; // ← nuevo
             $dato->save();
 
             DB::commit();
             return ['success' => 1];
         } catch (\Throwable $e) {
-            Log::info('error ' . $e);
+            Log::error('nuevoEmpleados: ' . $e);
             DB::rollback();
             return ['success' => 99];
         }
@@ -899,56 +959,55 @@ class ConfiguracionController extends Controller
 
     public function infoEmpleados(Request $request)
     {
-        $regla = array(
-            'id' => 'required'
-        );
+        $validar = Validator::make($request->all(), ['id' => 'required']);
+        if ($validar->fails()) return ['success' => 0];
 
-        $validar = Validator::make($request->all(), $regla);
+        $info           = Empleado::findOrFail($request->id);
+        $infoUniEmpleado = UnidadEmpleado::findOrFail($info->id_unidad_empleado);
+        $arrayDistrito  = Distrito::orderBy('nombre', 'ASC')->get();
+        $arrayUnidad    = UnidadEmpleado::orderBy('nombre', 'ASC')->get();
+        $arrayCargo     = Cargo::orderBy('nombre', 'ASC')->get();
 
-        if ($validar->fails()) {
-            return ['success' => 0];
-        }
+        // Todos los jefes disponibles excepto el propio empleado
+        $arrayEmpleados = Empleado::with('cargo')
+            ->where('jefe', true)
+            ->where('id', '!=', $request->id)
+            ->orderBy('nombre', 'ASC')
+            ->get()
+            ->map(function ($e) {
+                $e->nombre_completo = $e->nombre . ' (' . ($e->cargo->nombre ?? '—') . ')';
+                return $e;
+            });
 
-        $info = Empleado::where('id', $request->id)->first();
-        $infoUniEmpleado = UnidadEmpleado::where('id', $info->id_unidad_empleado)->first();
-
-        $arrayDistrito = Distrito::orderBy('nombre', 'ASC')->get();
-        $arrayUnidad = UnidadEmpleado::orderBy('nombre', 'ASC')->get();
-        $arrayCargo = Cargo::orderBy('nombre', 'ASC')->get();
-
-        return ['success' => 1, 'info' => $info, 'arrayDistrito' => $arrayDistrito, 'arrayCargo' => $arrayCargo,
-            'arrayUnidad' => $arrayUnidad, 'infoUniEmpleado' => $infoUniEmpleado];
+        return [
+            'success'         => 1,
+            'info'            => $info,
+            'infoUniEmpleado' => $infoUniEmpleado,
+            'arrayDistrito'   => $arrayDistrito,
+            'arrayUnidad'     => $arrayUnidad,
+            'arrayCargo'      => $arrayCargo,
+            'arrayEmpleados'  => $arrayEmpleados, // ← nuevo
+        ];
     }
 
     public function actualizarEmpleados(Request $request)
     {
-        $regla = array(
-            'id' => 'required',
+        $validar = Validator::make($request->all(), [
+            'id'     => 'required',
             'nombre' => 'required',
             'unidad' => 'required',
-            'cargo' => 'required',
-            'jefe' => 'required'
-        );
-
-        $validar = Validator::make($request->all(), $regla);
-
-        if ($validar->fails()) {
-            return ['success' => 0];
-        }
-
-
-        if($request->jefe == 1){
-            Empleado::where('id_unidad_empleado', $request->unidad)->update([
-                'jefe' => 0
-            ]);
-        }
+            'cargo'  => 'required',
+            'jefe'   => 'required',
+        ]);
+        if ($validar->fails()) return ['success' => 0];
 
         Empleado::where('id', $request->id)->update([
-            'nombre' => $request->nombre,
+            'nombre'             => $request->nombre,
             'id_unidad_empleado' => $request->unidad,
-            'id_cargo' => $request->cargo,
-            'jefe' => $request->jefe,
-            'dui' => $request->dui
+            'id_cargo'           => $request->cargo,
+            'jefe'               => $request->jefe,
+            'dui'                => $request->dui,
+            'id_jefe'            => $request->id_jefe ?: null, // ← nuevo
         ]);
 
         return ['success' => 1];

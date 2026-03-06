@@ -11,10 +11,113 @@
 @stop
 
 <style>
-    table{
-        /*Ajustar tablas*/
-        table-layout:fixed;
+    table { table-layout: fixed; }
+
+    .filtros-panel {
+        background: linear-gradient(135deg, #1a3a6b 0%, #2156af 100%);
+        border-radius: 10px;
+        padding: 18px 22px 10px;
+        margin-bottom: 18px;
+        box-shadow: 0 4px 18px rgba(33, 86, 175, 0.18);
     }
+    .filtros-panel label {
+        color: #c8d8f8;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .07em;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+        display: block;
+    }
+    .filtros-panel .form-control,
+    .filtros-panel .custom-select {
+        background: rgba(255,255,255,0.10);
+        border: 1px solid rgba(255,255,255,0.22);
+        color: #fff;
+        border-radius: 6px;
+        font-size: 13px;
+        height: 34px;
+        transition: background .2s, border .2s;
+    }
+    .filtros-panel .form-control::placeholder { color: rgba(255,255,255,.5); }
+    .filtros-panel .form-control:focus,
+    .filtros-panel .custom-select:focus {
+        background: rgba(255,255,255,0.18);
+        border-color: #82aaff;
+        color: #fff;
+        box-shadow: none;
+        outline: none;
+    }
+    .filtros-panel .custom-select option { color: #222; background: #fff; }
+    .filtros-panel .btn-limpiar {
+        background: rgba(255,255,255,0.15);
+        border: 1px solid rgba(255,255,255,0.3);
+        color: #fff;
+        border-radius: 6px;
+        font-size: 12px;
+        height: 34px;
+        padding: 0 16px;
+        cursor: pointer;
+        transition: background .2s;
+        white-space: nowrap;
+        width: 100%;
+    }
+    .filtros-panel .btn-limpiar:hover { background: rgba(255,255,255,0.28); }
+
+    .resumen-badges { margin-bottom: 14px; }
+    .resumen-badges .badge-stat {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #f0f4ff;
+        border: 1px solid #d0dcf7;
+        color: #2156af;
+        border-radius: 20px;
+        padding: 4px 13px;
+        font-size: 12px;
+        font-weight: 600;
+        margin-right: 8px;
+        margin-bottom: 6px;
+    }
+    .resumen-badges .badge-stat .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .resumen-badges .badge-stat .dot.jefe  { background: #28a745; }
+    .resumen-badges .badge-stat .dot.emp   { background: #2156af; }
+    .resumen-badges .badge-stat .dot.total { background: #6c757d; }
+
+    #tabla thead tr th {
+        background: #2156af;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+        border: none !important;
+        white-space: nowrap;
+        padding: 10px 12px;
+    }
+    #tabla tbody tr { transition: background .15s; }
+    #tabla tbody tr:hover { background: #eef3ff !important; }
+    #tabla tbody td { vertical-align: middle; font-size: 13px; padding: 8px 12px; }
+
+    .badge-jefe {
+        background: #d4edda; color: #155724;
+        border: 1px solid #c3e6cb;
+        border-radius: 12px; padding: 2px 10px;
+        font-size: 11px; font-weight: 700;
+    }
+    .badge-empleado {
+        background: #e8eeff; color: #2156af;
+        border: 1px solid #c5d3f7;
+        border-radius: 12px; padding: 2px 10px;
+        font-size: 11px; font-weight: 700;
+    }
+    .nombre-emp { font-weight: 600; color: #1a2d55; }
+    .dui-txt    { font-family: 'Courier New', monospace; color: #555; font-size: 12px; }
+    .jefe-txt   { font-size: 12px; color: #555; }
+
+    .dataTables_wrapper .dataTables_filter { display: none; }
+    div.dataTables_wrapper div.dataTables_length select { min-width: 60px; }
+    .dataTables_info { font-size: 12px; color: #888; }
 </style>
 
 <div id="divcontenedor" style="display: none">
@@ -22,13 +125,13 @@
     <section class="content-header">
         <div class="row mb-2">
             <div class="col-sm-6">
-                <button type="button" style="font-weight: bold; background-color: #2156af; color: white !important;" onclick="modalAgregar()"
+                <button type="button"
+                        style="font-weight:bold; background-color:#2156af; color:white !important;"
+                        onclick="modalAgregar()"
                         class="button button-3d button-rounded button-pill button-small">
-                    <i class="fas fa-pencil-alt"></i>
-                    Nuevo Empleado
+                    <i class="fas fa-pencil-alt"></i> Nuevo Empleado
                 </button>
             </div>
-
             <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-right">
                     <li class="breadcrumb-item">Empleados</li>
@@ -40,30 +143,119 @@
 
     <section class="content">
         <div class="container-fluid">
-            <div class="card card-blue">
-                <div class="card-header">
-                    <h3 class="card-title">Listado</h3>
+
+            {{-- Filtros --}}
+            <div class="filtros-panel">
+                <div class="row align-items-end">
+                    <div class="col-md-3 col-sm-6 mb-2">
+                        <label><i class="fas fa-search mr-1"></i>Buscar</label>
+                        <input type="text" id="filtro-buscar" class="form-control" placeholder="Nombre, DUI…">
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-2">
+                        <label><i class="fas fa-map-marker-alt mr-1"></i>Distrito</label>
+                        <select id="filtro-distrito" class="form-control custom-select">
+                            <option value="">Todos los distritos</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-2">
+                        <label><i class="fas fa-building mr-1"></i>Unidad</label>
+                        <select id="filtro-unidad" class="form-control custom-select">
+                            <option value="">Todas las unidades</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 col-sm-6 mb-2">
+                        <label><i class="fas fa-user-tie mr-1"></i>Rol</label>
+                        <select id="filtro-rol" class="form-control custom-select">
+                            <option value="">Todos</option>
+                            <option value="1">Solo Jefes</option>
+                            <option value="0">Solo Empleados</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1 col-sm-6 mb-2 d-flex align-items-end">
+                        <button class="btn-limpiar" onclick="limpiarFiltros()">
+                            <i class="fas fa-times mr-1"></i> Limpiar
+                        </button>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div id="tablaDatatable">
+            </div>
+
+            {{-- Badges --}}
+            <div class="resumen-badges">
+                <span class="badge-stat"><span class="dot total"></span> Total: <strong id="cnt-total">0</strong></span>
+                <span class="badge-stat"><span class="dot jefe"></span> Jefes: <strong id="cnt-jefes">0</strong></span>
+                <span class="badge-stat"><span class="dot emp"></span> Empleados: <strong id="cnt-empleados">0</strong></span>
+            </div>
+
+            {{-- Tabla --}}
+            <div class="row">
+                <div class="col-12">
+                    <div class="card" style="border-radius:10px; box-shadow:0 2px 16px rgba(0,0,0,.07); border:none;">
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table id="tabla" class="table table-bordered table-striped mb-0" style="table-layout:fixed; width:100%">
+                                    <thead>
+                                    <tr>
+                                        <th style="width:20%">Nombre</th>
+                                        <th style="width:13%">Distrito</th>
+                                        <th style="width:17%">Unidad</th>
+                                        <th style="width:13%">Cargo</th>
+                                        <th style="width:11%">DUI</th>
+                                        <th style="width:8%">Rol</th>
+                                        <th style="width:11%">Jefe Directo</th>
+                                        <th style="width:7%">Opciones</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    @foreach($listado as $dato)
+                                        <tr data-distrito="{{ $dato->distrito }}"
+                                            data-unidad="{{ $dato->unidad }}"
+                                            data-jefe="{{ $dato->jefe ? 1 : 0 }}">
+                                            <td class="nombre-emp">{{ $dato->nombre }}</td>
+                                            <td>{{ $dato->distrito }}</td>
+                                            <td>{{ $dato->unidad }}</td>
+                                            <td>{{ $dato->cargo }}</td>
+                                            <td class="dui-txt">{{ $dato->dui ?? '—' }}</td>
+                                            <td>
+                                                @if($dato->jefe)
+                                                    <span class="badge-jefe">
+                                                        <i class="fas fa-star" style="font-size:9px"></i> Jefe
+                                                    </span>
+                                                @else
+                                                    <span class="badge-empleado">Empleado</span>
+                                                @endif
+                                            </td>
+                                            <td class="jefe-txt">
+                                                {{-- Nombre del jefe directo (id_jefe) --}}
+                                                {{ $dato->jefe_nombre ?? '—' }}
+                                            </td>
+                                            <td>
+                                                <button type="button"
+                                                        class="btn btn-success btn-xs"
+                                                        onclick="informacion({{ $dato->id }})"
+                                                        title="Editar">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+
         </div>
     </section>
 
+    {{-- ══ MODAL AGREGAR ══ --}}
     <div class="modal fade" id="modalAgregar">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <h4 class="modal-title">Nuevo Empleado</h4>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
                 </div>
                 <div class="modal-body">
                     <form id="formulario-nuevo">
@@ -73,8 +265,7 @@
 
                                     <div class="form-group">
                                         <label>Distrito:</label>
-                                        <br>
-                                        <select width="100%" class="form-control" id="select-distrito" onchange="buscarUnidad(this)">
+                                        <select class="form-control" id="select-distrito" onchange="buscarUnidad()">
                                             <option value="0">Seleccionar opción</option>
                                             @foreach($arrayDistrito as $sel)
                                                 <option value="{{ $sel->id }}">{{ $sel->nombre }}</option>
@@ -84,28 +275,22 @@
 
                                     <div class="form-group">
                                         <label>Unidad:</label>
-                                        <br>
-                                        <select width="100%"  class="form-control" id="select-unidad">
-                                        </select>
+                                        <select class="form-control" id="select-unidad"></select>
                                     </div>
-
 
                                     <div class="form-group">
-                                        <label>Empleado</label>
+                                        <label>Nombre</label>
                                         <input type="text" maxlength="100" class="form-control" id="nombre-nuevo" autocomplete="off">
                                     </div>
-
 
                                     <div class="form-group">
                                         <label>DUI</label>
                                         <input type="text" maxlength="50" class="form-control" id="dui-nuevo" autocomplete="off">
                                     </div>
 
-
                                     <div class="form-group">
                                         <label>Cargo:</label>
-                                        <br>
-                                        <select width="100%"  class="form-control" id="select-cargo">
+                                        <select class="form-control" id="select-cargo">
                                             @foreach($arrayCargo as $sel)
                                                 <option value="{{ $sel->id }}">{{ $sel->nombre }}</option>
                                             @endforeach
@@ -123,6 +308,17 @@
                                         </label>
                                     </div>
 
+                                    {{-- Jefe directo (id_jefe) --}}
+                                    <div class="form-group">
+                                        <label>Jefe Directo: <small class="text-muted">(opcional)</small></label>
+                                        <select class="form-control" id="select-jefe-nuevo">
+                                            <option value="">Sin jefe directo</option>
+                                            @foreach($arrayEmpleados as $emp)
+                                                <option value="{{ $emp->id }}">{{ $emp->nombre }} ({{ $emp->cargo_nombre }})</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+
                                 </div>
                             </div>
                         </div>
@@ -130,21 +326,22 @@
                 </div>
                 <div class="modal-footer justify-content-between">
                     <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
-                    <button type="button" style="font-weight: bold; background-color: #2156af; color: white !important;" class="button button-rounded button-pill button-small" onclick="nuevo()">Guardar</button>
+                    <button type="button"
+                            style="font-weight:bold; background-color:#2156af; color:white !important;"
+                            class="button button-rounded button-pill button-small"
+                            onclick="nuevo()">Guardar</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- modal editar -->
+    {{-- ══ MODAL EDITAR ══ --}}
     <div class="modal fade" id="modalEditar">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <h4 class="modal-title">Editar Empleado</h4>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
                 </div>
                 <div class="modal-body">
                     <form id="formulario-editar">
@@ -152,27 +349,20 @@
                             <div class="row">
                                 <div class="col-md-12">
 
-                                    <div class="form-group">
-                                        <input type="hidden" id="id-editar">
-                                    </div>
+                                    <input type="hidden" id="id-editar">
 
                                     <div class="form-group">
                                         <label>Distrito:</label>
-                                        <br>
-                                        <select width="100%" class="form-control" id="select-distrito-editar" onchange="buscarUnidadEdicion(this)">
-                                        </select>
+                                        <select class="form-control" id="select-distrito-editar" onchange="buscarUnidadEdicion()"></select>
                                     </div>
 
                                     <div class="form-group">
                                         <label>Unidad:</label>
-                                        <br>
-                                        <select width="100%" class="form-control" id="select-unidad-editar">
-                                        </select>
+                                        <select class="form-control" id="select-unidad-editar"></select>
                                     </div>
 
-
                                     <div class="form-group">
-                                        <label>Empleado</label>
+                                        <label>Nombre</label>
                                         <input type="text" maxlength="100" class="form-control" id="nombre-editar" autocomplete="off">
                                     </div>
 
@@ -183,11 +373,8 @@
 
                                     <div class="form-group">
                                         <label>Cargo:</label>
-                                        <br>
-                                        <select width="100%" class="form-control" id="select-cargo-editar">
-                                        </select>
+                                        <select class="form-control" id="select-cargo-editar"></select>
                                     </div>
-
 
                                     <div class="form-group">
                                         <label>ES JEFE?</label><br>
@@ -200,6 +387,12 @@
                                         </label>
                                     </div>
 
+                                    {{-- Jefe directo (id_jefe) --}}
+                                    <div class="form-group">
+                                        <label>Jefe Directo: <small class="text-muted">(opcional)</small></label>
+                                        <select class="form-control" id="select-jefe-editar"></select>
+                                    </div>
+
                                 </div>
                             </div>
                         </div>
@@ -207,12 +400,16 @@
                 </div>
                 <div class="modal-footer justify-content-between">
                     <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
-                    <button type="button" style="font-weight: bold; background-color: #28a745; color: white !important;" class="button button-rounded button-pill button-small" onclick="editar()">Actualizar</button>
+                    <button type="button"
+                            style="font-weight:bold; background-color:#28a745; color:white !important;"
+                            class="button button-rounded button-pill button-small"
+                            onclick="editar()">Actualizar</button>
                 </div>
             </div>
         </div>
     </div>
-</div>
+
+</div>{{-- fin #divcontenedor --}}
 
 
 @extends('backend.menus.footerjs')
@@ -220,7 +417,6 @@
 
     <script src="{{ asset('js/jquery.dataTables.js') }}" type="text/javascript"></script>
     <script src="{{ asset('js/dataTables.bootstrap4.js') }}" type="text/javascript"></script>
-
     <script src="{{ asset('js/toastr.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('js/axios.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('js/sweetalert2.all.min.js') }}"></script>
@@ -228,315 +424,264 @@
     <script src="{{ asset('js/select2.min.js') }}" type="text/javascript"></script>
 
     <script type="text/javascript">
-        $(document).ready(function(){
-            var ruta = "{{ URL::to('/admin/empleados/tabla') }}";
-            $('#tablaDatatable').load(ruta);
 
-            $('#select-distrito').select2({
+        $(document).ready(function () {
+
+            var select2Opts = {
                 theme: "bootstrap-5",
+                language: { noResults: function () { return "Búsqueda no encontrada"; } }
+            };
+            $('#select-distrito, #select-cargo, #select-unidad, #select-jefe-nuevo').select2(select2Opts);
+            $('#select-distrito-editar, #select-cargo-editar, #select-unidad-editar, #select-jefe-editar').select2(select2Opts);
+
+            /* ── DataTable ── */
+            var dt = $("#tabla").DataTable({
+                "paging": true, "searching": true, "ordering": true,
+                "order": [[0, 'asc']], "info": true, "autoWidth": false,
+                "responsive": true, "pagingType": "full_numbers",
+                "lengthMenu": [[25, 50, 100, -1], [25, 50, 100, "Todo"]],
+                "pageLength": 25,
                 "language": {
-                    "noResults": function(){
-                        return "Busqueda no encontrada";
-                    }
+                    "sLengthMenu": "Mostrar _MENU_ registros",
+                    "sZeroRecords": "No se encontraron resultados",
+                    "sEmptyTable": "Ningún dato disponible",
+                    "sInfo": "Registros del _START_ al _END_ de _TOTAL_",
+                    "sInfoEmpty": "Registros del 0 al 0 de 0",
+                    "sInfoFiltered": "(filtrado de _MAX_ registros)",
+                    "oPaginate": { "sFirst": "«", "sLast": "»", "sNext": "›", "sPrevious": "‹" }
                 },
+                "drawCallback": actualizarContadores
             });
 
-            $('#select-cargo').select2({
-                theme: "bootstrap-5",
-                "language": {
-                    "noResults": function(){
-                        return "Busqueda no encontrada";
-                    }
-                },
+            /* ── Poblar filtros desde data-* de las filas ── */
+            var distritos = [], unidades = [];
+            $("#tabla tbody tr").each(function () {
+                var d = $(this).data('distrito');
+                var u = $(this).data('unidad');
+                if (d && !distritos.includes(d)) distritos.push(d);
+                if (u && !unidades.includes(u))  unidades.push(u);
+            });
+            distritos.sort().forEach(function (d) { $('#filtro-distrito').append('<option value="'+d+'">'+d+'</option>'); });
+            unidades.sort().forEach(function (u)  { $('#filtro-unidad').append('<option value="'+u+'">'+u+'</option>'); });
+
+            /* ── Filtro personalizado ── */
+            $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
+                var buscar   = $('#filtro-buscar').val().toLowerCase().trim();
+                var distrito = $('#filtro-distrito').val();
+                var unidad   = $('#filtro-unidad').val();
+                var rol      = $('#filtro-rol').val();
+
+                var nombre     = (data[0] || '').toLowerCase();
+                var dui        = (data[4] || '').toLowerCase();
+                var trDistrito = $(dt.row(dataIndex).node()).data('distrito') || '';
+                var trUnidad   = $(dt.row(dataIndex).node()).data('unidad')   || '';
+                var trJefe     = String($(dt.row(dataIndex).node()).data('jefe'));
+
+                if (buscar   && nombre.indexOf(buscar) === -1 && dui.indexOf(buscar) === -1) return false;
+                if (distrito && trDistrito !== distrito) return false;
+                if (unidad   && trUnidad   !== unidad)   return false;
+                if (rol !== '' && trJefe   !== rol)       return false;
+                return true;
             });
 
-            $('#select-unidad').select2({
-                theme: "bootstrap-5",
-                "language": {
-                    "noResults": function(){
-                        return "Busqueda no encontrada";
-                    }
-                },
+            $('#filtro-buscar, #filtro-distrito, #filtro-unidad, #filtro-rol').on('input change', function () {
+                if ($(this).is('#filtro-distrito')) {
+                    var selDist = $(this).val();
+                    $('#filtro-unidad').html('<option value="">Todas las unidades</option>');
+                    $("#tabla tbody tr").each(function () {
+                        var d = $(this).data('distrito');
+                        var u = $(this).data('unidad');
+                        if (selDist === '' || d === selDist) {
+                            if ($('#filtro-unidad option[value="'+u+'"]').length === 0)
+                                $('#filtro-unidad').append('<option value="'+u+'">'+u+'</option>');
+                        }
+                    });
+                }
+                dt.draw();
             });
 
-
-
-            $('#select-distrito-editar').select2({
-                theme: "bootstrap-5",
-                "language": {
-                    "noResults": function(){
-                        return "Busqueda no encontrada";
-                    }
-                },
-            });
-
-            $('#select-cargo-editar').select2({
-                theme: "bootstrap-5",
-                "language": {
-                    "noResults": function(){
-                        return "Busqueda no encontrada";
-                    }
-                },
-            });
-
-            $('#select-unidad-editar').select2({
-                theme: "bootstrap-5",
-                "language": {
-                    "noResults": function(){
-                        return "Busqueda no encontrada";
-                    }
-                },
-            });
-
-
+            actualizarContadores();
             document.getElementById("divcontenedor").style.display = "block";
         });
+
+        function actualizarContadores() {
+            var dt    = $('#tabla').DataTable();
+            var total = dt.rows({ filter: 'applied' }).count();
+            var jefes = 0;
+            dt.rows({ filter: 'applied' }).every(function () {
+                if ($(this.node()).data('jefe') == 1) jefes++;
+            });
+            $('#cnt-total').text(total);
+            $('#cnt-jefes').text(jefes);
+            $('#cnt-empleados').text(total - jefes);
+        }
+
     </script>
 
     <script>
 
-        function recargar(){
-            var ruta = "{{ url('/admin/empleados/tabla') }}";
-            $('#tablaDatatable').load(ruta);
+        function limpiarFiltros() {
+            $('#filtro-buscar, #filtro-unidad, #filtro-rol').val('');
+            $('#filtro-distrito').val('').trigger('change');
         }
 
-        function buscarUnidad(){
-            let id = document.getElementById('select-distrito').value;
-
-            if(id == '0'){
-                document.getElementById("select-unidad").options.length = 0;
-                return false;
-            }
-
+        /* ── Buscar unidades por distrito ── */
+        function buscarUnidad() {
+            var id = document.getElementById('select-distrito').value;
+            if (id == '0') { document.getElementById("select-unidad").options.length = 0; return; }
             openLoading();
-
-            axios.post(url+'/empleados/buscarunidad',{
-                'id': id
-            })
-                .then((response) => {
+            axios.post(url + '/empleados/buscarunidad', { 'id': id })
+                .then(function (r) {
                     closeLoading();
-                    if(response.data.success === 1){
-
+                    if (r.data.success === 1) {
                         document.getElementById("select-unidad").options.length = 0;
-
-                        $.each(response.data.arrayUnidad, function( key, val ){
-                            $('#select-unidad').append('<option value="' +val.id +'">'+ val.nombre +'</option>');
+                        $.each(r.data.arrayUnidad, function (k, v) {
+                            $('#select-unidad').append('<option value="'+v.id+'">'+v.nombre+'</option>');
                         });
-
-                    }else{
-                        toastr.error('Información no encontrada');
-                    }
+                        $('#select-unidad').trigger('change');
+                    } else { toastr.error('Información no encontrada'); }
                 })
-                .catch((error) => {
-                    closeLoading();
-                    toastr.error('Información no encontrada');
-                });
+                .catch(function () { closeLoading(); toastr.error('Información no encontrada'); });
         }
 
-        function buscarUnidadEdicion(){
-            let id = document.getElementById('select-distrito-editar').value;
-
+        function buscarUnidadEdicion() {
+            var id = document.getElementById('select-distrito-editar').value;
             openLoading();
-
-            axios.post(url+'/empleados/buscarunidad',{
-                'id': id
-            })
-                .then((response) => {
+            axios.post(url + '/empleados/buscarunidad', { 'id': id })
+                .then(function (r) {
                     closeLoading();
-                    if(response.data.success === 1){
-
+                    if (r.data.success === 1) {
                         document.getElementById("select-unidad-editar").options.length = 0;
-
-                        $.each(response.data.arrayUnidad, function( key, val ){
-                            $('#select-unidad-editar').append('<option value="' +val.id +'">'+ val.nombre +'</option>');
+                        $.each(r.data.arrayUnidad, function (k, v) {
+                            $('#select-unidad-editar').append('<option value="'+v.id+'">'+v.nombre+'</option>');
                         });
-
-                    }else{
-                        toastr.error('Información no encontrada');
-                    }
+                        $('#select-unidad-editar').trigger('change');
+                    } else { toastr.error('Información no encontrada'); }
                 })
-                .catch((error) => {
-                    closeLoading();
-                    toastr.error('Información no encontrada');
-                });
+                .catch(function () { closeLoading(); toastr.error('Información no encontrada'); });
         }
 
-        function modalAgregar(){
+        /* ── Modal agregar ── */
+        function modalAgregar() {
             document.getElementById("formulario-nuevo").reset();
-
-            document.getElementById("select-distrito").selectedIndex = 0;
             $('#select-distrito').val($('#select-distrito option:first').val()).trigger('change');
-
-            document.getElementById("select-cargo").selectedIndex = 0;
             $('#select-cargo').val($('#select-cargo option:first').val()).trigger('change');
-
+            $('#select-jefe-nuevo').val('').trigger('change');
             $('#modalAgregar').modal('show');
         }
 
-        function nuevo(){
+        function nuevo() {
+            var unidad  = document.getElementById('select-unidad').value;
+            var cargo   = document.getElementById('select-cargo').value;
+            var nombre  = document.getElementById('nombre-nuevo').value;
+            var dui     = document.getElementById('dui-nuevo').value;
+            var jefe    = document.getElementById('check-jefe').checked ? 1 : 0;
+            var idJefe  = document.getElementById('select-jefe-nuevo').value;
 
-            var unidad = document.getElementById('select-unidad').value;
-            var cargo = document.getElementById('select-cargo').value;
-            var nombre = document.getElementById('nombre-nuevo').value;
-            var dui = document.getElementById('dui-nuevo').value;
-
-            var checkboxJefe = document.getElementById('check-jefe');
-            var valorCheckboxJefe = checkboxJefe.checked ? 1 : 0;
-
-            if(unidad === ''){
-                toastr.error('Unidad es requerido');
-                return;
-            }
-
-            if(cargo === ''){
-                toastr.error('Cargo es requerido');
-                return;
-            }
-
-            if(nombre === ''){
-                toastr.error('Nombre es requerido');
-                return;
-            }
+            if (!unidad) { toastr.error('Unidad es requerida'); return; }
+            if (!cargo)  { toastr.error('Cargo es requerido');  return; }
+            if (!nombre) { toastr.error('Nombre es requerido'); return; }
 
             openLoading();
-            var formData = new FormData();
-            formData.append('nombre', nombre);
-            formData.append('unidad', unidad);
-            formData.append('cargo', cargo);
-            formData.append('dui', dui);
-            formData.append('jefe', valorCheckboxJefe);
+            var fd = new FormData();
+            fd.append('nombre',   nombre);
+            fd.append('unidad',   unidad);
+            fd.append('cargo',    cargo);
+            fd.append('dui',      dui);
+            fd.append('jefe',     jefe);
+            fd.append('id_jefe',  idJefe);   // ← nuevo campo
 
-            axios.post(url+'/empleados/nuevo', formData, {
-            })
-                .then((response) => {
+            axios.post(url + '/empleados/nuevo', fd)
+                .then(function (r) {
                     closeLoading();
-                    if(response.data.success === 1){
+                    if (r.data.success === 1) {
                         toastr.success('Registrado correctamente');
                         $('#modalAgregar').modal('hide');
-                        recargar();
-                    }
-                    else {
-                        toastr.error('Error al registrar');
-                    }
+                        location.reload();
+                    } else { toastr.error('Error al registrar'); }
                 })
-                .catch((error) => {
-                    toastr.error('Error al registrar');
-                    closeLoading();
-                });
+                .catch(function () { toastr.error('Error al registrar'); closeLoading(); });
         }
 
-        function informacion(id){
+        /* ── Modal editar ── */
+        function informacion(id) {
             openLoading();
             document.getElementById("formulario-editar").reset();
 
-            axios.post(url+'/empleados/informacion',{
-                'id': id
-            })
-                .then((response) => {
+            axios.post(url + '/empleados/informacion', { 'id': id })
+                .then(function (r) {
                     closeLoading();
-                    if(response.data.success === 1){
+                    if (r.data.success === 1) {
                         $('#modalEditar').modal('show');
                         $('#id-editar').val(id);
 
-                        document.getElementById("select-distrito-editar").options.length = 0;
-                        document.getElementById("select-unidad-editar").options.length = 0;
-                        document.getElementById("select-cargo-editar").options.length = 0;
+                        // Limpiar selects
+                        ['select-distrito-editar','select-unidad-editar','select-cargo-editar','select-jefe-editar']
+                            .forEach(function(sid){ document.getElementById(sid).options.length = 0; });
 
-                        $.each(response.data.arrayDistrito, function( key, val ){
-                            if(response.data.infoUniEmpleado.id_distrito == val.id){
-                                $('#select-distrito-editar').append('<option value="' +val.id +'" selected="selected">'+ val.nombre +'</option>');
-                            }else{
-                                $('#select-distrito-editar').append('<option value="' +val.id +'">'+ val.nombre +'</option>');
-                            }
+                        $.each(r.data.arrayDistrito, function (k, v) {
+                            var sel = r.data.infoUniEmpleado.id_distrito == v.id ? ' selected' : '';
+                            $('#select-distrito-editar').append('<option value="'+v.id+'"'+sel+'>'+v.nombre+'</option>');
+                        });
+                        $.each(r.data.arrayUnidad, function (k, v) {
+                            var sel = r.data.info.id_unidad_empleado == v.id ? ' selected' : '';
+                            $('#select-unidad-editar').append('<option value="'+v.id+'"'+sel+'>'+v.nombre+'</option>');
+                        });
+                        $.each(r.data.arrayCargo, function (k, v) {
+                            var sel = r.data.info.id_cargo == v.id ? ' selected' : '';
+                            $('#select-cargo-editar').append('<option value="'+v.id+'"'+sel+'>'+v.nombre+'</option>');
                         });
 
-                        $.each(response.data.arrayUnidad, function( key, val ){
-                            if(response.data.info.id_unidad_empleado == val.id){
-                                $('#select-unidad-editar').append('<option value="' +val.id +'" selected="selected">'+ val.nombre +'</option>');
-                            }else{
-                                $('#select-unidad-editar').append('<option value="' +val.id +'">'+ val.nombre +'</option>');
-                            }
+                        // Jefe directo — lista de todos los empleados excepto él mismo
+                        $('#select-jefe-editar').append('<option value="">Sin jefe directo</option>');
+                        $.each(r.data.arrayEmpleados, function (k, v) {
+                            var sel = r.data.info.id_jefe == v.id ? ' selected' : '';
+                            $('#select-jefe-editar').append('<option value="'+v.id+'"'+sel+'>'+v.nombre_completo+'</option>');
                         });
 
-                        $.each(response.data.arrayCargo, function( key, val ){
-                            if(response.data.info.id_cargo == val.id){
-                                $('#select-cargo-editar').append('<option value="' +val.id +'" selected="selected">'+ val.nombre +'</option>');
-                            }else{
-                                $('#select-cargo-editar').append('<option value="' +val.id +'">'+ val.nombre +'</option>');
-                            }
-                        });
+                        $('#nombre-editar').val(r.data.info.nombre);
+                        $('#dui-editar').val(r.data.info.dui);
+                        $("#check-jefe-editar").prop("checked", r.data.info.jefe == 1);
 
-                        $('#nombre-editar').val(response.data.info.nombre);
-                        $('#dui-editar').val(response.data.info.dui);
-
-                        if(response.data.info.jefe === 0){
-                            $("#check-jefe-editar").prop("checked", false);
-                        }else{
-                            $("#check-jefe-editar").prop("checked", true);
-                        }
-
-                    }else{
-                        toastr.error('Información no encontrada');
-                    }
+                    } else { toastr.error('Información no encontrada'); }
                 })
-                .catch((error) => {
-                    closeLoading();
-                    toastr.error('Información no encontrada');
-                });
+                .catch(function () { closeLoading(); toastr.error('Información no encontrada'); });
         }
 
-        function editar(){
-            var id = document.getElementById('id-editar').value;
+        function editar() {
+            var id     = document.getElementById('id-editar').value;
             var nombre = document.getElementById('nombre-editar').value;
             var unidad = document.getElementById('select-unidad-editar').value;
-            var cargo = document.getElementById('select-cargo-editar').value;
-            var dui = document.getElementById('dui-editar').value;
+            var cargo  = document.getElementById('select-cargo-editar').value;
+            var dui    = document.getElementById('dui-editar').value;
+            var jefe   = document.getElementById('check-jefe-editar').checked ? 1 : 0;
+            var idJefe = document.getElementById('select-jefe-editar').value;
 
-            var checkboxJefe = document.getElementById('check-jefe-editar');
-            var valorCheckboxJefe = checkboxJefe.checked ? 1 : 0;
-
-            if(nombre === ''){
-                toastr.error('Nombre es requerido');
-                return;
-            }
-
-            if(unidad === ''){
-                toastr.error('Unidad es requerido');
-                return;
-            }
+            if (!nombre) { toastr.error('Nombre es requerido'); return; }
+            if (!unidad) { toastr.error('Unidad es requerida'); return; }
 
             openLoading();
-            var formData = new FormData();
-            formData.append('id', id);
-            formData.append('nombre', nombre);
-            formData.append('unidad', unidad);
-            formData.append('cargo', cargo);
-            formData.append('dui', dui);
-            formData.append('jefe', valorCheckboxJefe);
+            var fd = new FormData();
+            fd.append('id',       id);
+            fd.append('nombre',   nombre);
+            fd.append('unidad',   unidad);
+            fd.append('cargo',    cargo);
+            fd.append('dui',      dui);
+            fd.append('jefe',     jefe);
+            fd.append('id_jefe',  idJefe);   // ← nuevo campo
 
-            axios.post(url+'/empleados/editar', formData, {
-            })
-                .then((response) => {
+            axios.post(url + '/empleados/editar', fd)
+                .then(function (r) {
                     closeLoading();
-
-                    if(response.data.success === 1){
+                    if (r.data.success === 1) {
                         toastr.success('Actualizado correctamente');
                         $('#modalEditar').modal('hide');
-                        recargar();
-                    }
-                    else {
-                        toastr.error('Error al actualizar');
-                    }
-
+                        location.reload();
+                    } else { toastr.error('Error al actualizar'); }
                 })
-                .catch((error) => {
-                    toastr.error('Error al actualizar');
-                    closeLoading();
-                });
+                .catch(function () { toastr.error('Error al actualizar'); closeLoading(); });
         }
 
-
     </script>
-
 
 @endsection

@@ -37,4 +37,8 @@ class Materiales extends Model
     {
         return $this->belongsTo(Talla::class, 'id_talla');
     }
+
+
+
+
 }

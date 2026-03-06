@@ -117,58 +117,49 @@ class RegistrosController extends Controller
     }
 
     // GUARDAR ENTRADAS
-    public function guardarEntrada(Request $request){
-
-        $rules = array(
-            'fecha' => 'required',
+    public function guardarEntrada(Request $request)
+    {
+        $rules = [
+            'fecha'     => 'required',
             'proveedor' => 'required',
-        );
-
-        // descripcion, lote
-
-        // idMaterial, infoCantidad, infoPrecio
+        ];
 
         $validator = Validator::make($request->all(), $rules);
-        if ( $validator->fails()){
+        if ($validator->fails()) {
             return ['success' => 0];
         }
 
         DB::beginTransaction();
 
         try {
-
             $datosContenedor = json_decode($request->contenedorArray, true);
 
-            $idusuario = Auth::id();
-
+            // ── Cabecera ──
             $registro = new Entradas();
-            $registro->id_usuario = $idusuario;
-            $registro->fecha = $request->fecha;
-            $registro->descripcion = $request->observacion;
-            $registro->lote = $request->lote;
+            $registro->id_usuario   = Auth::id();
+            $registro->fecha        = $request->fecha;
+            $registro->descripcion  = $request->observacion;
+            $registro->lote         = $request->lote;
             $registro->id_proveedor = $request->proveedor;
             $registro->save();
 
-            // idMaterial    infoCantidad
-
-            // SUMAR CANTIDAD
-            foreach ($datosContenedor as $filaArray) {
-
+            // ── Detalle ──
+            foreach ($datosContenedor as $fila) {
                 $detalle = new EntradasDetalle();
-                $detalle->id_entradas = $registro->id;
-                $detalle->id_material = $filaArray['idMaterial'];
-                $detalle->cantidad_inicial = $filaArray['infoCantidad'];
-                $detalle->precio = $filaArray['infoPrecio'];
+                $detalle->id_entradas        = $registro->id;
+                $detalle->id_material        = $fila['idMaterial'];
+                $detalle->cantidad           = $fila['infoCantidad'];
+                $detalle->cantidad_inicial   = $fila['infoCantidad'];
+                $detalle->cantidad_entregada = 0;
+                $detalle->precio             = $fila['infoPrecio'];
                 $detalle->save();
             }
-
-            // ENTRADA COMPLETADA
 
             DB::commit();
             return ['success' => 1];
 
-        }catch(\Throwable $e){
-            Log::info("error: " . $e);
+        } catch (\Throwable $e) {
+            Log::error('guardarEntrada: ' . $e);
             DB::rollback();
             return ['success' => 99];
         }

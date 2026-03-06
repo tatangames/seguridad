@@ -14,10 +14,12 @@ return new class extends Migration
         Schema::create('salidas', function (Blueprint $table) {
             $table->id();
             $table->date('fecha');
-            $table->bigInteger('id_empleado')->unsigned();
+            $table->foreignId('id_empleado')->constrained('empleado');
             $table->string('descripcion', 800)->nullable();
-
-            $table->foreign('id_empleado')->references('id')->on('empleado');
+            $table->string('area', 300)->nullable();
+            $table->string('cargo', 300)->nullable();
+            $table->string('colaborador', 300)->nullable();
+            $table->string('jefe_inmediato', 300)->nullable();
         });
     }
 

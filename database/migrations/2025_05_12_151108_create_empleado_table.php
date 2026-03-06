@@ -14,16 +14,12 @@ return new class extends Migration
         Schema::create('empleado', function (Blueprint $table) {
             $table->id();
             $table->string('nombre', 100);
-
-            $table->bigInteger('id_unidad_empleado')->unsigned();
-            $table->bigInteger('id_cargo')->unsigned();
-
-            $table->boolean('jefe');
-
             $table->string('dui', 50)->nullable();
-
-            $table->foreign('id_unidad_empleado')->references('id')->on('unidad_empleado');
-            $table->foreign('id_cargo')->references('id')->on('cargo');
+            $table->foreignId('id_unidad_empleado')->constrained('unidad_empleado');
+            $table->foreignId('id_cargo')->constrained('cargo');
+            $table->boolean('jefe')->default(false);
+            $table->unsignedBigInteger('id_jefe')->nullable();
+            $table->foreign('id_jefe')->references('id')->on('empleado');
         });
     }
 
