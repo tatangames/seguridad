@@ -879,48 +879,31 @@ class ConfiguracionController extends Controller
 
     public function buscarUnidadConDistritoEmpleado(Request $request)
     {
-        $regla = array(
-            'id' => 'required' // id unidad
-        );
+        $validar = Validator::make($request->all(), ['id' => 'required']);
+        if ($validar->fails()) return ['success' => 0];
 
-        $validar = Validator::make($request->all(), $regla);
+        // Pre-cargar el jefe de la unidad una sola vez (evita N+1)
+        $jefeDeUnidad = Empleado::where('id_unidad_empleado', $request->id)
+            ->where('jefe', 1)
+            ->first();
 
-        if ($validar->fails()) {
-            return ['success' => 0];
-        }
+        $arrayEmpleados = Empleado::with(['cargo', 'jefeDirecto'])
+            ->where('id_unidad_empleado', $request->id)
+            ->get()
+            ->map(function ($item) use ($jefeDeUnidad) {
 
-        $arrayEmpleados = Empleado::where('id_unidad_empleado', $request->id)->get();
+                $item->nombreCompleto = $item->nombre . ' (' . ($item->cargo->nombre ?? '—') . ')';
 
-        foreach ($arrayEmpleados as $item){
-            $infoCargo = Cargo::where('id', $item->id_cargo)->first();
-            $item->nombreCompleto = $item->nombre . ' (' . $infoCargo->nombre . ')';
-
-            if($item->jefe == 1){
-
-                $nombreJefe = "";
-
-                // PORQUE SOY YO MISMO EL JEFE
-                // ENTONCES BUSCAR SI QUIEN ES MI JEFE SUPERIOR
-                if($datauni = UnidadEmpleado::where('id_empleado', $item->id)->first()){
-                    if($datauni->id_empleado_inmediato != null){
-                        $datoE = Empleado::where('id', $datauni->id_empleado_inmediato)->first();
-                        $nombreJefe = $datoE->nombre;
-                    }
+                if ($item->jefe == 1) {
+                    // Soy jefe → mi superior viene de id_jefe (autorreferencia)
+                    $item->jefe_nombre = $item->jefeDirecto?->nombre ?? 'Sin jefe superior';
+                } else {
+                    // Soy empleado → mi jefe es el jefe de mi unidad
+                    $item->jefe_nombre = $jefeDeUnidad?->nombre ?? 'Sin jefe asignado';
                 }
 
-
-                $item->jefe = $nombreJefe;
-            }else{
-
-                // BUSCAR EL JEFE DONDE PERTENEZCO EN LA UNIDAD
-                if($Dato = Empleado::where('id_unidad_empleado', $item->id_unidad_empleado)
-                    ->where('id', '!=', $item->id)
-                    ->where('jefe', 1)
-                    ->first()){
-                    $item->jefe = $Dato->nombre;
-                }
-            }
-        }
+                return $item;
+            });
 
         return ['success' => 1, 'arrayEmpleados' => $arrayEmpleados];
     }

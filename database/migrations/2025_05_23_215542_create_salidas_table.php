@@ -20,6 +20,9 @@ return new class extends Migration
             $table->string('cargo', 300)->nullable();
             $table->string('colaborador', 300)->nullable();
             $table->string('jefe_inmediato', 300)->nullable();
+
+            $table->string('material_linea', 400)->nullable();
+
         });
     }
 

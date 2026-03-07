@@ -42,4 +42,11 @@ class Empleado extends Model
             'id_unidad_empleado'
         );
     }
+
+
+
+    public function jefeDirecto()
+    {
+        return $this->belongsTo(Empleado::class, 'id_jefe');
+    }
 }

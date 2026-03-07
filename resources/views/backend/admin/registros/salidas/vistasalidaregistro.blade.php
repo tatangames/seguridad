@@ -10,9 +10,7 @@
 @stop
 
 <style>
-    table{
-        table-layout:fixed;
-    }
+    table { table-layout: fixed; }
 
     .cursor-pointer:hover {
         cursor: pointer;
@@ -20,225 +18,303 @@
         font-weight: bold;
     }
 
-    .checkbox-lg {
-        transform: scale(1.3);
+    *:focus { outline: none; }
+
+    #modalCantidad .modal-dialog { max-width: 95%; }
+
+    /* ── Header de sección ── */
+    .seccion-header {
+        background: linear-gradient(135deg, #1a3a6b 0%, #2156af 100%);
+        border-radius: 10px 10px 0 0;
+        padding: 12px 18px;
+    }
+    .seccion-header h3 {
+        color: #fff;
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: .05em;
+        text-transform: uppercase;
+        margin: 0;
     }
 
-    .label-lg {
-        font-size: 1.1rem;
+    /* ── Card principal ── */
+    .card-info {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 2px 18px rgba(33,86,175,.13);
+        margin-bottom: 20px;
+    }
+    .card-info .card-body { padding: 22px 24px; }
+
+    /* ── Labels ── */
+    .field-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: #6b7a99;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        margin-bottom: 5px;
+        display: block;
     }
 
-    *:focus {
-        outline: none;
+    /* ── Campo jefe inmediato ── */
+    #jefe-inmediato {
+        background: #f0f4ff;
+        border: 1px solid #c8d8f8;
+        color: #1a3a6b;
+        font-weight: 600;
+        border-radius: 6px;
     }
 
-    #modalCantidad .modal-dialog {
-        max-width: 95%;
+    /* ── Separador ── */
+    .divider-azul {
+        border: none;
+        border-top: 2px solid #e8eef8;
+        margin: 18px 0;
+    }
+
+    /* ── Tabla detalle ── */
+    #matriz thead tr th {
+        background: #2156af;
+        color: #fff;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+        border: none !important;
+        padding: 10px 12px;
+        white-space: nowrap;
+    }
+    #matriz tbody tr { transition: background .15s; }
+    #matriz tbody tr:hover { background: #eef3ff !important; }
+    #matriz tbody td { vertical-align: middle; font-size: 13px; padding: 8px 10px; }
+
+    /* ── Botones acción ── */
+    .btn-guardar-salida {
+        background: linear-gradient(135deg, #28a745, #1e7e34);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 28px;
+        font-weight: 400;
+        font-size: 14px;
+        letter-spacing: .03em;
+        box-shadow: 0 4px 14px rgba(40,167,69,.35);
+        transition: all .2s;
+    }
+    .btn-guardar-salida:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(40,167,69,.45);
+        color: #fff;
+    }
+
+    .badge-sin-jefe {
+        color: #856404;
+        font-size: 11px;
     }
 </style>
 
 <div id="divcontenedor" style="display: none">
 
-    <div class="card-body">
-        <div class="tab-content">
+    {{-- ══ SECCIÓN: INFORMACIÓN ══ --}}
+    <section class="content" style="margin-bottom: 0">
+        <div class="container-fluid">
+            <div class="card card-info" style="border-radius:10px">
 
-            <form>
+                <div class="seccion-header">
+                    <h3><i class="fas fa-info-circle mr-2"></i>Información de Salida</h3>
+                </div>
+
                 <div class="card-body">
+                    <div class="row">
 
-                    <section class="content">
-                        <div class="container-fluid">
-                            <div class="row">
-                                <div class="col-md-12">
+                        {{-- Fecha --}}
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <label class="field-label"><i class="fas fa-calendar-alt mr-1"></i>Fecha</label>
+                            <input type="date" class="form-control" id="fecha">
+                        </div>
 
-                                    <div class="card card-gray-dark">
-                                        <div class="card-header">
-                                            <h3 class="card-title">Información</h3>
-                                        </div>
+                        {{-- Distrito --}}
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <label class="field-label"><i class="fas fa-map-marker-alt mr-1"></i>Distrito</label>
+                            <select class="form-control" id="select-distrito" onchange="buscarUnidad()">
+                                <option value="0" selected disabled>Seleccionar distrito…</option>
+                                @foreach($arrayDistritos as $sel)
+                                    <option value="{{ $sel->id }}">{{ $sel->nombre }}</option>
+                                @endforeach
+                            </select>
+                        </div>
 
-                                        <div class="card-body">
-                                            <div class="card-body col-md-6">
-                                                <div class="row">
-                                                    <label>Fecha:</label>
-                                                    <input style="width: 35%; margin-left: 25px;" type="date" class="form-control" id="fecha">
-                                                </div>
-                                            </div>
+                        {{-- Unidad --}}
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <label class="field-label"><i class="fas fa-building mr-1"></i>Unidad</label>
+                            <select class="form-control" id="select-unidad" onchange="buscarEmpleado()">
+                                <option value="0" disabled selected>Seleccionar unidad…</option>
+                            </select>
+                        </div>
 
-                                            <div class="form-group col-md-6">
-                                                <label>Distrito:</label>
-                                                <br>
-                                                <select width="100%" class="form-control" id="select-distrito" onchange="buscarUnidad(this)">
-                                                    <option value="0" selected disabled>Seleccionar opción</option>
-                                                    @foreach($arrayDistritos as $sel)
-                                                        <option value="{{ $sel->id }}">{{ $sel->nombre }}</option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
+                        {{-- Empleado --}}
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <label class="field-label"><i class="fas fa-user mr-1"></i>Empleado</label>
+                            <select class="form-control" id="select-empleado" style="width:100%">
+                                <option value="0" disabled selected>Seleccionar empleado…</option>
+                            </select>
+                        </div>
 
-                                            <div class="form-group col-md-6">
-                                                <label>Unidad:</label>
-                                                <br>
-                                                <select width="100%" class="form-control" id="select-unidad" onchange="buscarEmpleado(this)">
-                                                </select>
-                                            </div>
+                    </div>
 
-                                            <div class="row">
-                                                <div class="form-group col-md-8">
-                                                    <label>Empleado:</label>
-                                                    <br>
-                                                    <select class="form-control" id="select-empleado" style="width:100%;">
-                                                    </select>
-                                                </div>
-
-                                                <div class="form-group col-md-4">
-                                                    <label>Jefe Inmediato:</label>
-                                                    <br>
-                                                    <input type="text" disabled class="form-control" autocomplete="off" id="jefe-inmediato">
-                                                </div>
-                                            </div>
-
-                                            <br>
-
-                                            <div class="form-group">
-                                                <label>MATERIAL LINEA</label>
-                                                <input type="text" maxlength="100" class="form-control" id="linea-editar" autocomplete="off">
-                                            </div>
-
-                                            <hr>
-
-                                            <div class="form-group" style="margin-top: 20px">
-                                                <label>Descripción (Opcional):</label>
-                                                <input type="text" class="form-control" autocomplete="off" maxlength="800" id="descripcion">
-                                            </div>
-
-                                            <div class="form-group" style="float: left">
-                                                <br>
-                                                <button type="button" onclick="verPDfTemporal()" class="btn btn-success btn-sm float-right"
-                                                        style="margin-top:10px; margin-right: 15px;">
-                                                    <i class="fas fa-file-pdf" title="PDF"></i> PDF Temporal
-                                                </button>
-                                            </div>
-
-                                            <div class="form-group" style="float: right">
-                                                <br>
-                                                <button type="button" id="botonaddmaterial" onclick="abrirModal()" class="btn btn-primary btn-sm float-right"
-                                                        style="margin-top:10px; margin-right: 15px;">
-                                                    <i class="fas fa-search" title="Buscar Material"></i> Buscar Material
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
+                    {{-- Jefe Inmediato --}}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="field-label"><i class="fas fa-user-tie mr-1"></i>Jefe Inmediato</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text" style="background:#e8eef8; border-color:#c8d8f8">
+                                        <i class="fas fa-user-shield text-primary"></i>
+                                    </span>
                                 </div>
+                                <input type="text" disabled class="form-control" autocomplete="off"
+                                       id="jefe-inmediato" placeholder="Se cargará al seleccionar empleado">
                             </div>
                         </div>
-                    </section>
 
+                        {{-- Material línea --}}
+                        <div class="col-md-6 mb-3">
+                            <label class="field-label"><i class="fas fa-tag mr-1"></i>Material Línea</label>
+                            <input type="text" maxlength="100" class="form-control"
+                                   id="linea-editar" autocomplete="off" placeholder="Línea de material…">
+                        </div>
+                    </div>
+
+                    <hr class="divider-azul">
+
+                    {{-- Descripción y acciones --}}
+                    <div class="row align-items-end">
+                        <div class="col-md-8 mb-2">
+                            <label class="field-label"><i class="fas fa-align-left mr-1"></i>Descripción <small style="text-transform:none; font-weight:400">(Opcional)</small></label>
+                            <input type="text" class="form-control" autocomplete="off"
+                                   maxlength="800" id="descripcion" placeholder="Descripción de la salida…">
+                        </div>
+                        <div class="col-md-4 mb-2 d-flex justify-content-end gap-2">
+                            <button type="button" onclick="verPDfTemporal()"
+                                    class="btn btn-success btn-sm mr-2"
+                                    style="border-radius:6px; font-weight:400">
+                                <i class="fas fa-file-pdf mr-1"></i> PDF Temporal
+                            </button>
+                            <button type="button" id="botonaddmaterial" onclick="abrirModal()"
+                                    class="btn btn-primary btn-sm"
+                                    style="border-radius:6px; font-weight:400">
+                                <i class="fas fa-search mr-1"></i> Buscar Material
+                            </button>
+                        </div>
+                    </div>
                 </div>
-            </form>
-
-        </div>
-    </div>
-
-    <section class="content-header">
-        <div class="row mb-2">
-            <div class="col-sm-6">
-                <h2>Detalle de Salida</h2>
             </div>
         </div>
     </section>
 
+    {{-- ══ SECCIÓN: DETALLE ══ --}}
     <section class="content">
         <div class="container-fluid">
-            <div class="card card-gray-dark">
-                <div class="card-header">
-                    <h3 class="card-title">Información de Ingreso</h3>
+            <div class="card card-info">
+
+                <div class="seccion-header" style="border-radius:10px 10px 0 0; display:flex; justify-content:space-between; align-items:center">
+                    <h3><i class="fas fa-list mr-2"></i>Detalle de Salida</h3>
+                    <span id="contador-filas" style="background:rgba(255,255,255,.2); color:#fff; border-radius:20px; padding:2px 12px; font-size:12px; font-weight:700">
+                        0 ítems
+                    </span>
                 </div>
 
-                <table class="table" id="matriz" data-toggle="table" style="margin-right: 15px; margin-left: 15px;">
-                    <thead>
-                    <tr>
-                        <th style="width: 3%">#</th>
-                        <th style="width: 10%">Material</th>
-                        <th style="width: 6%">Salida</th>
-                        <th style="width: 6%">Reemplazo</th>
-                        <th style="width: 6%">Recomendación</th>
-                        <th style="width: 6%">Mes Reemplazo</th>
-                        <th style="width: 5%">Opciones</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped mb-0" id="matriz"
+                               style="table-layout:fixed; width:100%">
+                            <thead>
+                            <tr>
+                                <th style="width:4%">#</th>
+                                <th style="width:22%">Material</th>
+                                <th style="width:8%">Salida</th>
+                                <th style="width:9%">Reemplazo</th>
+                                <th style="width:11%">Recomendación</th>
+                                <th style="width:10%">Mes Reemplazo</th>
+                                <th style="width:8%">Opciones</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
 
+                <div class="card-footer d-flex justify-content-between align-items-center"
+                     style="border-top:2px solid #e8eef8; background:#f8faff; border-radius:0 0 10px 10px">
+                    <small class="text-muted">Agregue materiales usando el buscador</small>
+                    <button type="button" class="btn-guardar-salida" onclick="preguntaGuardar()">
+                        <i class="fas fa-save mr-1"></i>Guardar Salida
+                    </button>
+                </div>
             </div>
         </div>
     </section>
 
-    <div class="modal-footer justify-content-between">
-        <button type="button" class="btn btn-success" onclick="preguntaGuardar()">Guardar Salida</button>
-    </div>
 
-
-    <!-- MODAL BUSCAR MATERIAL -->
+    {{-- ══ MODAL: BUSCAR MATERIAL ══ --}}
     <div class="modal fade" id="modalRepuesto">
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title">Buscar Material</h4>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
+                <div class="modal-header" style="background:#2156af">
+                    <h4 class="modal-title" style="color:#fff"><i class="fas fa-search mr-2"></i>Buscar Material</h4>
+                    <button type="button" class="close" data-dismiss="modal" style="color:#fff">
+                        <span>&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
-
                     <form id="formulario-repuesto">
                         <div class="card-body">
-
                             <div class="form-group">
-                                <label class="control-label" style="font-size: 14px">
-                                    Material (Regresa: Nombre - Medida - Marca - Normativa - Color - Talla) (SOLO REGRESA MATERIAL CON INVENTARIO)
+                                <label class="field-label">
+                                    Material — Regresa: Nombre / Medida / Marca / Normativa / Color / Talla
+                                    <span class="badge badge-success ml-1">Solo con inventario</span>
                                 </label>
-
-                                <table class="table" id="matriz-busqueda" data-toggle="table">
+                                <table class="table" id="matriz-busqueda">
                                     <tbody>
                                     <tr>
                                         <td>
-                                            <input id="inputBuscador" autocomplete="off" class='form-control' style='width:100%'
-                                                   onkeyup='buscarMaterial(this)' maxlength='300' type='text'>
-                                            <div class='droplista' id="midropmenu"
-                                                 style='position: absolute; z-index: 9; width: 95% !important;'></div>
+                                            <input id="inputBuscador" autocomplete="off"
+                                                   class="form-control" style="width:100%"
+                                                   onkeyup="buscarMaterial(this)"
+                                                   maxlength="300" type="text"
+                                                   placeholder="Escribir nombre del material…">
+                                            <div class="droplista" id="midropmenu"
+                                                 style="position:absolute; z-index:9; width:95% !important"></div>
                                         </td>
                                     </tr>
                                     </tbody>
                                 </table>
                             </div>
-
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-12">
-                                        <div id="tablaRepuesto"></div>
-                                    </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div id="tablaRepuesto"></div>
                                 </div>
                             </div>
-
                         </div>
                     </form>
-
                 </div>
-                <div class="modal-footer justify-content-between">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- MODAL CANTIDAD / SALIDA DE MATERIAL -->
+    {{-- ══ MODAL: CANTIDAD / SALIDA DE MATERIAL ══ --}}
     <div class="modal fade" id="modalCantidad">
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title">Salida de Material</h4>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
+                <div class="modal-header" style="background:#1a3a6b">
+                    <h4 class="modal-title" style="color:#fff"><i class="fas fa-boxes mr-2"></i>Salida de Material</h4>
+                    <button type="button" class="close" data-dismiss="modal" style="color:#fff">
+                        <span>&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
@@ -247,51 +323,50 @@
                             <div class="row">
                                 <div class="col-md-12">
 
-                                    <div class="form-group">
-                                        <input type="hidden" class="form-control" id="id-material-seleccionado" autocomplete="off">
+                                    <input type="hidden" id="id-material-seleccionado">
+
+                                    <div class="row mb-3">
+                                        <div class="col-md-12">
+                                            <label class="field-label">Material</label>
+                                            <input type="text" disabled class="form-control" id="info-material">
+                                        </div>
                                     </div>
 
-                                    <div class="form-group">
-                                        <label>Material</label>
-                                        <input type="text" disabled class="form-control" id="info-material">
-                                    </div>
-
-                                    <div class="form-row">
-                                        <div class="form-group col-md-6">
-                                            <label>U/M</label>
+                                    <div class="form-row mb-3">
+                                        <div class="col-md-4">
+                                            <label class="field-label">U/M</label>
                                             <input type="text" disabled class="form-control" id="info-medida">
                                         </div>
-
-                                        <div class="form-group col-md-6">
-                                            <label>Marca</label>
+                                        <div class="col-md-4">
+                                            <label class="field-label">Marca</label>
                                             <input type="text" disabled class="form-control" id="info-marca">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="field-label">Normativa</label>
+                                            <input type="text" disabled class="form-control" id="info-normativa">
                                         </div>
                                     </div>
 
-                                    <div class="form-group">
-                                        <label>Normativa</label>
-                                        <input type="text" disabled class="form-control" id="info-normativa">
+                                    <hr class="divider-azul">
+
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-sm" id="matrizM">
+                                            <thead>
+                                            <tr>
+                                                <th>Fecha Ingreso</th>
+                                                <th>Factura/Lote</th>
+                                                <th>Valor</th>
+                                                <th>Proveedor</th>
+                                                <th>Meses Reemplazo</th>
+                                                <th>Reemplazo</th>
+                                                <th>Recomendación</th>
+                                                <th>Cant. Actual</th>
+                                                <th>Cant. Salida</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
                                     </div>
-
-                                    <hr>
-
-                                    <table class="table" id="matrizM" data-toggle="table" style="margin-right: 15px; margin-left: 15px;">
-                                        <thead>
-                                        <tr>
-                                            <th style="width: 5%">Fecha Ingreso</th>
-                                            <th style="width: 5%">Factura</th>
-                                            <th style="width: 5%">Valor</th>
-                                            <th style="width: 5%">Proveedor</th>
-                                            <th style="width: 5%">Meses Reemplazo</th>
-                                            <th style="width: 5%">Reemplazo</th>
-                                            <th style="width: 5%">Recomendación</th>
-                                            <th style="width: 4%">Cantidad Actual</th>
-                                            <th style="width: 4%">Cantidad Salida</th>
-                                        </tr>
-                                        </thead>
-                                        <tbody>
-                                        </tbody>
-                                    </table>
 
                                 </div>
                             </div>
@@ -299,17 +374,20 @@
                     </form>
                 </div>
                 <div class="modal-footer justify-content-between">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
                     <button type="button"
-                            style="font-weight: bold; background-color: #28a745; color: white !important;"
-                            class="button button-rounded button-pill button-small"
-                            onclick="agregarAlDetalle()">Agregar</button>
+                            class="btn btn-success"
+                            style="font-weight:400; border-radius:6px"
+                            onclick="agregarAlDetalle()">
+                        <i class="fas fa-plus mr-1"></i> Agregar al Detalle
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
-</div>
+</div>{{-- fin #divcontenedor --}}
+
 
 @extends('backend.menus.footerjs')
 @section('archivos-js')
@@ -328,44 +406,36 @@
         $(document).ready(function () {
             document.getElementById("divcontenedor").style.display = "block";
 
-            var fecha = new Date();
-            document.getElementById('fecha').value = fecha.toJSON().slice(0, 10);
+            // Fecha de hoy por defecto
+            var hoy = new Date();
+            document.getElementById('fecha').value = hoy.toJSON().slice(0, 10);
 
             window.seguroBuscador = true;
 
-            $(document).click(function () {
-                $(".droplista").hide();
-            });
+            $(document).click(function () { $(".droplista").hide(); });
 
-            $('[data-toggle="popover"]').popover({
-                placement: 'top',
-                trigger: 'hover'
-            });
-
-            $('#select-distrito').select2({
+            // Select2
+            var s2opts = {
                 theme: "bootstrap-5",
-                language: { noResults: function () { return "Busqueda no encontrada"; } }
-            });
+                language: { noResults: function () { return "Búsqueda no encontrada"; } }
+            };
+            $('#select-distrito').select2(s2opts);
+            $('#select-unidad').select2(s2opts);
+            $('#select-empleado').select2(s2opts);
 
-            $('#select-unidad').select2({
-                theme: "bootstrap-5",
-                language: { noResults: function () { return "Busqueda no encontrada"; } }
-            });
-
-            $('#select-empleado').select2({
-                theme: "bootstrap-5",
-                language: { noResults: function () { return "Busqueda no encontrada"; } }
+            // ── Al cambiar empleado → mostrar su jefe inmediato ──
+            $('#select-empleado').on('change', function () {
+                var jefeNombre = $(this).find(':selected').data('jefe');
+                if (jefeNombre && jefeNombre !== '' && jefeNombre !== 'undefined') {
+                    $('#jefe-inmediato').val(jefeNombre);
+                } else {
+                    $('#jefe-inmediato').val('Sin jefe asignado');
+                }
             });
         });
     </script>
 
     <script>
-
-        // ── Jefe inmediato al cambiar empleado ────────────────────────────
-        $('#select-empleado').on('change', function () {
-            let info = $(this).find(':selected').data('info');
-            $('#jefe-inmediato').val(info != '0' ? info : '');
-        });
 
         // ── Abrir modal buscador ──────────────────────────────────────────
         function abrirModal() {
@@ -377,18 +447,17 @@
         // ── Validar teclas numéricas ──────────────────────────────────────
         function validateInput(event) {
             const key = event.key;
-            if (["Backspace", "ArrowLeft", "ArrowRight", "Delete", "Tab"].includes(key)) return true;
+            if (["Backspace","ArrowLeft","ArrowRight","Delete","Tab"].includes(key)) return true;
             if (key === "e" || key === "E" || key === "-" || isNaN(Number(key))) return false;
             return true;
         }
 
-        // ── Buscar material en el buscador ────────────────────────────────
+        // ── Buscar material (buscador con dropdown) ───────────────────────
         function buscarMaterial(e) {
             if (seguroBuscador) {
                 seguroBuscador = false;
-                var row = $(e).closest('tr');
-                let texto = e.value;
-
+                var row  = $(e).closest('tr');
+                var texto = e.value;
                 axios.post(url + '/buscar/material/disponible', { 'query': texto })
                     .then((response) => {
                         seguroBuscador = true;
@@ -401,23 +470,20 @@
             }
         }
 
-        // ── Seleccionar material del buscador → abrir modal cantidades ────
+        // ── Seleccionar material → abrir modal cantidades ─────────────────
         function modificarValor(edrop) {
             openLoading();
-
             var formData = new FormData();
-            formData.append('id', edrop.id); // id_material
-
+            formData.append('id', edrop.id);
             $("#matrizM tbody tr").remove();
 
-            axios.post(url + '/buscar/material/disponibilidad', formData, {})
+            axios.post(url + '/buscar/material/disponibilidad', formData)
                 .then((response) => {
                     closeLoading();
-
                     if (response.data.success === 1) {
 
                         if (response.data.disponible === 1) {
-                            toastr.info('NO HAY INVENTARIO');
+                            toastr.info('NO HAY INVENTARIO DISPONIBLE');
                             return;
                         }
 
@@ -428,54 +494,31 @@
                         $('#info-normativa').val(response.data.nombreNormativa);
 
                         $.each(response.data.arrayIngreso, function (key, val) {
-
                             var nombreLote = val.lote != null ? val.lote : "";
 
                             var markup = "<tr>" +
-
-                                "<td><input disabled value='" + val.fechaIngreso + "' class='form-control' type='text'></td>" +
-
-                                "<td><input disabled value='" + nombreLote + "' class='form-control' type='text'></td>" +
-
-                                "<td><input disabled value='" + val.precioFormat + "' class='form-control' type='text'></td>" +
-
-                                "<td><input disabled value='" + val.proveedor + "' class='form-control' type='text'></td>" +
-
+                                "<td><input disabled value='" + val.fechaIngreso + "' class='form-control form-control-sm' type='text'></td>" +
+                                "<td><input disabled value='" + nombreLote + "' class='form-control form-control-sm' type='text'></td>" +
+                                "<td><input disabled value='" + val.precioFormat + "' class='form-control form-control-sm' type='text'></td>" +
+                                "<td><input disabled value='" + val.proveedor + "' class='form-control form-control-sm' type='text'></td>" +
                                 "<td>" +
-                                "<input class='form-control' name='arrayMesesReemplazo[]' value='0' min='0' max='100' type='number' " +
-                                "onkeydown=\"return validateInput(event);\" " +
-                                "oninput=\"validateCantidadMaxReemplazo(this, 100);\">" +
+                                "<input class='form-control form-control-sm' name='arrayMesesReemplazo[]' value='0' min='0' max='100' type='number' " +
+                                "onkeydown=\"return validateInput(event);\" oninput=\"validateCantidadMaxReemplazo(this, 100);\">" +
                                 "</td>" +
-
-                                "<td>" +
-                                "<select name='arraySelect1[]' class='form-control'>" +
-                                "<option value='1'>SI</option>" +
-                                "<option value='0'>NO</option>" +
-                                "</select>" +
-                                "</td>" +
-
-                                "<td>" +
-                                "<select name='arraySelect2[]' class='form-control'>" +
-                                "<option value='1'>SI</option>" +
-                                "<option value='0'>NO</option>" +
-                                "</select>" +
-                                "</td>" +
-
+                                "<td><select name='arraySelect1[]' class='form-control form-control-sm'><option value='1'>SI</option><option value='0'>NO</option></select></td>" +
+                                "<td><select name='arraySelect2[]' class='form-control form-control-sm'><option value='1'>SI</option><option value='0'>NO</option></select></td>" +
                                 "<td>" +
                                 "<input name='arrayCantidadActual[]' disabled " +
                                 "data-cantidadActualFila='" + val.cantidadActual + "' " +
-                                "value='" + val.cantidadActual + "' class='form-control' type='number'>" +
+                                "value='" + val.cantidadActual + "' class='form-control form-control-sm' type='number'>" +
                                 "</td>" +
-
                                 "<td>" +
-                                "<input class='form-control' " +
+                                "<input class='form-control form-control-sm' " +
                                 "data-idfilaentradadetalle='" + val.id + "' " +
-                                "name='arrayCantidadSalida[]' min='0' max='" + val.cantidadActual + "' " +
-                                "type='number' " +
+                                "name='arrayCantidadSalida[]' min='0' max='" + val.cantidadActual + "' type='number' " +
                                 "onkeydown=\"return validateInput(event);\" " +
                                 "oninput=\"validateCantidadSalida(this, " + val.cantidadActual + ");\">" +
                                 "</td>" +
-
                                 "</tr>";
 
                             $("#matrizM tbody").append(markup);
@@ -483,164 +526,119 @@
 
                         $('#modalCantidad').modal('show');
                     } else {
-                        toastr.error('Error');
+                        toastr.error('Error al cargar material');
                     }
                 })
-                .catch(() => {
-                    toastr.error('Error');
-                    closeLoading();
-                });
+                .catch(() => { toastr.error('Error'); closeLoading(); });
         }
 
-        // ── Agregar filas al detalle principal ────────────────────────────
+        // ── Agregar filas al detalle ──────────────────────────────────────
         function agregarAlDetalle() {
-
-            var arrayIdEntradaDetalle  = $("input[name='arrayCantidadSalida[]']").map(function () { return $(this).attr("data-idfilaentradadetalle"); }).get();
-            var arrayCantidadSalida    = $("input[name='arrayCantidadSalida[]']").map(function () { return $(this).val(); }).get();
-            var arrayCantidadActual    = $("input[name='arrayCantidadActual[]']").map(function () { return $(this).attr("data-cantidadActualFila"); }).get();
-            var arrayMesesReemplazo    = $("input[name='arrayMesesReemplazo[]']").map(function () { return $(this).val(); }).get();
-            var arraySelectReemplazo   = $("select[name='arraySelect1[]']").map(function () { return $(this).val(); }).get();
+            var arrayIdEntradaDetalle    = $("input[name='arrayCantidadSalida[]']").map(function () { return $(this).attr("data-idfilaentradadetalle"); }).get();
+            var arrayCantidadSalida      = $("input[name='arrayCantidadSalida[]']").map(function () { return $(this).val(); }).get();
+            var arrayCantidadActual      = $("input[name='arrayCantidadActual[]']").map(function () { return $(this).attr("data-cantidadActualFila"); }).get();
+            var arrayMesesReemplazo      = $("input[name='arrayMesesReemplazo[]']").map(function () { return $(this).val(); }).get();
+            var arraySelectReemplazo     = $("select[name='arraySelect1[]']").map(function () { return $(this).val(); }).get();
             var arraySelectRecomendacion = $("select[name='arraySelect2[]']").map(function () { return $(this).val(); }).get();
 
             colorBlancoTabla();
             var habraSalida = true;
 
             for (var a = 0; a < arrayCantidadSalida.length; a++) {
-                let filaCantidad         = arrayCantidadSalida[a];
-                let infoFilaCantidadActual = arrayCantidadActual[a];
-                let infoMesReemplazo     = arrayMesesReemplazo[a];
+                var filaCantidad          = arrayCantidadSalida[a];
+                var infoFilaCantidadActual = arrayCantidadActual[a];
+                var infoMesReemplazo      = arrayMesesReemplazo[a];
 
                 if (filaCantidad !== '') {
                     if (filaCantidad <= 0) {
                         colorRojoTabla(a);
-                        alertaMensaje('info', 'Error', 'En la Fila #' + (a + 1) + " No se permite ingreso de Cero, por favor borrarlo");
+                        alertaMensaje('info', 'Error', 'Fila #' + (a + 1) + ": No se permite cero");
                         return;
                     }
                     habraSalida = false;
                 }
-
                 if (filaCantidad > Number(infoFilaCantidadActual)) {
                     colorRojoTabla(a);
-                    alertaMensaje('info', 'Error', 'En la Fila #' + (a + 1) + " La cantidad de Salida supera a la Cantidad Actual");
+                    alertaMensaje('info', 'Error', 'Fila #' + (a + 1) + ": Supera cantidad actual");
                     return;
                 }
-
                 if (infoMesReemplazo < 0) {
                     colorRojoTabla(a);
-                    alertaMensaje('info', 'Error', 'En la Fila #' + (a + 1) + " El Mes de reemplazo no debe ser Negativo");
+                    alertaMensaje('info', 'Error', 'Fila #' + (a + 1) + ": Mes de reemplazo no puede ser negativo");
                     return;
                 }
             }
 
-            if (habraSalida) {
-                toastr.error('Registrar mínimo 1 salida');
-                return;
-            }
+            if (habraSalida) { toastr.error('Registrar mínimo 1 salida'); return; }
 
             var nombreTexto = document.getElementById('info-material').value;
             var nFilas      = $('#matriz >tbody >tr').length;
 
             for (var z = 0; z < arrayCantidadSalida.length; z++) {
-
-                let infoFilaIdEntradaDetalle = arrayIdEntradaDetalle[z];
-                let filaCantidad             = arrayCantidadSalida[z];
-                let valorReemplazo           = arraySelectReemplazo[z];
-                let valorRecomendacion       = arraySelectRecomendacion[z];
-                let valorMesReemplazo        = arrayMesesReemplazo[z];
-
-                var textoReemplazo    = valorReemplazo    == 1 ? "SI" : "NO";
-                var textoRecomendacion = valorRecomendacion == 1 ? "SI" : "NO";
-
-                if (filaCantidad !== '' && filaCantidad != 0) {
-                    nFilas += 1;
+                var fc = arrayCantidadSalida[z];
+                if (fc !== '' && fc != 0) {
+                    nFilas++;
+                    var textoR  = arraySelectReemplazo[z]     == 1 ? "SI" : "NO";
+                    var textoRc = arraySelectRecomendacion[z] == 1 ? "SI" : "NO";
 
                     var markup = "<tr>" +
-
+                        "<td><p id='fila" + nFilas + "' class='form-control' style='max-width:55px'>" + nFilas + "</p></td>" +
                         "<td>" +
-                        "<p id='fila" + nFilas + "' class='form-control' style='max-width: 65px'>" + nFilas + "</p>" +
+                        "<input name='idmaterialArray[]' type='hidden' data-idmaterialArray='" + arrayIdEntradaDetalle[z] + "'>" +
+                        "<input disabled value='" + nombreTexto + "' class='form-control form-control-sm' type='text'>" +
                         "</td>" +
-
-                        "<td>" +
-                        "<input name='idmaterialArray[]' type='hidden' data-idmaterialArray='" + infoFilaIdEntradaDetalle + "'>" +
-                        "<input disabled value='" + nombreTexto + "' class='form-control' type='text'>" +
-                        "</td>" +
-
-                        "<td>" +
-                        "<input name='salidaArray[]' disabled data-cantidadSalida='" + filaCantidad + "'" +
-                        " value='" + filaCantidad + "' class='form-control' type='text'>" +
-                        "</td>" +
-
-                        "<td>" +
-                        "<input name='reArrayReemplazo[]' disabled data-idvalorReemplazo='" + valorReemplazo + "'" +
-                        " value='" + textoReemplazo + "' class='form-control' type='text'>" +
-                        "</td>" +
-
-                        "<td>" +
-                        "<input name='reArrayRecomendacion[]' disabled data-idvalorRecomendacion='" + valorRecomendacion + "'" +
-                        " value='" + textoRecomendacion + "' class='form-control' type='text'>" +
-                        "</td>" +
-
-                        "<td>" +
-                        "<input name='reArrayMesReemplazo[]' disabled data-idvalorMesReemplazo='" + valorMesReemplazo + "'" +
-                        " value='" + valorMesReemplazo + "' class='form-control' type='text'>" +
-                        "</td>" +
-
-                        "<td>" +
-                        "<button type='button' class='btn btn-block btn-danger' onclick='borrarFila(this)'>Borrar</button>" +
-                        "</td>" +
-
+                        "<td><input name='salidaArray[]' disabled data-cantidadSalida='" + fc + "' value='" + fc + "' class='form-control form-control-sm' type='text'></td>" +
+                        "<td><input name='reArrayReemplazo[]' disabled data-idvalorReemplazo='" + arraySelectReemplazo[z] + "' value='" + textoR + "' class='form-control form-control-sm' type='text'></td>" +
+                        "<td><input name='reArrayRecomendacion[]' disabled data-idvalorRecomendacion='" + arraySelectRecomendacion[z] + "' value='" + textoRc + "' class='form-control form-control-sm' type='text'></td>" +
+                        "<td><input name='reArrayMesReemplazo[]' disabled data-idvalorMesReemplazo='" + arrayMesesReemplazo[z] + "' value='" + arrayMesesReemplazo[z] + "' class='form-control form-control-sm' type='text'></td>" +
+                        "<td><button type='button' class='btn btn-danger btn-block btn-sm' onclick='borrarFila(this)'>Borrar</button></td>" +
                         "</tr>";
 
                     $("#matriz tbody").append(markup);
                 }
             }
 
+            actualizarContador();
             $('#modalCantidad').modal('hide');
             document.getElementById('inputBuscador').value = '';
 
-            Swal.fire({
-                position: 'center',
-                icon: 'success',
-                title: 'Agregado al Detalle',
-                showConfirmButton: false,
-                timer: 1500
-            });
+            Swal.fire({ position: 'center', icon: 'success', title: 'Agregado al Detalle', showConfirmButton: false, timer: 1500 });
         }
 
         // ── Preguntar antes de guardar ────────────────────────────────────
         function preguntaGuardar() {
             colorBlancoTabla();
-
             Swal.fire({
-                title: 'Guardar Salida?',
+                title: '¿Guardar Salida?',
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: '#28a745',
                 cancelButtonColor: '#d33',
                 cancelButtonText: 'Cancelar',
-                confirmButtonText: 'Si'
-            }).then((result) => {
-                if (result.isConfirmed) guardarSalida();
-            });
+                confirmButtonText: 'Sí, guardar'
+            }).then((result) => { if (result.isConfirmed) guardarSalida(); });
         }
 
-        // ── Guardar salida definitiva ─────────────────────────────────────
+        // ── Guardar salida ────────────────────────────────────────────────
         function guardarSalida() {
-
-            var fecha       = document.getElementById('fecha').value;
-            var empleado    = document.getElementById('select-empleado').value;
-            var descripcion = document.getElementById('descripcion').value;
+            var fecha         = document.getElementById('fecha').value;
+            var distrito      = document.getElementById('select-distrito').value;
+            var unidad        = document.getElementById('select-unidad').value;
+            var empleado      = document.getElementById('select-empleado').value;
+            var descripcion   = document.getElementById('descripcion').value;
             var lineaMaterial = document.getElementById('linea-editar').value;
 
-            if (fecha === '')    { toastr.error('Fecha es requerida');    return; }
-            if (empleado === '') { toastr.error('Empleado es requerido'); return; }
+            if (!fecha)                        { toastr.error('Fecha es requerida');     return; }
+            if (!distrito || distrito === '0') { toastr.error('Seleccione un Distrito'); return; }
+            if (!unidad   || unidad   === '0') { toastr.error('Seleccione una Unidad');  return; }
+            if (!empleado || empleado === '0') { toastr.error('Seleccione un Empleado'); return; }
 
-            var reglaNumeroEntero = /^[0-9]\d*$/;
-            if ($('#matriz > tbody >tr').length <= 0) {
-                toastr.error('Registro Salida son requeridos');
+            if ($('#matriz > tbody > tr').length <= 0) {
+                toastr.error('Debe agregar al menos un ítem de salida');
                 return;
             }
 
+            var reglaEntero       = /^[0-9]\d*$/;
             var idEntradaDetalle  = $("input[name='idmaterialArray[]']").map(function () { return $(this).attr("data-idmaterialArray"); }).get();
             var salidaCantidad    = $("input[name='salidaArray[]']").map(function ()     { return $(this).attr("data-cantidadSalida"); }).get();
             var arrayReemplazo    = $("input[name='reArrayReemplazo[]']").map(function () { return $(this).attr("data-idvalorReemplazo"); }).get();
@@ -648,16 +646,14 @@
             var arrayMesReemplazo = $("input[name='reArrayMesReemplazo[]']").map(function () { return $(this).attr("data-idvalorMesReemplazo"); }).get();
 
             for (var a = 0; a < idEntradaDetalle.length; a++) {
-                let infoCantidad = salidaCantidad[a];
-                if (infoCantidad === '')                      { colorRojoTabla(a); toastr.error('Fila #' + (a + 1) + ' Cantidad es requerida');                return; }
-                if (!infoCantidad.match(reglaNumeroEntero))   { colorRojoTabla(a); toastr.error('Fila #' + (a + 1) + ' Cantidad debe ser Entero y no negativo'); return; }
-                if (infoCantidad <= 0)                        { colorRojoTabla(a); toastr.error('Fila #' + (a + 1) + ' Cantidad no debe ser negativo');         return; }
-                if (infoCantidad > 1000000)                   { colorRojoTabla(a); toastr.error('Fila #' + (a + 1) + ' Cantidad máximo 1 millón');              return; }
+                var ic = salidaCantidad[a];
+                if (!ic)                       { colorRojoTabla(a); toastr.error('Fila #' + (a+1) + ' — Cantidad requerida');           return; }
+                if (!ic.match(reglaEntero))    { colorRojoTabla(a); toastr.error('Fila #' + (a+1) + ' — Debe ser entero positivo');     return; }
+                if (ic <= 0)                   { colorRojoTabla(a); toastr.error('Fila #' + (a+1) + ' — No puede ser cero o negativo'); return; }
+                if (ic > 1000000)              { colorRojoTabla(a); toastr.error('Fila #' + (a+1) + ' — Máximo 1,000,000');             return; }
             }
 
-            let formData = new FormData();
-            const contenedorArray = [];
-
+            var contenedorArray = [];
             for (var p = 0; p < salidaCantidad.length; p++) {
                 contenedorArray.push({
                     infoIdEntradaDeta: idEntradaDetalle[p],
@@ -669,55 +665,58 @@
             }
 
             openLoading();
-            formData.append('fecha',           fecha);
-            formData.append('empleado',         empleado);
-            formData.append('descripcion',      descripcion);
-            formData.append('lineaEditar',      lineaMaterial);
+            var formData = new FormData();
+            formData.append('fecha',          fecha);
+            formData.append('empleado',       empleado);
+            formData.append('descripcion',    descripcion);
+            formData.append('lineaEditar',    lineaMaterial);
+            formData.append('contenedorArray', JSON.stringify(contenedorArray));
 
-            formData.append('contenedorArray',  JSON.stringify(contenedorArray));
-
-            axios.post(url + '/salida/guardar', formData, {})
+            axios.post(url + '/salida/guardar', formData)
                 .then((response) => {
                     closeLoading();
-                    if      (response.data.success === 1)  { toastr.error('Se requiere item de Salida'); }
-                    else if (response.data.success === 2)  { toastr.error('Fila #' + response.data.fila + " Supera a las unidades existentes disponibles"); }
+                    if      (response.data.success === 1)  { toastr.error('Se requiere ítem de salida'); }
+                    else if (response.data.success === 2)  { toastr.error('Fila #' + response.data.fila + ": Supera unidades disponibles"); }
                     else if (response.data.success === 10) { reporteFinal(response.data.idsalida); msgActualizado(); }
-                    else                                   { toastr.error('error al guardar'); }
+                    else                                   { toastr.error('Error al guardar'); }
                 })
                 .catch(() => { toastr.error('Error al guardar'); closeLoading(); });
         }
 
-        // ── PDF Temporal — POST directo sin guardar en BD ─────────────────
+        // ── PDF Temporal ──────────────────────────────────────────────────
         function verPDfTemporal() {
-
-            var fecha       = document.getElementById('fecha').value;
-            var empleado    = document.getElementById('select-empleado').value;
-            var descripcion = document.getElementById('descripcion').value;
+            var fecha         = document.getElementById('fecha').value;
+            var distrito      = document.getElementById('select-distrito').value;
+            var unidad        = document.getElementById('select-unidad').value;
+            var empleado      = document.getElementById('select-empleado').value;
+            var descripcion   = document.getElementById('descripcion').value;
             var lineaMaterial = document.getElementById('linea-editar').value;
 
-            if (fecha === '')    { toastr.error('Fecha es requerida');    return; }
-            if (empleado === '') { toastr.error('Empleado es requerido'); return; }
+            if (!fecha)                        { toastr.error('Fecha es requerida');     return; }
+            if (!distrito || distrito === '0') { toastr.error('Seleccione un Distrito'); return; }
+            if (!unidad   || unidad   === '0') { toastr.error('Seleccione una Unidad');  return; }
+            if (!empleado || empleado === '0') { toastr.error('Seleccione un Empleado'); return; }
 
-            var reglaNumeroEntero = /^[0-9]\d*$/;
-            if ($('#matriz > tbody >tr').length <= 0) {
-                toastr.error('Registro Salida son requeridos');
+            if ($('#matriz > tbody > tr').length <= 0) {
+                toastr.error('Debe agregar al menos un ítem de salida');
                 return;
             }
 
+            var reglaEntero       = /^[0-9]\d*$/;
             var idEntradaDetalle  = $("input[name='idmaterialArray[]']").map(function () { return $(this).attr("data-idmaterialArray"); }).get();
             var salidaCantidad    = $("input[name='salidaArray[]']").map(function ()     { return $(this).attr("data-cantidadSalida"); }).get();
             var arrayReemplazo    = $("input[name='reArrayReemplazo[]']").map(function () { return $(this).attr("data-idvalorReemplazo"); }).get();
             var arrayRecomendacion = $("input[name='reArrayRecomendacion[]']").map(function () { return $(this).attr("data-idvalorRecomendacion"); }).get();
 
             for (var a = 0; a < idEntradaDetalle.length; a++) {
-                let infoCantidad = salidaCantidad[a];
-                if (infoCantidad === '')                     { colorRojoTabla(a); toastr.error('Fila #' + (a + 1) + ' Cantidad es requerida');                return; }
-                if (!infoCantidad.match(reglaNumeroEntero))  { colorRojoTabla(a); toastr.error('Fila #' + (a + 1) + ' Cantidad debe ser Entero y no negativo'); return; }
-                if (infoCantidad <= 0)                       { colorRojoTabla(a); toastr.error('Fila #' + (a + 1) + ' Cantidad no debe ser negativo');         return; }
-                if (infoCantidad > 1000000)                  { colorRojoTabla(a); toastr.error('Fila #' + (a + 1) + ' Cantidad máximo 1 millón');              return; }
+                var ic = salidaCantidad[a];
+                if (!ic)                       { colorRojoTabla(a); toastr.error('Fila #' + (a+1) + ' — Cantidad requerida');       return; }
+                if (!ic.match(reglaEntero))    { colorRojoTabla(a); toastr.error('Fila #' + (a+1) + ' — Debe ser entero positivo'); return; }
+                if (ic <= 0)                   { colorRojoTabla(a); toastr.error('Fila #' + (a+1) + ' — No puede ser cero');        return; }
+                if (ic > 1000000)              { colorRojoTabla(a); toastr.error('Fila #' + (a+1) + ' — Máximo 1,000,000');         return; }
             }
 
-            const contenedorArray = [];
+            var contenedorArray = [];
             for (var p = 0; p < salidaCantidad.length; p++) {
                 contenedorArray.push({
                     infoIdEntradaDeta: idEntradaDetalle[p],
@@ -727,31 +726,27 @@
                 });
             }
 
-            // ✅ Enviar por POST con form dinámico → abre PDF en nueva pestaña
             reporteTemporal(contenedorArray, fecha, empleado, descripcion, lineaMaterial);
         }
 
-        // ── Generar form dinámico POST para PDF temporal ──────────────────
         function reporteTemporal(contenedorArray, fecha, empleado, descripcion, lineaMaterial) {
-            var form = document.createElement('form');
-            form.method = 'POST';
-            form.action  = "{{ URL::to('admin/salidas/pdf-temporal') }}";
-            form.target  = '_blank'; // abre en nueva pestaña
+            var form       = document.createElement('form');
+            form.method    = 'POST';
+            form.action    = "{{ URL::to('admin/salidas/pdf-temporal') }}";
+            form.target    = '_blank';
 
-            // CSRF token de Laravel
             var tokenInput   = document.createElement('input');
             tokenInput.type  = 'hidden';
             tokenInput.name  = '_token';
             tokenInput.value = '{{ csrf_token() }}';
             form.appendChild(tokenInput);
 
-            // Campos
             var campos = {
                 contenedorArray: JSON.stringify(contenedorArray),
                 fecha:           fecha,
                 empleado:        empleado,
                 descripcion:     descripcion,
-                lineaMaterial:     lineaMaterial
+                lineaMaterial:   lineaMaterial
             };
 
             for (var key in campos) {
@@ -767,41 +762,26 @@
             document.body.removeChild(form);
         }
 
-        // ── Reporte final guardado ────────────────────────────────────────
         function reporteFinal(idsalida) {
             window.open("{{ URL::to('admin/salidas/pdfcompleto') }}/" + idsalida);
         }
 
-        // ── Mensajes ──────────────────────────────────────────────────────
+        // ── Mensajes finales ──────────────────────────────────────────────
         function msgActualizado() {
             Swal.fire({
                 title: 'Salida Registrada',
                 icon: 'success',
-                showCancelButton: false,
                 allowOutsideClick: false,
                 confirmButtonColor: '#28a745',
                 confirmButtonText: 'Aceptar'
-            }).then((result) => {
-                if (result.isConfirmed) location.reload();
-            });
-        }
-
-        function msgError(fila) {
-            Swal.fire({
-                title: 'Error',
-                text: "En la Fila: " + fila + ": Se esta superando la cantidad disponible, revisar la salida del mismo Material",
-                icon: 'info',
-                allowOutsideClick: false,
-                confirmButtonColor: '#28a745',
-                confirmButtonText: 'Aceptar'
-            });
+            }).then((result) => { if (result.isConfirmed) location.reload(); });
         }
 
         // ── Utilidades tabla ──────────────────────────────────────────────
         function borrarFila(elemento) {
-            var tabla = elemento.parentNode.parentNode;
-            tabla.parentNode.removeChild(tabla);
+            elemento.closest('tr').remove();
             setearFila();
+            actualizarContador();
         }
 
         function setearFila() {
@@ -809,23 +789,22 @@
             var conteo = 0;
             for (var r = 1, n = table.rows.length; r < n; r++) {
                 conteo++;
-                var element = table.rows[r].cells[0].children[0];
-                document.getElementById(element.id).innerHTML = "" + conteo;
+                var el = table.rows[r].cells[0].children[0];
+                el.innerHTML = conteo;
             }
         }
 
+        function actualizarContador() {
+            var n = $('#matriz > tbody > tr').length;
+            $('#contador-filas').text(n + (n === 1 ? ' ítem' : ' ítems'));
+        }
+
         function colorRojoTabla(index) {
-            $("#matriz tr:eq(" + (index + 1) + ")").css('background', '#F1948A');
+            $("#matriz tr:eq(" + (index + 1) + ")").css('background', '#f8d7da');
         }
 
         function colorBlancoTabla() {
             $("#matriz tbody tr").css('background', 'white');
-        }
-
-        function limpiar() {
-            document.getElementById('descripcion').value = '';
-            $('#jefe-inmediato').val("");
-            $("#matriz tbody tr").remove();
         }
 
         function validateCantidadSalida(input, maxCantidad) {
@@ -838,16 +817,17 @@
             if (Number(input.value) > maxCantidad) input.value = maxCantidad;
         }
 
-        // ── Distrito → Unidad ─────────────────────────────────────────────
+        // ── Distrito → poblar Unidades ────────────────────────────────────
         function buscarUnidad() {
-            let id = document.getElementById('select-distrito').value;
-            if (id == '0') {
+            var id = document.getElementById('select-distrito').value;
+            if (!id || id == '0') {
                 document.getElementById("select-unidad").options.length   = 0;
                 document.getElementById("select-empleado").options.length = 0;
-                return false;
+                $('#jefe-inmediato').val('');
+                return;
             }
 
-            $('#jefe-inmediato').val("");
+            $('#jefe-inmediato').val('');
             openLoading();
 
             axios.post(url + '/empleados/buscarunidad', { 'id': id })
@@ -856,27 +836,28 @@
                     if (response.data.success === 1) {
                         document.getElementById("select-unidad").options.length   = 0;
                         document.getElementById("select-empleado").options.length = 0;
-                        $('#select-unidad').append('<option value=0 disabled selected>Seleccionar opción</option>');
+                        $('#select-unidad').append('<option value="0" disabled selected>Seleccionar unidad…</option>');
                         $.each(response.data.arrayUnidad, function (key, val) {
                             $('#select-unidad').append('<option value="' + val.id + '">' + val.nombre + '</option>');
                         });
+                        $('#select-unidad').trigger('change.select2');
                     } else {
-                        toastr.error('Información no encontrada');
+                        toastr.error('No se encontraron unidades');
                     }
                 })
-                .catch(() => { closeLoading(); toastr.error('Información no encontrada'); });
+                .catch(() => { closeLoading(); toastr.error('Error al buscar unidades'); });
         }
 
-        // ── Unidad → Empleado ─────────────────────────────────────────────
+        // ── Unidad → poblar Empleados con jefe_nombre ─────────────────────
         function buscarEmpleado() {
-            let id = document.getElementById('select-unidad').value;
-            if (id == '0') {
-                document.getElementById("select-unidad").options.length   = 0;
+            var id = document.getElementById('select-unidad').value;
+            if (!id || id == '0') {
                 document.getElementById("select-empleado").options.length = 0;
-                return false;
+                $('#jefe-inmediato').val('');
+                return;
             }
 
-            $('#jefe-inmediato').val("");
+            $('#jefe-inmediato').val('');
             openLoading();
 
             axios.post(url + '/empleados/buscarunidad-empleado', { 'id': id })
@@ -884,15 +865,24 @@
                     closeLoading();
                     if (response.data.success === 1) {
                         document.getElementById("select-empleado").options.length = 0;
-                        $('#select-empleado').append('<option value=0 disabled selected>Seleccionar opción</option>');
+                        $('#select-empleado').append('<option value="0" disabled selected>Seleccionar empleado…</option>');
+
                         $.each(response.data.arrayEmpleados, function (key, val) {
-                            $('#select-empleado').append('<option value="' + val.id + '" data-info="' + val.jefe + '">' + val.nombreCompleto + '</option>');
+                            // data-jefe lleva el nombre del jefe inmediato
+                            var jefeNombre = val.jefe_nombre || '';
+                            $('#select-empleado').append(
+                                '<option value="' + val.id + '" data-jefe="' + jefeNombre + '">'
+                                + val.nombreCompleto +
+                                '</option>'
+                            );
                         });
+
+                        $('#select-empleado').trigger('change.select2');
                     } else {
-                        toastr.error('Información no encontrada');
+                        toastr.error('No se encontraron empleados');
                     }
                 })
-                .catch(() => { closeLoading(); toastr.error('Información no encontrada'); });
+                .catch(() => { closeLoading(); toastr.error('Error al buscar empleados'); });
         }
 
     </script>
