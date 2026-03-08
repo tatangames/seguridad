@@ -205,8 +205,8 @@
         function pdfEncargado(){
             var idempleado = document.getElementById('select-empleado').value;
 
-            if(idempleado === ''){
-                toastr.error('Empleado es requerido');
+            if (!idempleado || idempleado === '' || idempleado === '0') {
+                toastr.error('Debe seleccionar un empleado');
                 return;
             }
 

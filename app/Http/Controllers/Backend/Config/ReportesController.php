@@ -72,248 +72,253 @@ class ReportesController extends Controller
     // SALIDAS SEPARADAS
     public function reporteEmpleadoRecibidos($idempleado)
     {
-        $infoEmpleado = Empleado::where('id', $idempleado)->first();
-        $infoUnidadEmpleado = UnidadEmpleado::where('id', $infoEmpleado->id_unidad_empleado)->first();
-        $infoDistrito = Distrito::where('id', $infoUnidadEmpleado->id_distrito)->first();
+        // ── Validar que existan los datos base ─────────────────────────
+        $infoEmpleado = Empleado::find($idempleado);
+        if (!$infoEmpleado) abort(404, 'Empleado no encontrado');
 
+        $infoUnidadEmpleado = UnidadEmpleado::find($infoEmpleado->id_unidad_empleado);
+        if (!$infoUnidadEmpleado) abort(404, 'Unidad del empleado no encontrada');
+
+        $infoDistrito = Distrito::find($infoUnidadEmpleado->id_distrito);
+        if (!$infoDistrito) abort(404, 'Distrito no encontrado');
+
+        // ── Salidas del empleado ───────────────────────────────────────
         $arraySalidas = Salidas::where('id_empleado', $idempleado)
             ->orderBy('fecha', 'ASC')
             ->get();
 
-        $resultsBloque = [];
+        $resultsBloque        = [];
         $totalTodosLosBloques = 0;
 
         foreach ($arraySalidas as $salida) {
-            $detalleSalida = SalidasDetalle::where('id_salida', $salida->id)->get();
-
+            $detalleSalida      = SalidasDetalle::where('id_salida', $salida->id)->get();
             $salida->fechaFormat = date("d-m-Y", strtotime($salida->fecha));
+            $sumaBloquesTotal   = 0;
 
-           // $infoDistrito = Distrito::where('id', $salida->id_distrito)->first();
-            $salida->nombreDistrito = "xx";
-
-
-            $sumaBloquesTotal = 0;
-
-            // Añadir información extra a cada detalle
             $detalleSalida->each(function ($item) use (&$sumaBloquesTotal) {
                 $entradaDetalle = EntradasDetalle::find($item->id_entrada_detalle);
-                $infoEntrada = Entradas::where('id', $entradaDetalle->id_entradas)->first();
-                $item->lote = $infoEntrada->lote;
+                $infoEntrada    = Entradas::find($entradaDetalle->id_entradas);
+                $item->lote     = $infoEntrada->lote ?? '—';
 
+                $material   = Materiales::find($entradaDetalle->id_material);
+                $marca      = Marca::find($material->id_marca);
+                $normativa  = Normativa::find($material->id_normativa);
+                $unidad     = UnidadMedida::find($material->id_medida);
 
-                $material = Materiales::find($entradaDetalle->id_material);
-                $marca = Marca::find($material->id_marca);
-                $normativa = Normativa::find($material->id_normativa);
-                $unidad = UnidadMedida::find($material->id_medida);
+                $item->nombreMaterial      = $material->nombre      ?? '—';
+                $item->nombreMarca         = $marca->nombre         ?? '—';
+                $item->nombreNormativa     = $normativa->nombre     ?? '—';
+                $item->nombreUnidadMedida  = $unidad->nombre        ?? '—';
 
-                $item->nombreMaterial = $material->nombre;
-                $item->nombreMarca = $marca->nombre;
-                $item->nombreNormativa = $normativa->nombre;
-                $item->nombreUnidadMedida = $unidad->nombre;
-
-                $multiplicado = $item->cantidad_salida * $entradaDetalle->precio;
+                $multiplicado      = $item->cantidad_salida * $entradaDetalle->precio;
                 $sumaBloquesTotal += $multiplicado;
 
-                $item->precio = "$" . number_format($entradaDetalle->precio, 2, '.', ',');
-                $item->multiplicado = "$" . number_format($multiplicado, 2, '.', ',');
+                $item->precio      = '$' . number_format($entradaDetalle->precio, 2, '.', ',');
+                $item->multiplicado = '$' . number_format($multiplicado,          2, '.', ',');
             });
 
-            $totalTodosLosBloques += $sumaBloquesTotal;
-            $salida->sumaBloquesTotal = "$" . number_format($sumaBloquesTotal, 2, '.', ',');
-
-            // Ordenar detalles por nombreMaterial
-            $detalleSalida = $detalleSalida->sortBy('nombreMaterial')->values();
-
-            // Agregar salida con su detalle ordenado
-            $salida->detalle = $detalleSalida;
-            $resultsBloque[] = $salida;
+            $totalTodosLosBloques  += $sumaBloquesTotal;
+            $salida->sumaBloquesTotal = '$' . number_format($sumaBloquesTotal, 2, '.', ',');
+            $salida->detalle          = $detalleSalida->sortBy('nombreMaterial')->values();
+            $resultsBloque[]          = $salida;
         }
 
+        $totalTodosLosBloques = '$' . number_format($totalTodosLosBloques, 2, '.', ',');
 
-        $totalTodosLosBloques = "$" . number_format($totalTodosLosBloques, 2, '.', ',');
-
-
-        //$mpdf = new \Mpdf\Mpdf(['format' => 'LETTER']);
+        // ── Configuración mPDF ─────────────────────────────────────────
         $mpdf = new \Mpdf\Mpdf(['tempDir' => sys_get_temp_dir(), 'format' => 'LETTER']);
-
         $mpdf->SetTitle('Entregas');
-
-        // mostrar errores
         $mpdf->showImageErrors = false;
 
         $logoalcaldia = 'images/logo.png';
+        $fechaFormat  = date("d-m-Y", strtotime(Carbon::now('America/El_Salvador')));
 
-        $fechaFormat = date("d-m-Y", strtotime(Carbon::now('America/El_Salvador')));
-
-
+        // ══ ENCABEZADO ══════════════════════════════════════════════════
         $tabla = "
-           <table width='100%' style='border-collapse:collapse; font-family: Arial, sans-serif;'>
-            <tr>
-                <td style='width:25%; border:0.8px solid #000; padding:6px 8px;'>
-                    <table width='100%'>
-                        <tr>
-                            <td style='width:30%; text-align:left;'>
-                                <img src='{$logoalcaldia}' style='height:38px'>
-                            </td>
-                            <td style='width:70%; text-align:left; color:#104e8c; font-size:13px; font-weight:bold; line-height:1.3;'>
-                                SANTA ANA NORTE<br>EL SALVADOR
-                            </td>
-                        </tr>
-                    </table>
-                </td>
-                <td style='width:50%; border-top:0.8px solid #000; border-bottom:0.8px solid #000; padding:6px 8px; text-align:center; font-size:15px; font-weight:bold;'>
-                    FICHA DE ENTREGA DE EQUIPO DE<br>
-                    PROTECCION PERSONAL (E.P.P)
-                </td>
-                <td style='width:25%; border:0.8px solid #000; padding:0; vertical-align:top;'>
-                    <table width='100%' style='font-size:10px;'>
-                        <tr>
-                            <td width='40%' style='border-right:0.8px solid #000; border-bottom:0.8px solid #000; padding:4px 6px;'><strong>Código:</strong></td>
-                            <td width='60%' style='border-bottom:0.8px solid #000; padding:4px 6px; text-align:center;'>SEAC-002-FICH</td>
-                        </tr>
-                        <tr>
-                            <td style='border-right:0.8px solid #000; border-bottom:0.8px solid #000; padding:4px 6px;'><strong>Versión:</strong></td>
-                            <td style='border-bottom:0.8px solid #000; padding:4px 6px; text-align:center;'>000</td>
-                        </tr>
-                        <tr>
-                            <td style='border-right:0.8px solid #000; padding:4px 6px;'><strong>Fecha de vigencia:</strong></td>
-                            <td style='padding:4px 6px; text-align:center;'>22/10/2025</td>
-                        </tr>
-                    </table>
-                </td>
-            </tr>
-        </table>
-        <br>";
+    <table width='100%' style='border-collapse:collapse; font-family:Arial, sans-serif;'>
+        <tr>
+            <td style='width:25%; border:0.8px solid #000; padding:6px 8px;'>
+                <table width='100%'>
+                    <tr>
+                        <td style='width:30%; text-align:left;'>
+                            <img src='{$logoalcaldia}' style='height:38px'>
+                        </td>
+                        <td style='width:70%; text-align:left; color:#104e8c; font-size:13px; font-weight:bold; line-height:1.3;'>
+                            SANTA ANA NORTE<br>EL SALVADOR
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td style='width:50%; border-top:0.8px solid #000; border-bottom:0.8px solid #000;
+                        padding:6px 8px; text-align:center; font-size:15px; font-weight:bold;'>
+                FICHA DE ENTREGA DE EQUIPO DE<br>PROTECCION PERSONAL (E.P.P)
+            </td>
+            <td style='width:25%; border:0.8px solid #000; padding:0; vertical-align:top;'>
+                <table width='100%' style='font-size:10px;'>
+                    <tr>
+                        <td width='40%' style='border-right:0.8px solid #000; border-bottom:0.8px solid #000; padding:4px 6px;'><strong>Código:</strong></td>
+                        <td width='60%' style='border-bottom:0.8px solid #000; padding:4px 6px; text-align:center;'>SEAC-002-FICH</td>
+                    </tr>
+                    <tr>
+                        <td style='border-right:0.8px solid #000; border-bottom:0.8px solid #000; padding:4px 6px;'><strong>Versión:</strong></td>
+                        <td style='border-bottom:0.8px solid #000; padding:4px 6px; text-align:center;'>000</td>
+                    </tr>
+                    <tr>
+                        <td style='border-right:0.8px solid #000; padding:4px 6px;'><strong>Fecha de vigencia:</strong></td>
+                        <td style='padding:4px 6px; text-align:center;'>22/10/2025</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+    <br>
+    ";
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        // ══ DATOS DEL EMPLEADO ═══════════════════════════════════════════
         $tabla .= "
-            <div style='text-align: center; margin-top: 20px;'>
-                <h1 style='font-size: 15px; margin: 0; color: #000;'>ENTREGAS DE MATERIAL</h1>
-            </div>
-            <div style='text-align: left; margin-top: 10px;'>
-                <p style='font-size: 13px; margin: 0; color: #000;'><strong>Fecha:</strong> $fechaFormat</p>
-            </div>
-             <div style='text-align: left; margin-top: 10px;'>
-                <p style='font-size: 13px; margin: 0; color: #000;'><strong>Distrito:</strong> $infoDistrito->nombre</p>
-            </div>
-              <div style='text-align: left; margin-top: 10px;'>
-                <p style='font-size: 13px; margin: 0; color: #000;'><strong>Unidad:</strong> $infoUnidadEmpleado->nombre</p>
-            </div>
-              <div style='text-align: left; margin-top: 10px;'>
-                <p style='font-size: 13px; margin: 0; color: #000;'><strong>Empleado:</strong> $infoEmpleado->nombre</p>
-            </div>
-      ";
+    <div style='text-align:center; margin-top:20px;'>
+        <h1 style='font-size:15px; margin:0; color:#000;'>ENTREGAS DE MATERIAL</h1>
+    </div>
+    <div style='text-align:left; margin-top:10px;'>
+        <p style='font-size:13px; margin:0;'><strong>Fecha:</strong> {$fechaFormat}</p>
+    </div>
+    <div style='text-align:left; margin-top:8px;'>
+        <p style='font-size:13px; margin:0;'><strong>Distrito:</strong> {$infoDistrito->nombre}</p>
+    </div>
+    <div style='text-align:left; margin-top:8px;'>
+        <p style='font-size:13px; margin:0;'><strong>Unidad:</strong> {$infoUnidadEmpleado->nombre}</p>
+    </div>
+    <div style='text-align:left; margin-top:8px;'>
+        <p style='font-size:13px; margin:0;'><strong>Empleado:</strong> {$infoEmpleado->nombre}</p>
+    </div>
+    ";
 
-
-        foreach ($resultsBloque as $fila){
-            $tabla .= "<table width='100%' id='tablaFor' style='margin-top: 30px'>
-            <thead>
-                <tr>
-                    <th style='text-align: center; font-size:12px; width: 12%; font-weight: bold; border: 1px solid black;'>Fecha Salida</th>
-                    <th style='text-align: center; font-size:12px; width: 12%; font-weight: bold; border: 1px solid black;'>Descripción</th>
-                </tr>
-            </thead>
-            <tbody>";
-
-            $tabla .= "<tr>
-                    <td style='font-size: 11px; font-weight: normal'>$fila->fechaFormat</td>
-                    <td style='font-size: 11px; font-weight: normal'>$fila->descripcion</td>
-                </tr>";
-
-            $tabla .= "</tbody></table>";
-
-            $tabla .= "<table width='100%' id='tablaFor'>
-                    <thead>
-                        <tr>
-                            <th style='font-weight: bold; width: 11%; font-size: 12px; text-align: center;'>Factura</th>
-                            <th style='font-weight: bold; width: 22%; font-size: 12px; text-align: center;'>Material</th>
-                            <th style='font-weight: bold; width: 13%; font-size: 12px; text-align: center;'>Marca</th>
-                            <th style='font-weight: bold; width: 12%; font-size: 12px; text-align: center;'>U/M</th>
-                            <th style='font-weight: bold; width: 12%; font-size: 12px; text-align: center;'>Normativa</th>
-                            <th style='font-weight: bold; width: 12%; font-size: 12px; text-align: center;'>Cantidad</th>
-                            <th style='font-weight: bold; width: 10%; font-size: 12px; text-align: center;'>Precio</th>
-                            <th style='font-weight: bold; width: 10%; font-size: 12px; text-align: center;'>Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>";
-
-            foreach ($fila->detalle as $filaDeta){
-
-                $tabla .= "<tr>
-                    <td style='font-size: 11px; font-weight: normal'>$filaDeta->lote</td>
-                    <td style='font-size: 11px; font-weight: normal'>$filaDeta->nombreMaterial</td>
-                    <td style='font-size: 11px; font-weight: normal'>$filaDeta->nombreMarca</td>
-                    <td style='font-size: 11px; font-weight: normal'>$filaDeta->nombreUnidadMedida</td>
-                    <td style='font-size: 11px; font-weight: normal'>$filaDeta->nombreNormativa</td>
-                    <td style='font-size: 11px; font-weight: normal'>$filaDeta->cantidad_salida</td>
-                    <td style='font-size: 11px; font-weight: normal'>$filaDeta->precio</td>
-                    <td style='font-size: 11px; font-weight: normal'>$filaDeta->multiplicado</td>
-                </tr>";
-            }
-
-            $tabla .= "<tr>
-                    <td colspan='7' style='font-size: 11px; font-weight: bold'>Total</td>
-                    <td style='font-size: 11px; font-weight: bold'>$fila->sumaBloquesTotal</td>
-                </tr>";
-
-
-            $tabla .= "</tbody></table>";
+        // ── Sin salidas ────────────────────────────────────────────────
+        if (empty($resultsBloque)) {
+            $tabla .= "
+        <div style='text-align:center; margin-top:40px;'>
+            <p style='font-size:13px; color:#888;'>No se encontraron entregas registradas para este empleado.</p>
+        </div>
+        ";
         }
 
+        // ══ BLOQUES POR SALIDA ════════════════════════════════════════════
+        foreach ($resultsBloque as $fila) {
+
+            // — Cabecera del bloque: fecha + descripción —
+            $tabla .= "
+        <table width='100%' style='margin-top:28px; border-collapse:collapse; font-family:Arial, sans-serif;'>
+            <thead>
+                <tr>
+                    <th style='text-align:center; font-size:11px; width:15%; font-weight:bold;
+                                border:1px solid #000; background:#e8eef8; padding:5px;'>Fecha Salida</th>
+                    <th style='text-align:center; font-size:11px; width:85%; font-weight:bold;
+                                border:1px solid #000; background:#e8eef8; padding:5px;'>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style='font-size:11px; border:1px solid #000; padding:5px; text-align:center;'>
+                        {$fila->fechaFormat}
+                    </td>
+                    <td style='font-size:11px; border:1px solid #000; padding:5px;'>
+                        {$fila->descripcion}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        ";
+
+            // — Detalle del bloque —
+            $tabla .= "
+        <table width='100%' style='border-collapse:collapse; font-family:Arial, sans-serif;'>
+            <thead>
+                <tr>
+                    <th style='font-weight:bold; width:11%; font-size:11px; text-align:center;
+                                border:1px solid #000; background:#f4f6fb; padding:5px;'>Factura</th>
+                    <th style='font-weight:bold; width:22%; font-size:11px; text-align:center;
+                                border:1px solid #000; background:#f4f6fb; padding:5px;'>Material</th>
+                    <th style='font-weight:bold; width:13%; font-size:11px; text-align:center;
+                                border:1px solid #000; background:#f4f6fb; padding:5px;'>Marca</th>
+                    <th style='font-weight:bold; width:10%; font-size:11px; text-align:center;
+                                border:1px solid #000; background:#f4f6fb; padding:5px;'>U/M</th>
+                    <th style='font-weight:bold; width:12%; font-size:11px; text-align:center;
+                                border:1px solid #000; background:#f4f6fb; padding:5px;'>Normativa</th>
+                    <th style='font-weight:bold; width:10%; font-size:11px; text-align:center;
+                                border:1px solid #000; background:#f4f6fb; padding:5px;'>Cantidad</th>
+                    <th style='font-weight:bold; width:11%; font-size:11px; text-align:center;
+                                border:1px solid #000; background:#f4f6fb; padding:5px;'>Precio</th>
+                    <th style='font-weight:bold; width:11%; font-size:11px; text-align:center;
+                                border:1px solid #000; background:#f4f6fb; padding:5px;'>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+        ";
+
+            foreach ($fila->detalle as $filaDeta) {
+                $tabla .= "
+            <tr>
+                <td style='font-size:11px; border:1px solid #000; padding:5px; text-align:center;'>{$filaDeta->lote}</td>
+                <td style='font-size:11px; border:1px solid #000; padding:5px;'>{$filaDeta->nombreMaterial}</td>
+                <td style='font-size:11px; border:1px solid #000; padding:5px;'>{$filaDeta->nombreMarca}</td>
+                <td style='font-size:11px; border:1px solid #000; padding:5px; text-align:center;'>{$filaDeta->nombreUnidadMedida}</td>
+                <td style='font-size:11px; border:1px solid #000; padding:5px; text-align:center;'>{$filaDeta->nombreNormativa}</td>
+                <td style='font-size:11px; border:1px solid #000; padding:5px; text-align:center;'>{$filaDeta->cantidad_salida}</td>
+                <td style='font-size:11px; border:1px solid #000; padding:5px; text-align:right;'>{$filaDeta->precio}</td>
+                <td style='font-size:11px; border:1px solid #000; padding:5px; text-align:right;'>{$filaDeta->multiplicado}</td>
+            </tr>
+            ";
+            }
+
+            // — Subtotal del bloque —
+            $tabla .= "
+            <tr>
+                <td colspan='7' style='font-size:11px; border:1px solid #000; padding:5px;
+                                        text-align:right; font-weight:bold; background:#f9f9f9;'>
+                    Subtotal:
+                </td>
+                <td style='font-size:11px; border:1px solid #000; padding:5px;
+                            text-align:right; font-weight:bold; background:#f9f9f9;'>
+                    {$fila->sumaBloquesTotal}
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        ";
+        }
+
+        // ══ TOTAL GENERAL ════════════════════════════════════════════════
         $tabla .= "
-            <div style='text-align: left; margin-top: 35px; margin-left: 15px'>
-                <p style='font-size: 15px; margin: 0; color: #000;'><strong>Total: $totalTodosLosBloques </strong> </p>
-            </div>
+    <div style='text-align:right; margin-top:20px; margin-right:4px;'>
+        <p style='font-size:14px; margin:0; color:#000;'>
+            <strong>Total General: {$totalTodosLosBloques}</strong>
+        </p>
+    </div>
+    ";
 
-      ";
-
-
+        // ══ GENERAR PDF ══════════════════════════════════════════════════
         $stylesheet = file_get_contents('css/cssbodega.css');
-        $mpdf->WriteHTML($stylesheet,1);
-
-        $mpdf->setFooter("Página: " . '{PAGENO}' . "/" . '{nb}');
-        $mpdf->WriteHTML($tabla,2);
-
+        $mpdf->WriteHTML($stylesheet, 1);
+        $mpdf->setFooter('Página: {PAGENO}/{nb}');
+        $mpdf->WriteHTML($tabla, 2);
         $mpdf->Output();
     }
 
 
-
-
     public function reporteKardexMaterial($idmaterial)
     {
-        $infoMaterial = Materiales::with([
-            'marca',
-            'normativa',
-            'color',
-            'talla'
-        ])->findOrFail($idmaterial);
+        // ── Validar material ───────────────────────────────────────────
+        $infoMaterial = Materiales::with(['marca', 'normativa', 'color', 'talla'])
+            ->find($idmaterial);
 
-        $marca = optional($infoMaterial->marca)->nombre;
-        $normativa = optional($infoMaterial->normativa)->nombre;
-        $color = optional($infoMaterial->color)->nombre;
-        $talla = optional($infoMaterial->talla)->nombre;
+        if (!$infoMaterial) abort(404, 'Material no encontrado');
 
-        // 🔹 TODAS LAS ENTRADAS DEL MATERIAL
+        $marca     = optional($infoMaterial->marca)->nombre     ?? '—';
+        $normativa = optional($infoMaterial->normativa)->nombre ?? '—';
+        $color     = optional($infoMaterial->color)->nombre     ?? '—';
+        $talla     = optional($infoMaterial->talla)->nombre     ?? '—';
+
+        // ── Entradas del material ──────────────────────────────────────
         $entradas = DB::table('entradas_detalle as ed')
             ->join('entradas as e', 'e.id', '=', 'ed.id_entradas')
             ->select(
@@ -328,7 +333,7 @@ class ReportesController extends Controller
             ->orderBy('e.fecha', 'ASC')
             ->get();
 
-        // 🔹 TODAS LAS SALIDAS DEL MATERIAL
+        // ── Salidas del material ───────────────────────────────────────
         $salidas = DB::table('salidas_detalle as sd')
             ->join('entradas_detalle as ed', 'sd.id_entrada_detalle', '=', 'ed.id')
             ->join('salidas as s', 's.id', '=', 'sd.id_salida')
@@ -348,153 +353,301 @@ class ReportesController extends Controller
             ->get()
             ->groupBy('id_entradas');
 
-        $sumaTotalRecibido = 0;
+        // ── Totales y enriquecer entradas ──────────────────────────────
+        $sumaTotalRecibido  = 0;
         $sumaTotalEntregado = 0;
 
         foreach ($entradas as $entrada) {
-
-            $entrada->fechaFormat = date("d-m-Y", strtotime($entrada->fecha));
-            $entrada->detalle = $salidas[$entrada->id] ?? collect();
+            $entrada->fechaFormat = date('d-m-Y', strtotime($entrada->fecha));
+            $entrada->detalle     = $salidas[$entrada->id] ?? collect();
 
             $sumaTotalRecibido += $entrada->cantidadInicial;
 
+            $subtotalSalidas = 0;
             foreach ($entrada->detalle as $salida) {
-                $salida->fechaFormat = date("d-m-Y", strtotime($salida->fecha));
-                $sumaTotalEntregado += $salida->cantidad_salida;
+                $salida->fechaFormat  = date('d-m-Y', strtotime($salida->fecha));
+                $subtotalSalidas     += $salida->cantidad_salida;
+                $sumaTotalEntregado  += $salida->cantidad_salida;
             }
+            $entrada->subtotalSalidas = $subtotalSalidas;
+            // Stock después de esta entrada = recibido - salidas de esa entrada
+            $entrada->stockEntrada = $entrada->cantidadInicial - $subtotalSalidas;
         }
 
         $totalBodega = $sumaTotalRecibido - $sumaTotalEntregado;
 
-        // ---------------- PDF ------------------
-
+        // ── PDF ────────────────────────────────────────────────────────
         $mpdf = new \Mpdf\Mpdf([
-            'tempDir' => sys_get_temp_dir(),
-            'format' => 'LETTER-L',
-            'default_font' => 'arial'
+            'tempDir'      => sys_get_temp_dir(),
+            'format'       => 'LETTER-L',
+            'default_font' => 'arial',
         ]);
-
         $mpdf->SetTitle('Reporte Kardex');
         $mpdf->showImageErrors = false;
 
         $logoalcaldia = 'images/logo.png';
+        $fechaFormat  = now()->format('d-m-Y');
 
-        $fechaFormat = now()->format('d-m-Y');
-
+        // ══ ENCABEZADO ═════════════════════════════════════════════════
         $tabla = "
-           <table width='100%' style='border-collapse:collapse; font-family: Arial, sans-serif;'>
-            <tr>
-                <td style='width:25%; border:0.8px solid #000; padding:6px 8px;'>
-                    <table width='100%'>
-                        <tr>
-                            <td style='width:30%; text-align:left;'>
-                                <img src='{$logoalcaldia}' style='height:38px'>
-                            </td>
-                            <td style='width:70%; text-align:left; color:#104e8c; font-size:13px; font-weight:bold; line-height:1.3;'>
-                                SANTA ANA NORTE<br>EL SALVADOR
-                            </td>
-                        </tr>
-                    </table>
-                </td>
-                <td style='width:50%; border-top:0.8px solid #000; border-bottom:0.8px solid #000; padding:6px 8px; text-align:center; font-size:15px; font-weight:bold;'>
-                    FICHA DE ENTREGA DE EQUIPO DE<br>
-                    PROTECCION PERSONAL (E.P.P)
-                </td>
-                <td style='width:25%; border:0.8px solid #000; padding:0; vertical-align:top;'>
-                    <table width='100%' style='font-size:10px;'>
-                        <tr>
-                            <td width='40%' style='border-right:0.8px solid #000; border-bottom:0.8px solid #000; padding:4px 6px;'><strong>Código:</strong></td>
-                            <td width='60%' style='border-bottom:0.8px solid #000; padding:4px 6px; text-align:center;'>SEAC-002-FICH</td>
-                        </tr>
-                        <tr>
-                            <td style='border-right:0.8px solid #000; border-bottom:0.8px solid #000; padding:4px 6px;'><strong>Versión:</strong></td>
-                            <td style='border-bottom:0.8px solid #000; padding:4px 6px; text-align:center;'>000</td>
-                        </tr>
-                        <tr>
-                            <td style='border-right:0.8px solid #000; padding:4px 6px;'><strong>Fecha de vigencia:</strong></td>
-                            <td style='padding:4px 6px; text-align:center;'>22/10/2025</td>
-                        </tr>
-                    </table>
-                </td>
-            </tr>
-        </table>
-        <br>";
-
-        $tabla .= "
-        <p><strong>Fecha Generado:</strong> $fechaFormat</p>
-        <p><strong>Material:</strong> {$infoMaterial->nombre}</p>
-        <p><strong>Código:</strong> {$infoMaterial->codigo}</p>
-        <p><strong>Marca:</strong> $marca</p>
-        <p><strong>Normativa:</strong> $normativa</p>
-        <p><strong>Color:</strong> $color</p>
-        <p><strong>Talla:</strong> $talla</p>
+    <table width='100%' style='border-collapse:collapse; font-family:Arial, sans-serif;'>
+        <tr>
+            <td style='width:25%; border:0.8px solid #000; padding:6px 8px;'>
+                <table width='100%'>
+                    <tr>
+                        <td style='width:30%; text-align:left;'>
+                            <img src='{$logoalcaldia}' style='height:38px'>
+                        </td>
+                        <td style='width:70%; text-align:left; color:#104e8c; font-size:13px; font-weight:bold; line-height:1.3;'>
+                            SANTA ANA NORTE<br>EL SALVADOR
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td style='width:50%; border-top:0.8px solid #000; border-bottom:0.8px solid #000;
+                        padding:6px 8px; text-align:center; font-size:15px; font-weight:bold;'>
+                KARDEX DE MATERIAL<br>
+                <span style='font-size:12px; font-weight:normal;'>Control de Entradas y Salidas</span>
+            </td>
+            <td style='width:25%; border:0.8px solid #000; padding:0; vertical-align:top;'>
+                <table width='100%' style='font-size:10px;'>
+                    <tr>
+                        <td width='40%' style='border-right:0.8px solid #000; border-bottom:0.8px solid #000; padding:4px 6px;'><strong>Código:</strong></td>
+                        <td width='60%' style='border-bottom:0.8px solid #000; padding:4px 6px; text-align:center;'>SEAC-002-FICH</td>
+                    </tr>
+                    <tr>
+                        <td style='border-right:0.8px solid #000; border-bottom:0.8px solid #000; padding:4px 6px;'><strong>Versión:</strong></td>
+                        <td style='border-bottom:0.8px solid #000; padding:4px 6px; text-align:center;'>000</td>
+                    </tr>
+                    <tr>
+                        <td style='border-right:0.8px solid #000; padding:4px 6px;'><strong>Fecha de vigencia:</strong></td>
+                        <td style='padding:4px 6px; text-align:center;'>22/10/2025</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+    <br>
     ";
 
+        // ══ DATOS DEL MATERIAL ══════════════════════════════════════════
+        $tabla .= "
+    <table width='100%' style='border-collapse:collapse; font-family:Arial, sans-serif;
+                                margin-bottom:16px; font-size:12px;'>
+        <tr>
+            <td style='width:50%; padding:4px 0;'>
+                <strong>Fecha Generado:</strong> {$fechaFormat}
+            </td>
+            <td style='width:50%; padding:4px 0;'>
+                <strong>Código Material:</strong> {$infoMaterial->codigo}
+            </td>
+        </tr>
+        <tr>
+            <td colspan='2' style='padding:4px 0;'>
+                <strong>Material:</strong> {$infoMaterial->nombre}
+            </td>
+        </tr>
+        <tr>
+            <td style='padding:4px 0;'><strong>Marca:</strong> {$marca}</td>
+            <td style='padding:4px 0;'><strong>Normativa:</strong> {$normativa}</td>
+        </tr>
+        <tr>
+            <td style='padding:4px 0;'><strong>Color:</strong> {$color}</td>
+            <td style='padding:4px 0;'><strong>Talla:</strong> {$talla}</td>
+        </tr>
+    </table>
+    ";
+
+        // ── Sin entradas ───────────────────────────────────────────────
+        if ($entradas->isEmpty()) {
+            $tabla .= "
+        <div style='text-align:center; margin-top:40px;'>
+            <p style='font-size:13px; color:#888;'>No se encontraron entradas registradas para este material.</p>
+        </div>
+        ";
+        }
+
+        // ══ BLOQUES POR ENTRADA ════════════════════════════════════════
         foreach ($entradas as $entrada) {
 
+            // — Cabecera entrada —
             $tabla .= "
-            <h4 style='margin-top:25px;'>ENTRADA</h4>
-            <table style='width:100%; border-collapse: collapse;' cellpadding='5'>
+        <table width='100%' style='border-collapse:collapse; font-family:Arial, sans-serif; margin-top:22px;'>
+            <thead>
                 <tr>
-                    <th style='border:1px solid #000;'>Fecha</th>
-                    <th style='border:1px solid #000;'>Lote</th>
-                    <th style='border:1px solid #000;'>Recibido</th>
-                    <th style='border:1px solid #000;'>Descripción</th>
+                    <th colspan='4' style='background:#1a3a6b; color:#fff; font-size:11px;
+                                            padding:6px 8px; text-align:left; border:1px solid #000;'>
+                        ▼ ENTRADA
+                    </th>
                 </tr>
                 <tr>
-                    <td style='border:1px solid #000;'>{$entrada->fechaFormat}</td>
-                    <td style='border:1px solid #000;'>{$entrada->lote}</td>
-                    <td style='border:1px solid #000;'>{$entrada->cantidadInicial}</td>
-                    <td style='border:1px solid #000;'>{$entrada->descripcion}</td>
+                    <th style='border:1px solid #000; background:#e8eef8; font-size:11px;
+                                padding:5px; text-align:center; width:15%;'>Fecha</th>
+                    <th style='border:1px solid #000; background:#e8eef8; font-size:11px;
+                                padding:5px; text-align:center; width:20%;'>Lote / Factura</th>
+                    <th style='border:1px solid #000; background:#e8eef8; font-size:11px;
+                                padding:5px; text-align:center; width:10%;'>Cantidad Recibida</th>
+                    <th style='border:1px solid #000; background:#e8eef8; font-size:11px;
+                                padding:5px; text-align:center; width:55%;'>Descripción</th>
                 </tr>
-            </table>";
+            </thead>
+            <tbody>
+                <tr>
+                    <td style='border:1px solid #000; font-size:11px; padding:5px; text-align:center;'>
+                        {$entrada->fechaFormat}
+                    </td>
+                    <td style='border:1px solid #000; font-size:11px; padding:5px; text-align:center;'>
+                        {$entrada->lote}
+                    </td>
+                    <td style='border:1px solid #000; font-size:11px; padding:5px; text-align:center;
+                                font-weight:bold; color:#155724;'>
+                        {$entrada->cantidadInicial}
+                    </td>
+                    <td style='border:1px solid #000; font-size:11px; padding:5px;'>
+                        {$entrada->descripcion}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        ";
 
+            // — Salidas de esa entrada —
             if ($entrada->detalle->count() > 0) {
 
                 $tabla .= "
-                <h4 style='margin-top:15px;'>SALIDAS</h4>
-                <table style='width:100%; border-collapse: collapse;' cellpadding='5'>
+            <table width='100%' style='border-collapse:collapse; font-family:Arial, sans-serif;'>
+                <thead>
                     <tr>
-                        <th style='border:1px solid #000;'>Fecha</th>
-                        <th style='border:1px solid #000;'>Distrito</th>
-                        <th style='border:1px solid #000;'>Unidad</th>
-                        <th style='border:1px solid #000;'>Empleado</th>
-                        <th style='border:1px solid #000;'>Cantidad</th>
-                    </tr>";
-
-                                foreach ($entrada->detalle as $salida) {
-
-                                    $tabla .= "
+                        <th colspan='5' style='background:#28a745; color:#fff; font-size:11px;
+                                                padding:5px 8px; text-align:left; border:1px solid #000;'>
+                            ▼ SALIDAS
+                        </th>
+                    </tr>
                     <tr>
-                        <td style='border:1px solid #000;'>{$salida->fechaFormat}</td>
-                        <td style='border:1px solid #000;'>{$salida->nombreDistrito}</td>
-                        <td style='border:1px solid #000;'>{$salida->nombreUnidad}</td>
-                        <td style='border:1px solid #000;'>{$salida->nombreEmpleado}</td>
-                        <td style='border:1px solid #000; text-align:center;'>{$salida->cantidad_salida}</td>
-                    </tr>";
+                        <th style='border:1px solid #000; background:#f4f6fb; font-size:11px;
+                                    padding:5px; text-align:center; width:13%;'>Fecha</th>
+                        <th style='border:1px solid #000; background:#f4f6fb; font-size:11px;
+                                    padding:5px; text-align:center; width:20%;'>Distrito</th>
+                        <th style='border:1px solid #000; background:#f4f6fb; font-size:11px;
+                                    padding:5px; text-align:center; width:27%;'>Unidad</th>
+                        <th style='border:1px solid #000; background:#f4f6fb; font-size:11px;
+                                    padding:5px; text-align:center; width:30%;'>Empleado</th>
+                        <th style='border:1px solid #000; background:#f4f6fb; font-size:11px;
+                                    padding:5px; text-align:center; width:10%;'>Cantidad</th>
+                    </tr>
+                </thead>
+                <tbody>
+            ";
+
+                foreach ($entrada->detalle as $salida) {
+                    $tabla .= "
+                <tr>
+                    <td style='border:1px solid #000; font-size:11px; padding:5px; text-align:center;'>
+                        {$salida->fechaFormat}
+                    </td>
+                    <td style='border:1px solid #000; font-size:11px; padding:5px;'>
+                        {$salida->nombreDistrito}
+                    </td>
+                    <td style='border:1px solid #000; font-size:11px; padding:5px;'>
+                        {$salida->nombreUnidad}
+                    </td>
+                    <td style='border:1px solid #000; font-size:11px; padding:5px;'>
+                        {$salida->nombreEmpleado}
+                    </td>
+                    <td style='border:1px solid #000; font-size:11px; padding:5px; text-align:center;
+                                color:#721c24; font-weight:bold;'>
+                        {$salida->cantidad_salida}
+                    </td>
+                </tr>
+                ";
                 }
 
-                $tabla .= "</table>";
+                // Subtotal salidas + stock restante de esa entrada
+                $tabla .= "
+                    <tr>
+                        <td colspan='4' style='border:1px solid #000; font-size:11px; padding:5px;
+                                                text-align:right; font-weight:bold; background:#fff3cd;'>
+                            Total salidas de esta entrada:
+                        </td>
+                        <td style='border:1px solid #000; font-size:11px; padding:5px;
+                                    text-align:center; font-weight:bold; background:#fff3cd;
+                                    color:#856404;'>
+                            {$entrada->subtotalSalidas}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan='4' style='border:1px solid #000; font-size:11px; padding:5px;
+                                                text-align:right; font-weight:bold; background:#d4edda;'>
+                            Stock restante de esta entrada:
+                        </td>
+                        <td style='border:1px solid #000; font-size:11px; padding:5px;
+                                    text-align:center; font-weight:bold; background:#d4edda;
+                                    color:#155724;'>
+                            {$entrada->stockEntrada}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            ";
+
+            } else {
+                // Sin salidas para esta entrada
+                $tabla .= "
+            <table width='100%' style='border-collapse:collapse; font-family:Arial, sans-serif;'>
+                <tr>
+                    <td style='border:1px solid #ccc; font-size:11px; padding:6px 10px;
+                                color:#888; font-style:italic; background:#f9f9f9;'>
+                        Sin salidas registradas para esta entrada.
+                        Stock disponible: <strong>{$entrada->cantidadInicial}</strong>
+                    </td>
+                </tr>
+            </table>
+            ";
             }
         }
 
+        // ══ RESUMEN FINAL ═══════════════════════════════════════════════
         $tabla .= "
-        <div style='margin-top:30px; font-size:14px;'>
-            <p><strong>Total Recibido:</strong> $sumaTotalRecibido</p>
-            <p><strong>Total Entregado:</strong> $sumaTotalEntregado</p>
-            <p><strong>Total Actual en Bodega:</strong> $totalBodega</p>
-        </div>
+    <table width='40%' style='border-collapse:collapse; font-family:Arial, sans-serif;
+                               margin-top:30px; margin-left:auto; font-size:12px;'>
+        <tr>
+            <td style='border:1px solid #000; padding:6px 10px; background:#e8eef8; font-weight:bold;'>
+                Total Recibido
+            </td>
+            <td style='border:1px solid #000; padding:6px 10px; text-align:center;
+                        font-weight:bold; color:#155724;'>
+                {$sumaTotalRecibido}
+            </td>
+        </tr>
+        <tr>
+            <td style='border:1px solid #000; padding:6px 10px; background:#e8eef8; font-weight:bold;'>
+                Total Entregado
+            </td>
+            <td style='border:1px solid #000; padding:6px 10px; text-align:center;
+                        font-weight:bold; color:#721c24;'>
+                {$sumaTotalEntregado}
+            </td>
+        </tr>
+        <tr>
+            <td style='border:1px solid #000; padding:6px 10px; background:#1a3a6b;
+                        color:#fff; font-weight:bold;'>
+                Stock Actual en Bodega
+            </td>
+            <td style='border:1px solid #000; padding:6px 10px; text-align:center;
+                        font-weight:bold; background:#1a3a6b; color:#fff; font-size:14px;'>
+                {$totalBodega}
+            </td>
+        </tr>
+    </table>
     ";
 
+        // ── Generar ────────────────────────────────────────────────────
         $stylesheet = file_get_contents('css/cssbodega.css');
-        $mpdf->WriteHTML($stylesheet,1);
-        $mpdf->setFooter("Página {PAGENO}/{nb}");
-        $mpdf->WriteHTML($tabla,2);
-
+        $mpdf->WriteHTML($stylesheet, 1);
+        $mpdf->setFooter('Página {PAGENO}/{nb}');
+        $mpdf->WriteHTML($tabla, 2);
         $mpdf->Output();
     }
-
-
 
 
 

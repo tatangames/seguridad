@@ -126,16 +126,18 @@
                 </div>
 
                 <div class="card-body">
+
+
                     <div class="row">
 
                         {{-- Fecha --}}
-                        <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="col-md-6 col-sm-12 mb-3">
                             <label class="field-label"><i class="fas fa-calendar-alt mr-1"></i>Fecha</label>
                             <input type="date" class="form-control" id="fecha">
                         </div>
 
                         {{-- Distrito --}}
-                        <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="col-md-6 col-sm-12 mb-3">
                             <label class="field-label"><i class="fas fa-map-marker-alt mr-1"></i>Distrito</label>
                             <select class="form-control" id="select-distrito" onchange="buscarUnidad()">
                                 <option value="0" selected disabled>Seleccionar distrito…</option>
@@ -145,8 +147,14 @@
                             </select>
                         </div>
 
+                    </div>
+
+
+
+                    <div class="row">
+
                         {{-- Unidad --}}
-                        <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="col-md-6 col-sm-12 mb-3">
                             <label class="field-label"><i class="fas fa-building mr-1"></i>Unidad</label>
                             <select class="form-control" id="select-unidad" onchange="buscarEmpleado()">
                                 <option value="0" disabled selected>Seleccionar unidad…</option>
@@ -154,7 +162,7 @@
                         </div>
 
                         {{-- Empleado --}}
-                        <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="col-md-6 col-sm-12 mb-3">
                             <label class="field-label"><i class="fas fa-user mr-1"></i>Empleado</label>
                             <select class="form-control" id="select-empleado" style="width:100%">
                                 <option value="0" disabled selected>Seleccionar empleado…</option>
@@ -168,11 +176,7 @@
                         <div class="col-md-6 mb-3">
                             <label class="field-label"><i class="fas fa-user-tie mr-1"></i>Jefe Inmediato</label>
                             <div class="input-group">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text" style="background:#e8eef8; border-color:#c8d8f8">
-                                        <i class="fas fa-user-shield text-primary"></i>
-                                    </span>
-                                </div>
+
                                 <input type="text" disabled class="form-control" autocomplete="off"
                                        id="jefe-inmediato" placeholder="Se cargará al seleccionar empleado">
                             </div>

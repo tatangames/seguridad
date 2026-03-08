@@ -229,22 +229,9 @@ class HistorialController extends Controller
 
             try {
 
-                $infoBodegaEntraDeta = EntradasDetalle::where('id', $infoSalidaDeta->id_entrada_detalle)->first();
-                $resta = $infoBodegaEntraDeta->cantidad_entregada - $infoSalidaDeta->cantidad_salida;
 
-                // SI HUBO DESCARTES SE DEBERAN CUMAR A cantidad DEL ENTRADA_DETALLE
-                $conteoDescartados = Retorno::where('id_salida_detalle', $request->id)
-                    ->where('tipo_retorno', 0) // DESCARTES
-                    ->sum('cantidad_descarto');
 
-                $sumaPorDescarte = $infoBodegaEntraDeta->cantidad + $conteoDescartados;
-
-                EntradasDetalle::where('id', $infoBodegaEntraDeta->id)->update([
-                    'cantidad_entregada' => $resta,
-                    'cantidad' => $sumaPorDescarte
-                ]);
-
-                // BORRAR SALIDAS DETALLE
+                            // BORRAR SALIDAS DETALLE
                 SalidasDetalle::where('id', $request->id)->delete();
                 // BORRAR SALIDAS (ESTO VERIFICA QUE SINO TIENE DETALLE, ELIMINA EL bodega_salidas)
                 Salidas::whereNotIn('id', SalidasDetalle::pluck('id_salida'))->delete();
@@ -613,22 +600,23 @@ class HistorialController extends Controller
 
 
 
+
     public function reportePdfExistencias()
     {
         $mpdf = new \Mpdf\Mpdf([
-            'tempDir' => sys_get_temp_dir(),
-            'format' => 'LETTER',
-            'orientation' => 'L'
+            'tempDir'      => sys_get_temp_dir(),
+            'format'       => 'LETTER',
+            'orientation'  => 'L',
+            'default_font' => 'arial',
         ]);
 
         $mpdf->SetTitle('Existencias');
         $mpdf->showImageErrors = false;
 
         $logoalcaldia = public_path('images/logo.png');
+        $fechaFormat  = \Carbon\Carbon::now('America/El_Salvador')->format('d-m-Y');
 
-        $fechaFormat = \Carbon\Carbon::now('America/El_Salvador')->format('d-m-Y');
-
-        // 🔥 CONSULTA CORREGIDA
+        // ── Existencias (cantidades) ───────────────────────────────────
         $existencias = DB::table('materiales as m')
             ->leftJoin('unidad_medida as um', 'um.id', '=', 'm.id_medida')
             ->leftJoin('marca as ma', 'ma.id', '=', 'm.id_marca')
@@ -636,26 +624,16 @@ class HistorialController extends Controller
             ->leftJoin('talla as t', 't.id', '=', 'm.id_talla')
             ->leftJoinSub(
                 DB::table('entradas_detalle')
-                    ->select(
-                        'id_material',
-                        DB::raw('SUM(cantidad_inicial) as total_ingresado'),
-                        DB::raw('SUM(cantidad_inicial * precio) as valor_ingresado')
-                    )
+                    ->select('id_material', DB::raw('SUM(cantidad_inicial) as total_ingresado'))
                     ->groupBy('id_material'),
-                'ed',
-                'ed.id_material', '=', 'm.id'
+                'ed', 'ed.id_material', '=', 'm.id'
             )
             ->leftJoinSub(
                 DB::table('salidas_detalle as sd')
                     ->join('entradas_detalle as ed2', 'ed2.id', '=', 'sd.id_entrada_detalle')
-                    ->select(
-                        'ed2.id_material',
-                        DB::raw('SUM(sd.cantidad_salida) as total_salido'),
-                        DB::raw('SUM(sd.cantidad_salida * ed2.precio) as valor_salido')
-                    )
+                    ->select('ed2.id_material', DB::raw('SUM(sd.cantidad_salida) as total_salido'))
                     ->groupBy('ed2.id_material'),
-                'sd',
-                'sd.id_material', '=', 'm.id'
+                'sd', 'sd.id_material', '=', 'm.id'
             )
             ->select(
                 'm.id',
@@ -667,119 +645,182 @@ class HistorialController extends Controller
                 't.nombre as talla',
                 DB::raw('COALESCE(ed.total_ingresado, 0) as total_ingresado'),
                 DB::raw('COALESCE(sd.total_salido, 0) as total_salido'),
-                DB::raw('(COALESCE(ed.total_ingresado, 0) - COALESCE(sd.total_salido, 0)) as existencia'),
-                DB::raw('(COALESCE(ed.valor_ingresado, 0) - COALESCE(sd.valor_salido, 0)) as valor_total')
+                DB::raw('(COALESCE(ed.total_ingresado, 0) - COALESCE(sd.total_salido, 0)) as existencia')
             )
             ->havingRaw('existencia > 0')
             ->orderBy('m.nombre')
             ->get();
 
-        // 🔥 HTML PDF
+        // ── Valor correcto por lote: (cantidad_inicial - salido) × precio ──
+        $valoresPorMaterial = DB::table('entradas_detalle as ed')
+            ->leftJoin(
+                DB::raw('(SELECT id_entrada_detalle, SUM(cantidad_salida) as salido
+                      FROM salidas_detalle
+                      GROUP BY id_entrada_detalle) as sd'),
+                'sd.id_entrada_detalle', '=', 'ed.id'
+            )
+            ->select(
+                'ed.id_material',
+                DB::raw('SUM((ed.cantidad_inicial - COALESCE(sd.salido, 0)) * ed.precio) as valor_real')
+            )
+            ->groupBy('ed.id_material')
+            ->pluck('valor_real', 'id_material');
+
+        // ══ ENCABEZADO ═════════════════════════════════════════════════
         $tabla = "
-           <table width='100%' style='border-collapse:collapse; font-family: Arial, sans-serif;'>
-            <tr>
-                <td style='width:25%; border:0.8px solid #000; padding:6px 8px;'>
-                    <table width='100%'>
-                        <tr>
-                            <td style='width:30%; text-align:left;'>
-                                <img src='{$logoalcaldia}' style='height:38px'>
-                            </td>
-                            <td style='width:70%; text-align:left; color:#104e8c; font-size:13px; font-weight:bold; line-height:1.3;'>
-                                SANTA ANA NORTE<br>EL SALVADOR
-                            </td>
-                        </tr>
-                    </table>
-                </td>
-                <td style='width:50%; border-top:0.8px solid #000; border-bottom:0.8px solid #000; padding:6px 8px; text-align:center; font-size:15px; font-weight:bold;'>
-                    EXISTENCIAS (E.P.P)
-                </td>
-                <td style='width:25%; border:0.8px solid #000; padding:0; vertical-align:top;'>
-                    <table width='100%' style='font-size:10px;'>
-                        <tr>
-                            <td width='40%' style='border-right:0.8px solid #000; border-bottom:0.8px solid #000; padding:4px 6px;'><strong>Código:</strong></td>
-                            <td width='60%' style='border-bottom:0.8px solid #000; padding:4px 6px; text-align:center;'>SEAC-002-FICH</td>
-                        </tr>
-                        <tr>
-                            <td style='border-right:0.8px solid #000; border-bottom:0.8px solid #000; padding:4px 6px;'><strong>Versión:</strong></td>
-                            <td style='border-bottom:0.8px solid #000; padding:4px 6px; text-align:center;'>000</td>
-                        </tr>
-                        <tr>
-                            <td style='border-right:0.8px solid #000; padding:4px 6px;'><strong>Fecha de vigencia:</strong></td>
-                            <td style='padding:4px 6px; text-align:center;'>22/10/2025</td>
-                        </tr>
-                    </table>
-                </td>
-            </tr>
-        </table>
-        <br>";
-
-        $tabla .= "
-    <table width='100%' border='1' cellspacing='0' cellpadding='5'>
-        <thead>
-            <tr style='background-color:#f0f0f0; font-size:12px'>
-                <th>#</th>
-                <th>Código</th>
-                <th>Material</th>
-                <th>Marca</th>
-                <th>Color</th>
-                <th>Talla</th>
-                <th>Unidad</th>
-                <th>Existencia</th>
-                <th>Valor ($)</th>
-            </tr>
-        </thead>
-        <tbody>
-    ";
-
-        $cont = 1;
-        $totalExistencia = 0;
-        $totalValor = 0;
-
-        foreach ($existencias as $item) {
-
-            $existencia = (int) $item->existencia;
-            $valor = (float) $item->valor_total;
-
-            $totalExistencia += $existencia;
-            $totalValor += $valor;
-
-            $tabla .= "
-        <tr style='font-size:11px'>
-            <td>{$cont}</td>
-            <td>{$item->codigo}</td>
-            <td>{$item->material}</td>
-            <td>{$item->marca}</td>
-            <td>{$item->color}</td>
-            <td>{$item->talla}</td>
-            <td>{$item->unidad}</td>
-            <td align='right'>{$existencia}</td>
-            <td align='right'>$ " . number_format($valor, 2) . "</td>
+    <table width='100%' style='border-collapse:collapse; font-family:Arial, sans-serif; margin-bottom:6px;'>
+        <tr>
+            <td style='width:20%; border:0.8px solid #000; padding:6px 8px;'>
+                <table width='100%'>
+                    <tr>
+                        <td style='width:35%; text-align:left;'>
+                            <img src='{$logoalcaldia}' style='height:40px'>
+                        </td>
+                        <td style='width:65%; text-align:left; color:#104e8c;
+                                    font-size:12px; font-weight:bold; line-height:1.4;'>
+                            SANTA ANA NORTE<br>EL SALVADOR
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td style='width:60%; border-top:0.8px solid #000; border-bottom:0.8px solid #000;
+                        padding:8px; text-align:center; vertical-align:middle;'>
+                <div style='font-size:16px; font-weight:bold; color:#1a3a6b; letter-spacing:1px;'>
+                    REPORTE DE EXISTENCIAS DE E.P.P.
+                </div>
+                <div style='font-size:11px; color:#555; margin-top:3px;'>
+                    Equipo de Protección Personal — Fecha: <strong>{$fechaFormat}</strong>
+                </div>
+            </td>
+            <td style='width:20%; border:0.8px solid #000; padding:0; vertical-align:top;'>
+                <table width='100%' style='font-size:10px; border-collapse:collapse;'>
+                    <tr>
+                        <td style='border-right:0.8px solid #000; border-bottom:0.8px solid #000;
+                                    padding:4px 6px; font-weight:bold;'>Código:</td>
+                        <td style='border-bottom:0.8px solid #000; padding:4px 6px; text-align:center;'>
+                            SEAC-002-FICH
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style='border-right:0.8px solid #000; border-bottom:0.8px solid #000;
+                                    padding:4px 6px; font-weight:bold;'>Versión:</td>
+                        <td style='border-bottom:0.8px solid #000; padding:4px 6px; text-align:center;'>
+                            000
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style='border-right:0.8px solid #000; padding:4px 6px; font-weight:bold;'>
+                            Vigencia:
+                        </td>
+                        <td style='padding:4px 6px; text-align:center;'>22/10/2025</td>
+                    </tr>
+                </table>
+            </td>
         </tr>
-        ";
-
-            $cont++;
-        }
-
-        $tabla .= "
-        </tbody>
-        <tfoot>
-            <tr style='font-weight:bold; background-color:#e6e6e6'>
-                <td colspan='7' align='right'>TOTAL GENERAL</td>
-                <td align='right'>{$totalExistencia}</td>
-                <td align='right'>$ " . number_format($totalValor, 2) . "</td>
-            </tr>
-        </tfoot>
     </table>
     ";
 
+        // ── Sin datos ──────────────────────────────────────────────────
+        if ($existencias->isEmpty()) {
+            $tabla .= "
+        <div style='text-align:center; margin-top:60px; font-family:Arial, sans-serif;'>
+            <p style='font-size:13px; color:#888;'>No se encontraron existencias disponibles.</p>
+        </div>
+        ";
+        } else {
+
+            // ══ TABLA ══════════════════════════════════════════════════
+            $tabla .= "
+        <table width='100%' style='border-collapse:collapse; font-family:Arial, sans-serif; margin-top:10px;'>
+            <thead>
+                <tr>
+                    <th style='background:#1a3a6b; color:#fff; font-size:10px; font-weight:bold;
+                                border:1px solid #000; padding:6px 4px; text-align:center; width:3%;'>#</th>
+                    <th style='background:#1a3a6b; color:#fff; font-size:10px; font-weight:bold;
+                                border:1px solid #000; padding:6px 4px; text-align:center; width:8%;'>Código</th>
+                    <th style='background:#1a3a6b; color:#fff; font-size:10px; font-weight:bold;
+                                border:1px solid #000; padding:6px 4px; text-align:center; width:28%;'>Material</th>
+                    <th style='background:#1a3a6b; color:#fff; font-size:10px; font-weight:bold;
+                                border:1px solid #000; padding:6px 4px; text-align:center; width:12%;'>Marca</th>
+                    <th style='background:#1a3a6b; color:#fff; font-size:10px; font-weight:bold;
+                                border:1px solid #000; padding:6px 4px; text-align:center; width:9%;'>Color</th>
+                    <th style='background:#1a3a6b; color:#fff; font-size:10px; font-weight:bold;
+                                border:1px solid #000; padding:6px 4px; text-align:center; width:8%;'>Talla</th>
+                    <th style='background:#1a3a6b; color:#fff; font-size:10px; font-weight:bold;
+                                border:1px solid #000; padding:6px 4px; text-align:center; width:9%;'>Unidad</th>
+                    <th style='background:#1a3a6b; color:#fff; font-size:10px; font-weight:bold;
+                                border:1px solid #000; padding:6px 4px; text-align:center; width:10%;'>Existencia</th>
+                    <th style='background:#1a3a6b; color:#fff; font-size:10px; font-weight:bold;
+                                border:1px solid #000; padding:6px 4px; text-align:center; width:13%;'>Valor ($)</th>
+                </tr>
+            </thead>
+            <tbody>
+        ";
+
+            $cont       = 1;
+            $totalValor = 0;
+
+            foreach ($existencias as $item) {
+                $existencia  = (int)   $item->existencia;
+                $valor       = (float) ($valoresPorMaterial[$item->id] ?? 0);
+                $totalValor += $valor;
+
+                $tabla .= "
+            <tr>
+                <td style='border:1px solid #ccc; font-size:10px; padding:5px;
+                            text-align:center; color:#666;'>{$cont}</td>
+                <td style='border:1px solid #ccc; font-size:10px; padding:5px;
+                            text-align:center; font-weight:bold; color:#1a3a6b;'>{$item->codigo}</td>
+                <td style='border:1px solid #ccc; font-size:10px; padding:5px;
+                            font-weight:600; color:#1a2d55;'>{$item->material}</td>
+                <td style='border:1px solid #ccc; font-size:10px; padding:5px;
+                            text-align:center;'>" . ($item->marca  ?? '—') . "</td>
+                <td style='border:1px solid #ccc; font-size:10px; padding:5px;
+                            text-align:center;'>" . ($item->color  ?? '—') . "</td>
+                <td style='border:1px solid #ccc; font-size:10px; padding:5px;
+                            text-align:center;'>" . ($item->talla  ?? '—') . "</td>
+                <td style='border:1px solid #ccc; font-size:10px; padding:5px;
+                            text-align:center;'>" . ($item->unidad ?? '—') . "</td>
+                <td style='border:1px solid #ccc; font-size:10px; padding:5px;
+                            text-align:center;'>{$existencia}</td>
+                <td style='border:1px solid #ccc; font-size:10px; padding:5px; text-align:right;'>
+                    \$ " . number_format($valor, 2) . "
+                </td>
+            </tr>
+            ";
+
+                $cont++;
+            }
+
+            $tabla .= "
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan='8' style='border:1px solid #000; padding:7px 8px; text-align:right;
+                                            font-size:11px; font-weight:bold;
+                                            background:#1a3a6b; color:#fff; letter-spacing:.5px;'>
+                        TOTAL GENERAL
+                    </td>
+                    <td style='border:1px solid #000; padding:7px; text-align:right;
+                                font-size:12px; font-weight:bold;
+                                background:#1a3a6b; color:#fff;'>
+                        \$ " . number_format($totalValor, 2) . "
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+        ";
+        }
+
+        // ── Generar PDF ────────────────────────────────────────────────
         $stylesheet = file_get_contents(public_path('css/cssbodega.css'));
-        $mpdf->WriteHTML($stylesheet,1);
-
-        $mpdf->setFooter("Página: {PAGENO}/{nb}");
-        $mpdf->WriteHTML($tabla,2);
-
+        $mpdf->WriteHTML($stylesheet, 1);
+        $mpdf->setFooter('Página: {PAGENO}/{nb}');
+        $mpdf->WriteHTML($tabla, 2);
         $mpdf->Output();
     }
+
+
 
 
 

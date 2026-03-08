@@ -16,7 +16,6 @@ return new class extends Migration
             $table->bigInteger('id_entradas')->unsigned();
             $table->bigInteger('id_material')->unsigned();
 
-            // HISTORIAL DE QUE ENTRO LA PRIMERA VEZ
             $table->integer('cantidad_inicial');
 
             // 4 DECIMALES PARA PRECIO UNITARIO

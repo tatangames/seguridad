@@ -163,7 +163,7 @@
                                     <tr>
                                         <th style="width:25%">Nombre</th>
                                         <th style="width:16%">Distrito</th>
-                                        <th style="width:35%">Jefes Asignados <small style="font-weight:400; text-transform:none">(vía jefe_unidad)</small></th>
+                                        <th style="width:35%">Jefes Asignados</th>
                                         <th style="width:24%">Opciones</th>
                                     </tr>
                                     </thead>
@@ -526,6 +526,7 @@
         }
 
         function renderJefesAsignados(asignados) {
+            // 1. Actualizar el modal (como antes)
             var html = '';
             if (asignados.length === 0) {
                 html = '<p class="text-muted mb-0"><small>Ningún jefe asignado aún.</small></p>';
@@ -541,6 +542,38 @@
                 });
             }
             $('#lista-jefes-asignados').html(html);
+
+            // 2. Actualizar la fila en la tabla principal
+            var idUnidad = $('#id-unidad-jefes').val();
+            var dtU = $('#tablaUnidad').DataTable();
+
+            dtU.rows().every(function () {
+                var $tr = $(this.node());
+                // Buscar la fila por el onclick del botón "Gestionar Jefes"
+                if ($tr.find('button[onclick*="modalAsignarJefes(' + idUnidad + ',"]').length) {
+
+                    // Actualizar data-tienejefe
+                    var tienJefe = asignados.length > 0 ? 'con' : 'sin';
+                    $tr.attr('data-tienejefe', tienJefe);
+
+                    // Actualizar celda de jefes (columna índice 2)
+                    var badgesHtml = '';
+                    if (asignados.length === 0) {
+                        badgesHtml = '<span class="badge-sin-jefe">Sin asignar</span>';
+                    } else {
+                        asignados.forEach(function (j) {
+                            badgesHtml += '<span class="badge-jefe-asig">'
+                                + '<i class="fas fa-user-tie" style="font-size:9px"></i> '
+                                + j.nombre + '</span>';
+                        });
+                    }
+                    $(this.node()).find('td').eq(2).html(badgesHtml);
+                }
+            });
+
+            // 3. Redibujar DataTable y actualizar contadores
+            dtU.draw(false); // false = mantener la paginación actual
+            actualizarContadoresUnidad();
         }
 
         function agregarJefeUnidad() {

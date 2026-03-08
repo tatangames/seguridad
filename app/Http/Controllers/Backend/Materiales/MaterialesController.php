@@ -10,6 +10,7 @@ use App\Models\Marca;
 use App\Models\Materiales;
 use App\Models\Normativa;
 use App\Models\Retorno;
+use App\Models\SalidasDetalle;
 use App\Models\Talla;
 use App\Models\UnidadMedida;
 use Illuminate\Http\Request;
@@ -28,14 +29,50 @@ class MaterialesController extends Controller
 
 
     public function indexMateriales(){
-        $arrayUnidades = UnidadMedida::orderBy('nombre', 'ASC')->get();
-        $arrayMarcas = Marca::orderBy('nombre', 'ASC')->get();
+        $arrayUnidades  = UnidadMedida::orderBy('nombre', 'ASC')->get();
+        $arrayMarcas    = Marca::orderBy('nombre', 'ASC')->get();
         $arrayNormativa = Normativa::orderBy('nombre', 'ASC')->get();
-        $arrayColor = Color::orderBy('nombre', 'ASC')->get();
-        $arrayTalla = Talla::orderBy('nombre', 'ASC')->get();
+        $arrayColor     = Color::orderBy('nombre', 'ASC')->get();
+        $arrayTalla     = Talla::orderBy('nombre', 'ASC')->get();
 
-        return view('backend.admin.materiales.vistamateriales', compact('arrayUnidades',
-            'arrayMarcas', 'arrayNormativa', 'arrayColor', 'arrayTalla'));
+        $lista = DB::table('materiales as m')
+            ->leftJoin('unidad_medida as um', 'um.id', '=', 'm.id_medida')
+            ->leftJoin('marca as ma', 'ma.id', '=', 'm.id_marca')
+            ->leftJoin('normativa as no', 'no.id', '=', 'm.id_normativa')
+            ->leftJoin('color as co', 'co.id', '=', 'm.id_color')
+            ->leftJoin('talla as ta', 'ta.id', '=', 'm.id_talla')
+            ->select(
+                'm.*',
+                'um.nombre as unidadMedida',
+                'ma.nombre as marca',
+                'no.nombre as normativa',
+                'co.nombre as color',
+                'ta.nombre as talla',
+                DB::raw('(SELECT COALESCE(SUM(cantidad_inicial),0)
+                      FROM entradas_detalle
+                      WHERE id_material = m.id) as total_ingresado'),
+                DB::raw('(SELECT COALESCE(SUM(sd.cantidad_salida),0)
+                      FROM salidas_detalle sd
+                      INNER JOIN entradas_detalle ed
+                          ON ed.id = sd.id_entrada_detalle
+                      WHERE ed.id_material = m.id) as total_salido'),
+                DB::raw('(
+                (SELECT COALESCE(SUM(cantidad_inicial),0)
+                 FROM entradas_detalle WHERE id_material = m.id)
+                -
+                (SELECT COALESCE(SUM(sd.cantidad_salida),0)
+                 FROM salidas_detalle sd
+                 INNER JOIN entradas_detalle ed
+                     ON ed.id = sd.id_entrada_detalle
+                 WHERE ed.id_material = m.id)
+            ) as cantidadGlobal')
+            )
+            ->get();
+
+        return view('backend.admin.materiales.vistamateriales', compact(
+            'arrayUnidades', 'arrayMarcas', 'arrayNormativa',
+            'arrayColor', 'arrayTalla', 'lista'
+        ));
     }
 
     public function tablaMateriales()
@@ -279,27 +316,55 @@ class MaterialesController extends Controller
 
 
     public function vistaDetalleMaterial($id){
-        return view('backend.admin.materiales.detalle.vistadetallematerial', compact('id'));
+        return view('backend.admin.materiales.detalle.vistadetallematerial', [
+            'id' => $id   // ← explícito, evita ambigüedad de compact()
+        ]);
     }
 
 
     public function tablaDetalleMaterial($idmaterial){
 
-        $listado = EntradasDetalle::where('id_material', $idmaterial)
-            ->whereColumn('cantidad_entregada', '<', 'cantidad')
+        $listado = EntradasDetalle::with('entrada')
+            ->where('id_material', $idmaterial)
             ->get();
 
+        // Totales GLOBALES (antes de filtrar)
+        $totalLotes      = 0;
+        $totalDisponible = 0;
+        $totalEntregado  = 0;
+
         foreach ($listado as $fila) {
-            $infoEntrada = Entradas::where('id', $fila->id_entradas)->first();
-            $fila->fechaFormat = date("d-m-Y", strtotime($infoEntrada->fecha));
+            $totalSalido = SalidasDetalle::where('id_entrada_detalle', $fila->id)
+                ->sum('cantidad_salida');
 
-            $fila->descripcion = $infoEntrada->descripcion;
-            $fila->lote  = $infoEntrada->lote;
+            $fila->cantidad_entregada = $totalSalido;
+            $fila->cantidadDisponible = $fila->cantidad_inicial - $totalSalido;
+            $fila->_mostrar           = $fila->cantidadDisponible > 0;
 
-            $fila->cantidadDisponible = ($fila->cantidad - $fila->cantidad_entregada);
+            // Acumular SIEMPRE, incluso lotes agotados
+            $totalLotes++;
+            $totalDisponible += $fila->cantidadDisponible;
+            $totalEntregado  += $totalSalido;
+
+            if ($fila->entrada) {
+                $fila->fechaFormat = date("d-m-Y", strtotime($fila->entrada->fecha));
+                $fila->descripcion = $fila->entrada->descripcion ?? '—';
+                $fila->lote        = $fila->entrada->lote ?? '—';
+            } else {
+                $fila->fechaFormat = '—';
+                $fila->descripcion = '—';
+                $fila->lote        = '—';
+            }
         }
 
-        return view('backend.admin.materiales.detalle.tabladetallematerial', compact('listado'));
+        // Filtrar solo lotes con stock para la tabla
+        $listado = $listado->filter(fn($f) => $f->_mostrar)->values();
+
+        $id = $idmaterial;
+
+        return view('backend.admin.materiales.detalle.tabladetallematerial', compact(
+            'listado', 'id', 'totalLotes', 'totalDisponible', 'totalEntregado'
+        ));
     }
 
 

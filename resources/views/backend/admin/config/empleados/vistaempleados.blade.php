@@ -118,6 +118,10 @@
     .dataTables_wrapper .dataTables_filter { display: none; }
     div.dataTables_wrapper div.dataTables_length select { min-width: 60px; }
     .dataTables_info { font-size: 12px; color: #888; }
+
+    /* ── Select2 fix z-index ── */
+    .select2-container--open { z-index: 99999 !important; }
+    .select2-dropdown        { z-index: 99999 !important; }
 </style>
 
 <div id="divcontenedor" style="display: none">
@@ -144,7 +148,7 @@
     <section class="content">
         <div class="container-fluid">
 
-            {{-- Filtros --}}
+            {{-- ══ Filtros ══ --}}
             <div class="filtros-panel">
                 <div class="row align-items-end">
                     <div class="col-md-3 col-sm-6 mb-2">
@@ -155,6 +159,9 @@
                         <label><i class="fas fa-map-marker-alt mr-1"></i>Distrito</label>
                         <select id="filtro-distrito" class="form-control custom-select">
                             <option value="">Todos los distritos</option>
+                            @foreach($arrayDistrito as $dist)
+                                <option value="{{ $dist->nombre }}">{{ $dist->nombre }}</option>
+                            @endforeach
                         </select>
                     </div>
                     <div class="col-md-3 col-sm-6 mb-2">
@@ -179,14 +186,14 @@
                 </div>
             </div>
 
-            {{-- Badges --}}
+            {{-- ══ Badges ══ --}}
             <div class="resumen-badges">
                 <span class="badge-stat"><span class="dot total"></span> Total: <strong id="cnt-total">0</strong></span>
                 <span class="badge-stat"><span class="dot jefe"></span> Jefes: <strong id="cnt-jefes">0</strong></span>
                 <span class="badge-stat"><span class="dot emp"></span> Empleados: <strong id="cnt-empleados">0</strong></span>
             </div>
 
-            {{-- Tabla --}}
+            {{-- ══ Tabla ══ --}}
             <div class="row">
                 <div class="col-12">
                     <div class="card" style="border-radius:10px; box-shadow:0 2px 16px rgba(0,0,0,.07); border:none;">
@@ -224,10 +231,7 @@
                                                     <span class="badge-empleado">Empleado</span>
                                                 @endif
                                             </td>
-                                            <td class="jefe-txt">
-                                                {{-- Nombre del jefe directo (id_jefe) --}}
-                                                {{ $dato->jefe_nombre ?? '—' }}
-                                            </td>
+                                            <td class="jefe-txt">{{ $dato->jefe_nombre ?? '—' }}</td>
                                             <td>
                                                 <button type="button"
                                                         class="btn btn-success btn-xs"
@@ -250,7 +254,7 @@
     </section>
 
     {{-- ══ MODAL AGREGAR ══ --}}
-    <div class="modal fade" id="modalAgregar">
+    <div class="modal fade" id="modalAgregar" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
@@ -308,7 +312,6 @@
                                         </label>
                                     </div>
 
-                                    {{-- Jefe directo (id_jefe) --}}
                                     <div class="form-group">
                                         <label>Jefe Directo: <small class="text-muted">(opcional)</small></label>
                                         <select class="form-control" id="select-jefe-nuevo">
@@ -336,7 +339,7 @@
     </div>
 
     {{-- ══ MODAL EDITAR ══ --}}
-    <div class="modal fade" id="modalEditar">
+    <div class="modal fade" id="modalEditar" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
@@ -387,7 +390,6 @@
                                         </label>
                                     </div>
 
-                                    {{-- Jefe directo (id_jefe) --}}
                                     <div class="form-group">
                                         <label>Jefe Directo: <small class="text-muted">(opcional)</small></label>
                                         <select class="form-control" id="select-jefe-editar"></select>
@@ -415,181 +417,243 @@
 @extends('backend.menus.footerjs')
 @section('archivos-js')
 
-    <script src="{{ asset('js/jquery.dataTables.js') }}" type="text/javascript"></script>
-    <script src="{{ asset('js/dataTables.bootstrap4.js') }}" type="text/javascript"></script>
-    <script src="{{ asset('js/toastr.min.js') }}" type="text/javascript"></script>
-    <script src="{{ asset('js/axios.min.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('js/jquery.dataTables.js') }}"></script>
+    <script src="{{ asset('js/dataTables.bootstrap4.js') }}"></script>
+    <script src="{{ asset('js/toastr.min.js') }}"></script>
+    <script src="{{ asset('js/axios.min.js') }}"></script>
     <script src="{{ asset('js/sweetalert2.all.min.js') }}"></script>
     <script src="{{ asset('js/alertaPersonalizada.js') }}"></script>
-    <script src="{{ asset('js/select2.min.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('js/select2.min.js') }}"></script>
 
-    <script type="text/javascript">
+    <script>
 
+        /* ══════════════════════════════════════════════════════════════════
+         *  HELPERS
+         * ══════════════════════════════════════════════════════════════════ */
+        function s2opts(parent = $('body')) {
+            return {
+                theme: "bootstrap-5",
+                dropdownParent: parent,
+                minimumResultsForSearch: 0,
+                width: '100%',
+                language: {
+                    noResults: function () { return "Búsqueda no encontrada"; }
+                }
+            };
+        }
+
+        /* ══════════════════════════════════════════════════════════════════
+         *  FILTRO PERSONALIZADO DE DATATABLES
+         *  Se registra ANTES de que se inicialice la tabla
+         * ══════════════════════════════════════════════════════════════════ */
+        $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
+
+            if (settings.nTable.id !== 'tabla') return true;
+
+            var buscar   = $('#filtro-buscar').val().toLowerCase().trim();
+            var distrito = $('#filtro-distrito').val();
+            var unidad   = $('#filtro-unidad').val();
+            var rol      = $('#filtro-rol').val();
+
+            var $row       = $('#tabla').DataTable().row(dataIndex).node();
+            var rowDistrito = $($row).data('distrito') != null ? String($($row).data('distrito')) : '';
+            var rowUnidad   = $($row).data('unidad')   != null ? String($($row).data('unidad'))   : '';
+            var rowJefe     = $($row).data('jefe')     != null ? String($($row).data('jefe'))     : '';
+
+            // Texto libre — busca en Nombre (col 0) y DUI (col 4)
+            if (buscar) {
+                var nombre = (data[0] || '').toLowerCase();
+                var dui    = (data[4] || '').toLowerCase();
+                if (nombre.indexOf(buscar) === -1 && dui.indexOf(buscar) === -1) return false;
+            }
+
+            if (distrito !== '' && rowDistrito !== distrito) return false;
+            if (unidad   !== '' && rowUnidad   !== unidad)   return false;
+            if (rol      !== '' && rowJefe     !== rol)      return false;
+
+            return true;
+        });
+
+        /* ══════════════════════════════════════════════════════════════════
+         *  DOCUMENT READY
+         * ══════════════════════════════════════════════════════════════════ */
         $(document).ready(function () {
 
-            var select2Opts = {
-                theme: "bootstrap-5",
-                language: { noResults: function () { return "Búsqueda no encontrada"; } }
-            };
-            $('#select-distrito, #select-cargo, #select-unidad, #select-jefe-nuevo').select2(select2Opts);
-            $('#select-distrito-editar, #select-cargo-editar, #select-unidad-editar, #select-jefe-editar').select2(select2Opts);
-
-            /* ── DataTable ── */
-            var dt = $("#tabla").DataTable({
-                "paging": true, "searching": true, "ordering": true,
-                "order": [[0, 'asc']], "info": true, "autoWidth": false,
-                "responsive": true, "pagingType": "full_numbers",
-                "lengthMenu": [[25, 50, 100, -1], [25, 50, 100, "Todo"]],
-                "pageLength": 25,
-                "language": {
-                    "sLengthMenu": "Mostrar _MENU_ registros",
-                    "sZeroRecords": "No se encontraron resultados",
-                    "sEmptyTable": "Ningún dato disponible",
-                    "sInfo": "Registros del _START_ al _END_ de _TOTAL_",
-                    "sInfoEmpty": "Registros del 0 al 0 de 0",
-                    "sInfoFiltered": "(filtrado de _MAX_ registros)",
-                    "oPaginate": { "sFirst": "«", "sLast": "»", "sNext": "›", "sPrevious": "‹" }
-                },
-                "drawCallback": actualizarContadores
-            });
-
-            /* ── Poblar filtros desde data-* de las filas ── */
-            var distritos = [], unidades = [];
-            $("#tabla tbody tr").each(function () {
-                var d = $(this).data('distrito');
+            /* ── Poblar #filtro-unidad con todas las unidades únicas de la tabla ── */
+            var unidadesVistas = {};
+            $('#tabla tbody tr').each(function () {
                 var u = $(this).data('unidad');
-                if (d && !distritos.includes(d)) distritos.push(d);
-                if (u && !unidades.includes(u))  unidades.push(u);
-            });
-            distritos.sort().forEach(function (d) { $('#filtro-distrito').append('<option value="'+d+'">'+d+'</option>'); });
-            unidades.sort().forEach(function (u)  { $('#filtro-unidad').append('<option value="'+u+'">'+u+'</option>'); });
-
-            /* ── Filtro personalizado ── */
-            $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
-                var buscar   = $('#filtro-buscar').val().toLowerCase().trim();
-                var distrito = $('#filtro-distrito').val();
-                var unidad   = $('#filtro-unidad').val();
-                var rol      = $('#filtro-rol').val();
-
-                var nombre     = (data[0] || '').toLowerCase();
-                var dui        = (data[4] || '').toLowerCase();
-                var trDistrito = $(dt.row(dataIndex).node()).data('distrito') || '';
-                var trUnidad   = $(dt.row(dataIndex).node()).data('unidad')   || '';
-                var trJefe     = String($(dt.row(dataIndex).node()).data('jefe'));
-
-                if (buscar   && nombre.indexOf(buscar) === -1 && dui.indexOf(buscar) === -1) return false;
-                if (distrito && trDistrito !== distrito) return false;
-                if (unidad   && trUnidad   !== unidad)   return false;
-                if (rol !== '' && trJefe   !== rol)       return false;
-                return true;
-            });
-
-            $('#filtro-buscar, #filtro-distrito, #filtro-unidad, #filtro-rol').on('input change', function () {
-                if ($(this).is('#filtro-distrito')) {
-                    var selDist = $(this).val();
-                    $('#filtro-unidad').html('<option value="">Todas las unidades</option>');
-                    $("#tabla tbody tr").each(function () {
-                        var d = $(this).data('distrito');
-                        var u = $(this).data('unidad');
-                        if (selDist === '' || d === selDist) {
-                            if ($('#filtro-unidad option[value="'+u+'"]').length === 0)
-                                $('#filtro-unidad').append('<option value="'+u+'">'+u+'</option>');
-                        }
-                    });
+                if (u && u !== '—' && !unidadesVistas[u]) {
+                    unidadesVistas[u] = true;
+                    $('#filtro-unidad').append(
+                        $('<option>', { value: u, text: u })
+                    );
                 }
+            });
+
+            /* ── Inicializar DataTable ── */
+            var dt = $("#tabla").DataTable({
+                paging:      true,
+                searching:   true,
+                ordering:    true,
+                order:       [[0, 'asc']],
+                info:        true,
+                autoWidth:   false,
+                responsive:  true,
+                pagingType:  "full_numbers",
+                lengthMenu:  [[25, 50, 100, -1], [25, 50, 100, "Todo"]],
+                pageLength:  25,
+                language: {
+                    sLengthMenu:   "Mostrar _MENU_ registros",
+                    sZeroRecords:  "No se encontraron resultados",
+                    sEmptyTable:   "Ningún dato disponible",
+                    sInfo:         "Registros del _START_ al _END_ de _TOTAL_",
+                    sInfoEmpty:    "Registros del 0 al 0 de 0",
+                    sInfoFiltered: "(filtrado de _MAX_ registros)",
+                    oPaginate: { sFirst: "«", sLast: "»", sNext: "›", sPrevious: "‹" }
+                },
+                drawCallback: actualizarContadores
+            });
+
+            /* ── Listeners de los filtros del panel ── */
+            $('#filtro-buscar').on('keyup input', function () {
                 dt.draw();
             });
 
+            $('#filtro-distrito').on('change', function () {
+                var distritoSel = $(this).val();
+
+                // Recargar las opciones de unidad según el distrito seleccionado
+                $('#filtro-unidad').empty().append('<option value="">Todas las unidades</option>');
+
+                var unidadesVistas = {};
+                $('#tabla tbody tr').each(function () {
+                    var rowDist  = String($(this).data('distrito') || '');
+                    var rowUnid  = String($(this).data('unidad')   || '');
+                    if (rowUnid === '—' || rowUnid === '') return;
+                    if (distritoSel !== '' && rowDist !== distritoSel) return;
+                    if (!unidadesVistas[rowUnid]) {
+                        unidadesVistas[rowUnid] = true;
+                        $('#filtro-unidad').append(
+                            $('<option>', { value: rowUnid, text: rowUnid })
+                        );
+                    }
+                });
+
+                dt.draw();
+            });
+
+            $('#filtro-unidad').on('change', function () { dt.draw(); });
+            $('#filtro-rol').on('change',    function () { dt.draw(); });
+
+            /* ── Mostrar contenedor ── */
             actualizarContadores();
             document.getElementById("divcontenedor").style.display = "block";
         });
 
+        /* ══════════════════════════════════════════════════════════════════
+         *  CONTADORES (Jefes / Empleados / Total)
+         * ══════════════════════════════════════════════════════════════════ */
         function actualizarContadores() {
+
             var dt    = $('#tabla').DataTable();
             var total = dt.rows({ filter: 'applied' }).count();
             var jefes = 0;
+
             dt.rows({ filter: 'applied' }).every(function () {
                 if ($(this.node()).data('jefe') == 1) jefes++;
             });
+
             $('#cnt-total').text(total);
             $('#cnt-jefes').text(jefes);
             $('#cnt-empleados').text(total - jefes);
         }
 
-    </script>
-
-    <script>
-
+        /* ══════════════════════════════════════════════════════════════════
+         *  LIMPIAR FILTROS
+         * ══════════════════════════════════════════════════════════════════ */
         function limpiarFiltros() {
-            $('#filtro-buscar, #filtro-unidad, #filtro-rol').val('');
+            $('#filtro-buscar').val('');
+            $('#filtro-rol').val('');
+            // Disparar change en distrito para que recargue unidades y redibuje
             $('#filtro-distrito').val('').trigger('change');
         }
 
-        /* ── Buscar unidades por distrito ── */
+        /* ══════════════════════════════════════════════════════════════════
+         *  MODAL AGREGAR — buscar unidades por distrito (AJAX)
+         * ══════════════════════════════════════════════════════════════════ */
         function buscarUnidad() {
+
             var id = document.getElementById('select-distrito').value;
-            if (id == '0') { document.getElementById("select-unidad").options.length = 0; return; }
+
+            if (id == '0') {
+                $('#select-unidad').empty();
+                $('#select-unidad').select2(s2opts($('#modalAgregar')));
+                return;
+            }
+
             openLoading();
+
             axios.post(url + '/empleados/buscarunidad', { 'id': id })
                 .then(function (r) {
                     closeLoading();
                     if (r.data.success === 1) {
-                        document.getElementById("select-unidad").options.length = 0;
+                        $('#select-unidad').empty();
                         $.each(r.data.arrayUnidad, function (k, v) {
-                            $('#select-unidad').append('<option value="'+v.id+'">'+v.nombre+'</option>');
+                            $('#select-unidad').append('<option value="' + v.id + '">' + v.nombre + '</option>');
                         });
-                        $('#select-unidad').trigger('change');
-                    } else { toastr.error('Información no encontrada'); }
+                        $('#select-unidad').select2(s2opts($('#modalAgregar')));
+                    } else {
+                        toastr.error('Información no encontrada');
+                    }
                 })
-                .catch(function () { closeLoading(); toastr.error('Información no encontrada'); });
-        }
-
-        function buscarUnidadEdicion() {
-            var id = document.getElementById('select-distrito-editar').value;
-            openLoading();
-            axios.post(url + '/empleados/buscarunidad', { 'id': id })
-                .then(function (r) {
+                .catch(function () {
                     closeLoading();
-                    if (r.data.success === 1) {
-                        document.getElementById("select-unidad-editar").options.length = 0;
-                        $.each(r.data.arrayUnidad, function (k, v) {
-                            $('#select-unidad-editar').append('<option value="'+v.id+'">'+v.nombre+'</option>');
-                        });
-                        $('#select-unidad-editar').trigger('change');
-                    } else { toastr.error('Información no encontrada'); }
-                })
-                .catch(function () { closeLoading(); toastr.error('Información no encontrada'); });
+                    toastr.error('Información no encontrada');
+                });
         }
 
-        /* ── Modal agregar ── */
         function modalAgregar() {
             document.getElementById("formulario-nuevo").reset();
-            $('#select-distrito').val($('#select-distrito option:first').val()).trigger('change');
-            $('#select-cargo').val($('#select-cargo option:first').val()).trigger('change');
-            $('#select-jefe-nuevo').val('').trigger('change');
             $('#modalAgregar').modal('show');
         }
 
+        $('#modalAgregar').on('shown.bs.modal', function () {
+            $('#select-distrito').select2(s2opts($('#modalAgregar')));
+            $('#select-unidad').select2(s2opts($('#modalAgregar')));
+            $('#select-cargo').select2(s2opts($('#modalAgregar')));
+            $('#select-jefe-nuevo').select2(s2opts($('#modalAgregar')));
+        });
+
+        $('#modalAgregar').on('hidden.bs.modal', function () {
+            $('#select-distrito').select2('destroy');
+            $('#select-unidad').select2('destroy');
+            $('#select-cargo').select2('destroy');
+            $('#select-jefe-nuevo').select2('destroy');
+        });
+
         function nuevo() {
-            var unidad  = document.getElementById('select-unidad').value;
-            var cargo   = document.getElementById('select-cargo').value;
-            var nombre  = document.getElementById('nombre-nuevo').value;
-            var dui     = document.getElementById('dui-nuevo').value;
-            var jefe    = document.getElementById('check-jefe').checked ? 1 : 0;
-            var idJefe  = document.getElementById('select-jefe-nuevo').value;
+
+            var unidad = document.getElementById('select-unidad').value;
+            var cargo  = document.getElementById('select-cargo').value;
+            var nombre = document.getElementById('nombre-nuevo').value;
+            var dui    = document.getElementById('dui-nuevo').value;
+            var jefe   = document.getElementById('check-jefe').checked ? 1 : 0;
+            var idJefe = document.getElementById('select-jefe-nuevo').value;
 
             if (!unidad) { toastr.error('Unidad es requerida'); return; }
             if (!cargo)  { toastr.error('Cargo es requerido');  return; }
             if (!nombre) { toastr.error('Nombre es requerido'); return; }
 
             openLoading();
+
             var fd = new FormData();
-            fd.append('nombre',   nombre);
-            fd.append('unidad',   unidad);
-            fd.append('cargo',    cargo);
-            fd.append('dui',      dui);
-            fd.append('jefe',     jefe);
-            fd.append('id_jefe',  idJefe);   // ← nuevo campo
+            fd.append('nombre',  nombre);
+            fd.append('unidad',  unidad);
+            fd.append('cargo',   cargo);
+            fd.append('dui',     dui);
+            fd.append('jefe',    jefe);
+            fd.append('id_jefe', idJefe);
 
             axios.post(url + '/empleados/nuevo', fd)
                 .then(function (r) {
@@ -598,57 +662,115 @@
                         toastr.success('Registrado correctamente');
                         $('#modalAgregar').modal('hide');
                         location.reload();
-                    } else { toastr.error('Error al registrar'); }
+                    } else {
+                        toastr.error('Error al registrar');
+                    }
                 })
-                .catch(function () { toastr.error('Error al registrar'); closeLoading(); });
+                .catch(function () {
+                    closeLoading();
+                    toastr.error('Error al registrar');
+                });
         }
 
-        /* ── Modal editar ── */
+        /* ══════════════════════════════════════════════════════════════════
+         *  MODAL EDITAR
+         * ══════════════════════════════════════════════════════════════════ */
+        function buscarUnidadEdicion() {
+
+            var id = document.getElementById('select-distrito-editar').value;
+
+            openLoading();
+
+            axios.post(url + '/empleados/buscarunidad', { 'id': id })
+                .then(function (r) {
+                    closeLoading();
+                    if (r.data.success === 1) {
+                        $('#select-unidad-editar').empty();
+                        $.each(r.data.arrayUnidad, function (k, v) {
+                            $('#select-unidad-editar').append('<option value="' + v.id + '">' + v.nombre + '</option>');
+                        });
+                        $('#select-unidad-editar').select2(s2opts($('#modalEditar')));
+                    } else {
+                        toastr.error('Información no encontrada');
+                    }
+                })
+                .catch(function () {
+                    closeLoading();
+                    toastr.error('Información no encontrada');
+                });
+        }
+
         function informacion(id) {
+
             openLoading();
             document.getElementById("formulario-editar").reset();
 
             axios.post(url + '/empleados/informacion', { 'id': id })
                 .then(function (r) {
                     closeLoading();
+
                     if (r.data.success === 1) {
-                        $('#modalEditar').modal('show');
+
                         $('#id-editar').val(id);
 
-                        // Limpiar selects
-                        ['select-distrito-editar','select-unidad-editar','select-cargo-editar','select-jefe-editar']
-                            .forEach(function(sid){ document.getElementById(sid).options.length = 0; });
+                        $('#select-distrito-editar').empty();
+                        $('#select-unidad-editar').empty();
+                        $('#select-cargo-editar').empty();
+                        $('#select-jefe-editar').empty();
 
                         $.each(r.data.arrayDistrito, function (k, v) {
-                            var sel = r.data.infoUniEmpleado.id_distrito == v.id ? ' selected' : '';
-                            $('#select-distrito-editar').append('<option value="'+v.id+'"'+sel+'>'+v.nombre+'</option>');
-                        });
-                        $.each(r.data.arrayUnidad, function (k, v) {
-                            var sel = r.data.info.id_unidad_empleado == v.id ? ' selected' : '';
-                            $('#select-unidad-editar').append('<option value="'+v.id+'"'+sel+'>'+v.nombre+'</option>');
-                        });
-                        $.each(r.data.arrayCargo, function (k, v) {
-                            var sel = r.data.info.id_cargo == v.id ? ' selected' : '';
-                            $('#select-cargo-editar').append('<option value="'+v.id+'"'+sel+'>'+v.nombre+'</option>');
+                            var sel = r.data.infoUniEmpleado.id_distrito == v.id ? 'selected' : '';
+                            $('#select-distrito-editar').append('<option value="' + v.id + '" ' + sel + '>' + v.nombre + '</option>');
                         });
 
-                        // Jefe directo — lista de todos los empleados excepto él mismo
+                        $.each(r.data.arrayUnidad, function (k, v) {
+                            var sel = r.data.info.id_unidad_empleado == v.id ? 'selected' : '';
+                            $('#select-unidad-editar').append('<option value="' + v.id + '" ' + sel + '>' + v.nombre + '</option>');
+                        });
+
+                        $.each(r.data.arrayCargo, function (k, v) {
+                            var sel = r.data.info.id_cargo == v.id ? 'selected' : '';
+                            $('#select-cargo-editar').append('<option value="' + v.id + '" ' + sel + '>' + v.nombre + '</option>');
+                        });
+
                         $('#select-jefe-editar').append('<option value="">Sin jefe directo</option>');
                         $.each(r.data.arrayEmpleados, function (k, v) {
-                            var sel = r.data.info.id_jefe == v.id ? ' selected' : '';
-                            $('#select-jefe-editar').append('<option value="'+v.id+'"'+sel+'>'+v.nombre_completo+'</option>');
+                            var sel = r.data.info.id_jefe == v.id ? 'selected' : '';
+                            $('#select-jefe-editar').append('<option value="' + v.id + '" ' + sel + '>' + v.nombre_completo + '</option>');
                         });
 
                         $('#nombre-editar').val(r.data.info.nombre);
                         $('#dui-editar').val(r.data.info.dui);
-                        $("#check-jefe-editar").prop("checked", r.data.info.jefe == 1);
+                        $('#check-jefe-editar').prop('checked', r.data.info.jefe == 1);
 
-                    } else { toastr.error('Información no encontrada'); }
+                        $('#modalEditar').modal('show');
+
+                    } else {
+                        toastr.error('Información no encontrada');
+                    }
                 })
-                .catch(function () { closeLoading(); toastr.error('Información no encontrada'); });
+                .catch(function () {
+                    closeLoading();
+                    toastr.error('Información no encontrada');
+                });
         }
 
+        $('#modalEditar').on('shown.bs.modal', function () {
+            $('#select-distrito-editar').select2(s2opts($('#modalEditar')));
+            $('#select-unidad-editar').select2(s2opts($('#modalEditar')));
+            $('#select-cargo-editar').select2(s2opts($('#modalEditar')));
+            $('#select-jefe-editar').select2(s2opts($('#modalEditar')));
+        });
+
+        $('#modalEditar').on('hidden.bs.modal', function () {
+            $('#select-distrito-editar').select2('destroy');
+            $('#select-unidad-editar').select2('destroy');
+            $('#select-cargo-editar').select2('destroy');
+            $('#select-jefe-editar').select2('destroy');
+        });
+
         function editar() {
+
             var id     = document.getElementById('id-editar').value;
             var nombre = document.getElementById('nombre-editar').value;
             var unidad = document.getElementById('select-unidad-editar').value;
@@ -661,14 +783,15 @@
             if (!unidad) { toastr.error('Unidad es requerida'); return; }
 
             openLoading();
+
             var fd = new FormData();
-            fd.append('id',       id);
-            fd.append('nombre',   nombre);
-            fd.append('unidad',   unidad);
-            fd.append('cargo',    cargo);
-            fd.append('dui',      dui);
-            fd.append('jefe',     jefe);
-            fd.append('id_jefe',  idJefe);   // ← nuevo campo
+            fd.append('id',      id);
+            fd.append('nombre',  nombre);
+            fd.append('unidad',  unidad);
+            fd.append('cargo',   cargo);
+            fd.append('dui',     dui);
+            fd.append('jefe',    jefe);
+            fd.append('id_jefe', idJefe);
 
             axios.post(url + '/empleados/editar', fd)
                 .then(function (r) {
@@ -677,11 +800,15 @@
                         toastr.success('Actualizado correctamente');
                         $('#modalEditar').modal('hide');
                         location.reload();
-                    } else { toastr.error('Error al actualizar'); }
+                    } else {
+                        toastr.error('Error al actualizar');
+                    }
                 })
-                .catch(function () { toastr.error('Error al actualizar'); closeLoading(); });
+                .catch(function () {
+                    closeLoading();
+                    toastr.error('Error al actualizar');
+                });
         }
 
     </script>
-
 @endsection

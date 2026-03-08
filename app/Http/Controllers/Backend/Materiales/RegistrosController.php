@@ -148,9 +148,7 @@ class RegistrosController extends Controller
                 $detalle = new EntradasDetalle();
                 $detalle->id_entradas        = $registro->id;
                 $detalle->id_material        = $fila['idMaterial'];
-                $detalle->cantidad           = $fila['infoCantidad'];
                 $detalle->cantidad_inicial   = $fila['infoCantidad'];
-                $detalle->cantidad_entregada = 0;
                 $detalle->precio             = $fila['infoPrecio'];
                 $detalle->save();
             }
@@ -619,17 +617,26 @@ class RegistrosController extends Controller
             Se entrega al colaborador(a): <strong>{$infoEmpleado->nombre}</strong>
         </p>
     </div>
-    <div style='text-align:left; margin-top:8px;'>
-        <p style='font-size:12px; margin:0;'>
-            Jefe inmediato: <strong>$jefeInmediato</strong>
-        </p>
-    </div>
-    <div style='text-align:left; margin-top:8px;'>
-        <p style='font-size:12px; margin:0;'>
-            Por medio de la presente hace constar el detalle siguiente:
-        </p>
-    </div>
     ";
+
+
+        if (!empty(trim($jefeInmediato))) {
+            $tabla .= "
+            <div style='text-align:left; margin-top:8px;'>
+                <p style='font-size:12px; margin:0;'>
+                    Jefe inmediato: <strong>$jefeInmediato</strong>
+                </p>
+            </div>
+            ";
+        }
+
+            $tabla .= "
+        <div style='text-align:left; margin-top:8px;'>
+            <p style='font-size:12px; margin:0;'>
+                Por medio de la presente hace constar el detalle siguiente:
+            </p>
+        </div>
+        ";
 
         // ── Tabla detalle ──────────────────────────────────────────────
         $tabla .= "
@@ -875,17 +882,28 @@ class RegistrosController extends Controller
             Se entrega al colaborador(a): <strong>{$infoSalida->colaborador}</strong>
         </p>
     </div>
-    <div style='text-align:left; margin-top:8px;'>
-        <p style='font-size:12px; margin:0;'>
-            Jefe inmediato: <strong>{$jefeInmediato}</strong>
-        </p>
-    </div>
-    <div style='text-align:left; margin-top:8px;'>
-        <p style='font-size:12px; margin:0;'>
-            Por medio de la presente hace constar el detalle siguiente:
-        </p>
-    </div>
     ";
+
+
+// ── Solo mostrar jefe si existe ────────────────────────────────
+        if (!empty(trim($jefeInmediato))) {
+            $tabla .= "
+        <div style='text-align:left; margin-top:8px;'>
+            <p style='font-size:12px; margin:0;'>
+                Jefe inmediato: <strong>$jefeInmediato</strong>
+            </p>
+        </div>
+        ";
+                }
+
+                $tabla .= "
+        <div style='text-align:left; margin-top:8px;'>
+            <p style='font-size:12px; margin:0;'>
+                Por medio de la presente hace constar el detalle siguiente:
+            </p>
+        </div>
+        ";
+
 
         // ── Tabla detalle ──────────────────────────────────────────────
         $tabla .= "

@@ -13,22 +13,16 @@ use App\Http\Controllers\Backend\Materiales\HistorialController;
 use App\Http\Controllers\Backend\Config\ReportesController;
 
 
-
-
-
 // --- LOGIN ---
-
 Route::get('/', [LoginController::class,'index'])->name('login');
 
 Route::post('/admin/login', [LoginController::class, 'login']);
 Route::post('/admin/logout', [LoginController::class, 'logout'])->name('admin.logout');
 
 // --- CONTROL WEB ---
-
 Route::get('/panel', [ControlController::class,'indexRedireccionamiento'])->name('admin.panel');
 
 // --- ROLES ---
-
 Route::get('/admin/roles/index', [RolesController::class,'index'])->name('admin.roles.index');
 Route::get('/admin/roles/tabla', [RolesController::class,'tablaRoles']);
 Route::get('/admin/roles/lista/permisos/{id}', [RolesController::class,'vistaPermisos']);
@@ -40,7 +34,6 @@ Route::get('/admin/roles/permisos-todos/tabla', [RolesController::class,'tablaTo
 Route::post('/admin/roles/borrar-global', [RolesController::class, 'borrarRolGlobal']);
 
 // --- PERMISOS A USUARIOS ---
-
 Route::get('/admin/permisos/index', [PermisoController::class,'index'])->name('admin.permisos.index');
 Route::get('/admin/permisos/tabla', [PermisoController::class,'tablaUsuarios']);
 Route::post('/admin/permisos/nuevo-usuario', [PermisoController::class, 'nuevoUsuario']);
@@ -103,13 +96,10 @@ Route::post('/admin/materiales/editar', [MaterialesController::class, 'editarMat
 // BUSCAR MATERIAL PARA OBTENER CATEGORIA CODIGO
 Route::post('/admin/materiales/buscarmaterial',  [MaterialesController::class,'buscadorMaterialCodigoCategoria']);
 
-// DETALLE
-Route::get('/admin/material/detalle/{id}', [MaterialesController::class,'vistaDetalleMaterial']);
+// ✅ La ruta más específica PRIMERO
+Route::get('/admin/material/detalle/{id}',       [MaterialesController::class,'vistaDetalleMaterial']);
 Route::get('/admin/material/detalle/tabla/{id}', [MaterialesController::class,'tablaDetalleMaterial']);
 
-// MOVIMIENTOS DETALLE
-Route::get('/admin/material/movimientos/detalle/{id}', [MaterialesController::class,'vistaMovimientosDetalleMaterial']);
-Route::get('/admin/material/movimientos/detalle/tabla/{id}', [MaterialesController::class,'tablaMovimientosDetalleMaterial']);
 
 
 // UNIDAD EMPLEADO

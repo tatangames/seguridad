@@ -1,86 +1,52 @@
-<section class="content">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-body">
-                        <table id="tabla" class="table table-bordered table-striped">
-                            <thead>
-                            <tr>
-                                <th style="width: 3%">Fecha Ingreso</th>
-                                <th style="width: 3%">Factura</th>
-                                <th style="width: 3%">Descripción</th>
-                                <th style="width: 4%">Cantidad Actual (Toma en cuenta las salidas)</th>
+{{-- SIN @extends ni @section — se carga via $.load() --}}
 
-                            </tr>
-                            </thead>
-                            <tbody>
-
-                            @foreach($listado as $dato)
-                                <tr>
-                                    <td>{{ $dato->fechaFormat }}</td>
-                                    <td>{{ $dato->lote }}</td>
-                                    <td>{{ $dato->descripcion }}</td>
-                                    <td>{{ $dato->cantidadDisponible }}</td>
-
-                                </tr>
-                            @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
+@if($listado->isEmpty())
+    <div class="empty-state">
+        <i class="fas fa-box-open"></i>
+        <p>No hay lotes con stock disponible para este material</p>
     </div>
-</section>
+@else
+    <table id="tabla-detalle" class="table table-bordered table-hover table-sm">
+        <thead class="thead-dark">
+        <tr>
+            <th>Lote</th>
+            <th>Fecha Entrada</th>
+            <th>Descripción</th>
+            <th>Cant. Inicial</th>
+            <th>Disponible</th>
+            <th>Entregado</th>
+            <th>Stock</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach($listado as $fila)
+            <tr>
+                <td>
+                    <span class="lote-badge">{{ $fila->lote }}</span>
+                </td>
+                <td>
+                    <span class="fecha-chip">
+                        <i class="fas fa-calendar-alt"></i> {{ $fila->fechaFormat }}
+                    </span>
+                </td>
+                <td>{{ $fila->descripcion }}</td>
+                <td>{{ $fila->cantidad_inicial }}</td>
+                <td data-disponible="{{ $fila->cantidadDisponible }}">
+                    <strong>{{ $fila->cantidadDisponible }}</strong>
+                </td>
+                <td data-entregado="{{ $fila->cantidad_entregada }}">
+                    {{ $fila->cantidad_entregada }}
+                </td>
+                <td>
+                    @if($fila->cantidadDisponible > 10)
+                        <span class="stock-badge ok"><span class="dot"></span> OK</span>
+                    @elseif($fila->cantidadDisponible > 0)
+                        <span class="stock-badge warn"><span class="dot"></span> Bajo</span>
+                    @endif
+                </td>
 
-
-<script>
-    $(function () {
-        $.fn.dataTable.ext.type.order['date-dd-mm-yyyy-pre'] = function (date) {
-            var parts = date.split('-'); // Dividimos por guiones
-            return new Date(parts[2], parts[1] - 1, parts[0]).getTime(); // Convertimos a timestamp
-        };
-
-        $(function () {
-            $("#tabla").DataTable({
-                "paging": true,
-                "lengthChange": true,
-                "order": [[0, 'desc']], // Orden descendente por fecha
-                "searching": true,
-                "ordering": true,
-                "info": true,
-                "autoWidth": false,
-                "pagingType": "full_numbers",
-                "lengthMenu": [[500, -1], [500, "Todo"]],
-                "language": {
-                    "sProcessing": "Procesando...",
-                    "sLengthMenu": "Mostrar _MENU_ registros",
-                    "sZeroRecords": "No se encontraron resultados",
-                    "sEmptyTable": "Ningún dato disponible en esta tabla",
-                    "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
-                    "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
-                    "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
-                    "sSearch": "Buscar:",
-                    "oPaginate": {
-                        "sFirst": "Primero",
-                        "sLast": "Último",
-                        "sNext": "Siguiente",
-                        "sPrevious": "Anterior"
-                    }
-                },
-                "columnDefs": [
-                    {
-                        "targets": 0,
-                        "type": "date-dd-mm-yyyy" // Usamos el tipo de fecha personalizado
-                    }
-                ],
-                "responsive": true,
-                "lengthChange": true,
-                "autoWidth": false,
-            });
-        });
-    });
-
-
-</script>
+            </tr>
+        @endforeach
+        </tbody>
+    </table>
+@endif
