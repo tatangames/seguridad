@@ -15,7 +15,6 @@
                                 <th>Cantidad Entró</th>
                                 <th>Precio Factura</th>
                                 <th>Cantidad Entregada</th>
-                                <th>Opciones</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -29,12 +28,7 @@
                                     <td>{{ $dato->cantidad_inicial }}</td>
                                     <td>${{ number_format((float)$dato->precio, 2) }}</td>
                                     <td>{{ $dato->cantidad_entregada }}</td>
-                                    <td>
-                                        <button type="button" class="btn btn-success btn-xs"
-                                                onclick="infoEditar({{ $dato->id }})">
-                                            <i class="fas fa-edit" title="Editar"></i>&nbsp; Editar
-                                        </button>
-                                    </td>
+
                                 </tr>
                             @endforeach
 

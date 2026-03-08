@@ -99,7 +99,7 @@
             <div class="col-sm-6">
                 <button type="button"
                         style="font-weight:bold; background-color:#2156af; color:white !important;"
-                        onclick="modalAgregar()"
+                        id="btn-nueva-unidad"
                         class="button button-3d button-rounded button-pill button-small">
                     <i class="fas fa-pencil-alt"></i> Nueva Unidad
                 </button>
@@ -138,7 +138,7 @@
                         </select>
                     </div>
                     <div class="col-md-1 col-sm-6 mb-2 d-flex align-items-end">
-                        <button class="btn-limpiar" onclick="limpiarFiltrosUnidad()">
+                        <button class="btn-limpiar" id="btn-limpiar-filtros">
                             <i class="fas fa-times mr-1"></i> Limpiar
                         </button>
                     </div>
@@ -184,15 +184,17 @@
                                                 @endforelse
                                             </td>
                                             <td>
+                                                {{-- Sin onclick inline: usamos data-* y clases para delegación --}}
                                                 <button type="button"
-                                                        class="btn btn-info btn-xs mb-1"
-                                                        onclick="informacion({{ $dato->id }})"
+                                                        class="btn btn-info btn-xs mb-1 btn-editar-unidad"
+                                                        data-id="{{ $dato->id }}"
                                                         title="Editar unidad">
                                                     <i class="fas fa-edit"></i> Editar
                                                 </button>
                                                 <button type="button"
-                                                        class="btn btn-success btn-xs"
-                                                        onclick="modalAsignarJefes({{ $dato->id }}, '{{ addslashes($dato->nombre) }}')"
+                                                        class="btn btn-success btn-xs btn-gestionar-jefes"
+                                                        data-id="{{ $dato->id }}"
+                                                        data-nombre="{{ addslashes($dato->nombre) }}"
                                                         title="Gestionar jefes">
                                                     <i class="fas fa-user-tie"></i> Gestionar Jefes
                                                 </button>
@@ -245,7 +247,7 @@
                     <button type="button"
                             style="font-weight:bold; background-color:#2156af; color:white !important;"
                             class="button button-rounded button-pill button-small"
-                            onclick="nuevo()">Guardar</button>
+                            id="btn-guardar-nuevo">Guardar</button>
                 </div>
             </div>
         </div>
@@ -283,7 +285,7 @@
                     <button type="button"
                             style="font-weight:bold; background-color:#28a745; color:white !important;"
                             class="button button-rounded button-pill button-small"
-                            onclick="editar()">Actualizar</button>
+                            id="btn-guardar-editar">Actualizar</button>
                 </div>
             </div>
         </div>
@@ -314,7 +316,7 @@
                                 <option value="">Seleccionar empleado…</option>
                             </select>
                             <div class="input-group-append">
-                                <button class="btn btn-primary btn-sm" onclick="agregarJefeUnidad()">
+                                <button class="btn btn-primary btn-sm" id="btn-agregar-jefe">
                                     <i class="fas fa-plus"></i> Agregar
                                 </button>
                             </div>
@@ -349,6 +351,9 @@
 
     <script type="text/javascript">
 
+        /* ════════════════════════════════════════════
+           INICIALIZACIÓN
+        ════════════════════════════════════════════ */
         $(document).ready(function () {
 
             var select2Opts = {
@@ -359,18 +364,24 @@
 
             /* ── DataTable ── */
             var dtU = $("#tablaUnidad").DataTable({
-                "paging": true, "searching": true, "ordering": true,
-                "order": [[0,'asc']], "info": true, "autoWidth": false,
-                "responsive": true, "pagingType": "full_numbers",
-                "lengthMenu": [[25,50,100,-1],[25,50,100,"Todo"]], "pageLength": 25,
+                "paging"      : true,
+                "searching"   : true,
+                "ordering"    : true,
+                "order"       : [[0, 'asc']],
+                "info"        : true,
+                "autoWidth"   : false,
+                "responsive"  : true,
+                "pagingType"  : "full_numbers",
+                "lengthMenu"  : [[25, 50, 100, -1], [25, 50, 100, "Todo"]],
+                "pageLength"  : 25,
                 "language": {
-                    "sLengthMenu": "Mostrar _MENU_ registros",
-                    "sZeroRecords": "No se encontraron resultados",
-                    "sEmptyTable": "Ningún dato disponible",
-                    "sInfo": "Registros del _START_ al _END_ de _TOTAL_",
-                    "sInfoEmpty": "Registros del 0 al 0 de 0",
-                    "sInfoFiltered": "(filtrado de _MAX_ registros)",
-                    "oPaginate": { "sFirst": "«","sLast": "»","sNext": "›","sPrevious": "‹" }
+                    "sLengthMenu"   : "Mostrar _MENU_ registros",
+                    "sZeroRecords"  : "No se encontraron resultados",
+                    "sEmptyTable"   : "Ningún dato disponible",
+                    "sInfo"         : "Registros del _START_ al _END_ de _TOTAL_",
+                    "sInfoEmpty"    : "Registros del 0 al 0 de 0",
+                    "sInfoFiltered" : "(filtrado de _MAX_ registros)",
+                    "oPaginate"     : { "sFirst": "«", "sLast": "»", "sNext": "›", "sPrevious": "‹" }
                 },
                 "drawCallback": actualizarContadoresUnidad
             });
@@ -382,7 +393,7 @@
                 if (d && !distritos.includes(d)) distritos.push(d);
             });
             distritos.sort().forEach(function (d) {
-                $('#filtro-distrito').append('<option value="'+d+'">'+d+'</option>');
+                $('#filtro-distrito').append('<option value="' + d + '">' + d + '</option>');
             });
 
             /* ── Filtro personalizado ── */
@@ -400,14 +411,133 @@
                 return true;
             });
 
-            $('#filtro-buscar, #filtro-distrito, #filtro-jefe').on('input change', function () {
+            $('#filtro-buscar').on('input', function () {
+                dtU.draw();
+            });
+
+            $('#filtro-distrito, #filtro-jefe').on('change', function () {
+                // Cerrar cualquier dropdown de Select2 abierto antes de redibujar
+                // para evitar que su overlay intercepte el siguiente clic en la tabla
+                if ($(this).hasClass('select2-hidden-accessible')) {
+                    $(this).select2('close');
+                }
                 dtU.draw();
             });
 
             actualizarContadoresUnidad();
             document.getElementById("divcontenedor").style.display = "block";
+
+            /* ════════════════════════════════════════════
+               DELEGACIÓN DE EVENTOS
+               — Usamos $(document).on() para que funcione
+                 aunque DataTables reconstruya el DOM y
+                 aunque Select2 haya tenido el foco previo.
+            ════════════════════════════════════════════ */
+
+            // Botón: Nueva Unidad
+            $(document).on('click', '#btn-nueva-unidad', function () {
+                cerrarSelect2Filtros();
+                modalAgregar();
+            });
+
+            // Botón: Editar unidad (dentro de la tabla)
+            $(document).on('click', '.btn-editar-unidad', function () {
+                cerrarSelect2Filtros();
+                var id = $(this).data('id');
+                informacion(id);
+            });
+
+            // Botón: Gestionar Jefes (dentro de la tabla)
+            $(document).on('click', '.btn-gestionar-jefes', function () {
+                cerrarSelect2Filtros();
+                var idUnidad     = $(this).data('id');
+                var nombreUnidad = $(this).data('nombre');
+                modalAsignarJefes(idUnidad, nombreUnidad);
+            });
+
+            // Botón: Guardar nueva unidad
+            $(document).on('click', '#btn-guardar-nuevo', function () {
+                nuevo();
+            });
+
+            // Botón: Actualizar unidad
+            $(document).on('click', '#btn-guardar-editar', function () {
+                editar();
+            });
+
+            // Botón: Agregar jefe al modal
+            $(document).on('click', '#btn-agregar-jefe', function () {
+                agregarJefeUnidad();
+            });
+
+            // Botón: Quitar jefe (generado dinámicamente dentro del modal)
+            $(document).on('click', '.btn-quitar-jefe', function () {
+                var pivotId = $(this).data('pivot-id');
+                quitarJefeUnidad(pivotId);
+            });
+
+            // Botón: Limpiar filtros
+            $(document).on('click', '#btn-limpiar-filtros', function () {
+                limpiarFiltrosUnidad();
+            });
+
+            // Al abrir modal de Jefes: destruir y reinicializar Select2 interno
+            // para evitar que herede estado previo del foco
+            $('#modalJefes').on('shown.bs.modal', function () {
+                if ($('#select-agregar-jefe').hasClass('select2-hidden-accessible')) {
+                    $('#select-agregar-jefe').select2('destroy');
+                }
+                $('#select-agregar-jefe').select2({
+                    theme: "bootstrap-5",
+                    dropdownParent: $('#modalJefes'),
+                    language: { noResults: function () { return "Búsqueda no encontrada"; } }
+                });
+            });
+
+            // Al abrir modal de Agregar: reinicializar Select2 interno
+            $('#modalAgregar').on('shown.bs.modal', function () {
+                if ($('#select-distrito').hasClass('select2-hidden-accessible')) {
+                    $('#select-distrito').select2('destroy');
+                }
+                $('#select-distrito').select2({
+                    theme: "bootstrap-5",
+                    dropdownParent: $('#modalAgregar'),
+                    language: { noResults: function () { return "Búsqueda no encontrada"; } }
+                });
+            });
+
+            // Al abrir modal de Editar: reinicializar Select2 interno
+            $('#modalEditar').on('shown.bs.modal', function () {
+                if ($('#select-distrito-editar').hasClass('select2-hidden-accessible')) {
+                    $('#select-distrito-editar').select2('destroy');
+                }
+                $('#select-distrito-editar').select2({
+                    theme: "bootstrap-5",
+                    dropdownParent: $('#modalEditar'),
+                    language: { noResults: function () { return "Búsqueda no encontrada"; } }
+                });
+            });
         });
 
+        /* ════════════════════════════════════════════
+   HELPERS
+════════════════════════════════════════════ */
+
+        // Cierra cualquier dropdown de Select2 abierto en los filtros.
+        // Select2 deja un overlay invisible al cerrarse que intercepta
+        // el primer clic sobre la tabla si no se limpia explícitamente.
+        function cerrarSelect2Filtros() {
+            $('#filtro-distrito, #filtro-jefe').each(function () {
+                if ($(this).hasClass('select2-hidden-accessible')) {
+                    $(this).select2('close');
+                }
+            });
+            $('#filtro-buscar').blur();
+        }
+
+        /* ════════════════════════════════════════════
+           CONTADORES
+        ════════════════════════════════════════════ */
         function actualizarContadoresUnidad() {
             var dtU   = $('#tablaUnidad').DataTable();
             var total = dtU.rows({ filter: 'applied' }).count();
@@ -420,16 +550,17 @@
             $('#ucnt-sin').text(total - con);
         }
 
-    </script>
-
-    <script>
-
+        /* ════════════════════════════════════════════
+           FILTROS
+        ════════════════════════════════════════════ */
         function limpiarFiltrosUnidad() {
             $('#filtro-buscar, #filtro-distrito, #filtro-jefe').val('');
             $('#tablaUnidad').DataTable().draw();
         }
 
-        /* ══ CRUD UNIDAD ══ */
+        /* ════════════════════════════════════════════
+           CRUD UNIDAD
+        ════════════════════════════════════════════ */
         function modalAgregar() {
             document.getElementById("formulario-nuevo").reset();
             $('#select-distrito').val($('#select-distrito option:first').val()).trigger('change');
@@ -469,7 +600,7 @@
                         document.getElementById("select-distrito-editar").options.length = 0;
                         $.each(r.data.arrayDistrito, function (k, v) {
                             var sel = r.data.info.id_distrito == v.id ? ' selected' : '';
-                            $('#select-distrito-editar').append('<option value="'+v.id+'"'+sel+'>'+v.nombre+'</option>');
+                            $('#select-distrito-editar').append('<option value="' + v.id + '"' + sel + '>' + v.nombre + '</option>');
                         });
                     } else { toastr.error('Información no encontrada'); }
                 })
@@ -483,7 +614,9 @@
             if (!nombre) { toastr.error('Nombre es requerido'); return; }
             openLoading();
             var fd = new FormData();
-            fd.append('id', id); fd.append('nombre', nombre); fd.append('distrito', distrito);
+            fd.append('id', id);
+            fd.append('nombre', nombre);
+            fd.append('distrito', distrito);
             axios.post(url + '/unidadempleado/editar', fd)
                 .then(function (r) {
                     closeLoading();
@@ -496,7 +629,9 @@
                 .catch(function () { toastr.error('Error al actualizar'); closeLoading(); });
         }
 
-        /* ══ GESTIONAR JEFES (jefe_unidad) ══ */
+        /* ════════════════════════════════════════════
+           GESTIONAR JEFES (jefe_unidad pivote)
+        ════════════════════════════════════════════ */
         function modalAsignarJefes(idUnidad, nombreUnidad) {
             $('#id-unidad-jefes').val(idUnidad);
             $('#titulo-unidad').text(nombreUnidad);
@@ -510,33 +645,29 @@
                 .then(function (r) {
                     closeLoading();
                     if (r.data.success === 1) {
-
-                        // Poblar select con todos los empleados que son jefe=true
                         $.each(r.data.arrayJefes, function (k, v) {
-                            $('#select-agregar-jefe').append('<option value="'+v.id+'">'+v.nombre_completo+'</option>');
+                            $('#select-agregar-jefe').append('<option value="' + v.id + '">' + v.nombre_completo + '</option>');
                         });
                         $('#select-agregar-jefe').trigger('change');
-
-                        // Mostrar jefes ya asignados
                         renderJefesAsignados(r.data.asignados);
-
                     } else { toastr.error('Información no encontrada'); }
                 })
                 .catch(function () { closeLoading(); toastr.error('Error al cargar'); });
         }
 
         function renderJefesAsignados(asignados) {
-            // 1. Actualizar el modal (como antes)
+            // 1. Actualizar el modal
             var html = '';
             if (asignados.length === 0) {
                 html = '<p class="text-muted mb-0"><small>Ningún jefe asignado aún.</small></p>';
             } else {
                 asignados.forEach(function (j) {
+                    // Usamos data-pivot-id y clase .btn-quitar-jefe en lugar de onclick inline
                     html += '<div class="d-flex align-items-center justify-content-between mb-1 p-2" '
                         + 'style="background:#f8f9fa; border-radius:6px; border:1px solid #dee2e6">'
                         + '<span><i class="fas fa-user-tie mr-2 text-success"></i><strong>' + j.nombre + '</strong>'
                         + ' <small class="text-muted">(' + j.cargo + ')</small></span>'
-                        + '<button class="btn btn-danger btn-xs" onclick="quitarJefeUnidad(' + j.pivot_id + ')">'
+                        + '<button class="btn btn-danger btn-xs btn-quitar-jefe" data-pivot-id="' + j.pivot_id + '">'
                         + '<i class="fas fa-times"></i> Quitar</button>'
                         + '</div>';
                 });
@@ -548,13 +679,11 @@
             var dtU = $('#tablaUnidad').DataTable();
 
             dtU.rows().every(function () {
-                var $tr = $(this.node());
-                // Buscar la fila por el onclick del botón "Gestionar Jefes"
-                if ($tr.find('button[onclick*="modalAsignarJefes(' + idUnidad + ',"]').length) {
-
+                var $tr  = $(this.node());
+                var $btn = $tr.find('.btn-gestionar-jefes[data-id="' + idUnidad + '"]');
+                if ($btn.length) {
                     // Actualizar data-tienejefe
-                    var tienJefe = asignados.length > 0 ? 'con' : 'sin';
-                    $tr.attr('data-tienejefe', tienJefe);
+                    $tr.attr('data-tienejefe', asignados.length > 0 ? 'con' : 'sin');
 
                     // Actualizar celda de jefes (columna índice 2)
                     var badgesHtml = '';
@@ -567,17 +696,17 @@
                                 + j.nombre + '</span>';
                         });
                     }
-                    $(this.node()).find('td').eq(2).html(badgesHtml);
+                    $tr.find('td').eq(2).html(badgesHtml);
                 }
             });
 
             // 3. Redibujar DataTable y actualizar contadores
-            dtU.draw(false); // false = mantener la paginación actual
+            dtU.draw(false);
             actualizarContadoresUnidad();
         }
 
         function agregarJefeUnidad() {
-            var idUnidad  = document.getElementById('id-unidad-jefes').value;
+            var idUnidad   = document.getElementById('id-unidad-jefes').value;
             var idEmpleado = document.getElementById('select-agregar-jefe').value;
             if (!idEmpleado) { toastr.error('Selecciona un empleado'); return; }
             openLoading();

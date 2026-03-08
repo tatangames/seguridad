@@ -189,13 +189,6 @@ Route::get('/admin/salidas/pdfcompleto/{idsalida}', [RegistrosController::class,
 
 
 
-// RETORNOS
-Route::get('/admin/retornos/index', [RegistrosController::class,'vistaRetorno'])->name('admin.retorno.registro.index');
-Route::get('/admin/retornos/tabla', [RegistrosController::class,'tablaRetorno']);
-Route::post('/admin/retornos/informacion',  [RegistrosController::class,'informacionRetorno']);
-Route::post('/admin/retornos/registrar',  [RegistrosController::class,'registrarRetorno']);
-Route::post('/admin/retornos/descartar/registrar',  [RegistrosController::class,'registrarDescarte']);
-Route::post('/admin/retornos/borrar',  [RegistrosController::class,'borrarRetornoDescarte']);
 
 
 // HISTORIAL - SALIDAS
@@ -247,13 +240,6 @@ Route::get('/admin/bodega/historial/entradatodos/tabla', [HistorialController::c
 
 
 
-
-
-
-
-// RETORNOS
-Route::get('/admin/historial/retornos/index', [HistorialController::class,'indexHistorialRetornos'])->name('sidebar.historial.retornos');
-Route::get('/admin/historial/retornos/tabla', [HistorialController::class,'tablaHistorialRetornos']);
 
 
 

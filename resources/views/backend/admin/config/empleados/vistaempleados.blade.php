@@ -122,6 +122,17 @@
     /* ── Select2 fix z-index ── */
     .select2-container--open { z-index: 99999 !important; }
     .select2-dropdown        { z-index: 99999 !important; }
+
+    /* ── Jefe Directo: oculto por defecto, visible solo si es jefe ── */
+    .grupo-jefe-directo { transition: opacity .2s; }
+    .grupo-jefe-directo.oculto {
+        opacity: 0;
+        pointer-events: none;
+        height: 0;
+        overflow: hidden;
+        margin: 0;
+        padding: 0;
+    }
 </style>
 
 <div id="divcontenedor" style="display: none">
@@ -129,9 +140,10 @@
     <section class="content-header">
         <div class="row mb-2">
             <div class="col-sm-6">
+                {{-- Sin onclick inline: delegación en JS --}}
                 <button type="button"
+                        id="btn-nuevo-empleado"
                         style="font-weight:bold; background-color:#2156af; color:white !important;"
-                        onclick="modalAgregar()"
                         class="button button-3d button-rounded button-pill button-small">
                     <i class="fas fa-pencil-alt"></i> Nuevo Empleado
                 </button>
@@ -179,7 +191,7 @@
                         </select>
                     </div>
                     <div class="col-md-1 col-sm-6 mb-2 d-flex align-items-end">
-                        <button class="btn-limpiar" onclick="limpiarFiltros()">
+                        <button class="btn-limpiar" id="btn-limpiar-filtros">
                             <i class="fas fa-times mr-1"></i> Limpiar
                         </button>
                     </div>
@@ -233,9 +245,10 @@
                                             </td>
                                             <td class="jefe-txt">{{ $dato->jefe_nombre ?? '—' }}</td>
                                             <td>
+                                                {{-- Sin onclick inline: data-id + clase para delegación --}}
                                                 <button type="button"
-                                                        class="btn btn-success btn-xs"
-                                                        onclick="informacion({{ $dato->id }})"
+                                                        class="btn btn-success btn-xs btn-editar-empleado"
+                                                        data-id="{{ $dato->id }}"
                                                         title="Editar">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
@@ -269,7 +282,7 @@
 
                                     <div class="form-group">
                                         <label>Distrito:</label>
-                                        <select class="form-control" id="select-distrito" onchange="buscarUnidad()">
+                                        <select class="form-control" id="select-distrito">
                                             <option value="0">Seleccionar opción</option>
                                             @foreach($arrayDistrito as $sel)
                                                 <option value="{{ $sel->id }}">{{ $sel->nombre }}</option>
@@ -312,7 +325,8 @@
                                         </label>
                                     </div>
 
-                                    <div class="form-group">
+                                    {{-- Solo visible si ES JEFE = SI --}}
+                                    <div class="form-group grupo-jefe-directo oculto" id="grupo-jefe-nuevo">
                                         <label>Jefe Directo: <small class="text-muted">(opcional)</small></label>
                                         <select class="form-control" id="select-jefe-nuevo">
                                             <option value="">Sin jefe directo</option>
@@ -330,9 +344,9 @@
                 <div class="modal-footer justify-content-between">
                     <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
                     <button type="button"
+                            id="btn-guardar-nuevo"
                             style="font-weight:bold; background-color:#2156af; color:white !important;"
-                            class="button button-rounded button-pill button-small"
-                            onclick="nuevo()">Guardar</button>
+                            class="button button-rounded button-pill button-small">Guardar</button>
                 </div>
             </div>
         </div>
@@ -356,7 +370,7 @@
 
                                     <div class="form-group">
                                         <label>Distrito:</label>
-                                        <select class="form-control" id="select-distrito-editar" onchange="buscarUnidadEdicion()"></select>
+                                        <select class="form-control" id="select-distrito-editar"></select>
                                     </div>
 
                                     <div class="form-group">
@@ -390,7 +404,8 @@
                                         </label>
                                     </div>
 
-                                    <div class="form-group">
+                                    {{-- Solo visible si ES JEFE = SI --}}
+                                    <div class="form-group grupo-jefe-directo oculto" id="grupo-jefe-editar">
                                         <label>Jefe Directo: <small class="text-muted">(opcional)</small></label>
                                         <select class="form-control" id="select-jefe-editar"></select>
                                     </div>
@@ -403,9 +418,9 @@
                 <div class="modal-footer justify-content-between">
                     <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
                     <button type="button"
+                            id="btn-guardar-editar"
                             style="font-weight:bold; background-color:#28a745; color:white !important;"
-                            class="button button-rounded button-pill button-small"
-                            onclick="editar()">Actualizar</button>
+                            class="button button-rounded button-pill button-small">Actualizar</button>
                 </div>
             </div>
         </div>
@@ -430,24 +445,33 @@
         /* ══════════════════════════════════════════════════════════════════
          *  HELPERS
          * ══════════════════════════════════════════════════════════════════ */
-        function s2opts(parent = $('body')) {
+        function s2opts(parent) {
             return {
                 theme: "bootstrap-5",
-                dropdownParent: parent,
+                dropdownParent: parent || $('body'),
                 minimumResultsForSearch: 0,
                 width: '100%',
-                language: {
-                    noResults: function () { return "Búsqueda no encontrada"; }
-                }
+                language: { noResults: function () { return "Búsqueda no encontrada"; } }
             };
+        }
+
+        // Muestra u oculta el grupo "Jefe Directo" según el estado del toggle
+        function toggleGrupoJefe(checkboxId, grupoId) {
+            var esJefe = document.getElementById(checkboxId).checked;
+            var $grupo = $('#' + grupoId);
+            if (esJefe) {
+                $grupo.removeClass('oculto');
+            } else {
+                $grupo.addClass('oculto');
+                // Limpiar selección cuando se oculta
+                $grupo.find('select').val('').trigger('change.select2');
+            }
         }
 
         /* ══════════════════════════════════════════════════════════════════
          *  FILTRO PERSONALIZADO DE DATATABLES
-         *  Se registra ANTES de que se inicialice la tabla
          * ══════════════════════════════════════════════════════════════════ */
         $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
-
             if (settings.nTable.id !== 'tabla') return true;
 
             var buscar   = $('#filtro-buscar').val().toLowerCase().trim();
@@ -455,16 +479,21 @@
             var unidad   = $('#filtro-unidad').val();
             var rol      = $('#filtro-rol').val();
 
-            var $row       = $('#tabla').DataTable().row(dataIndex).node();
-            var rowDistrito = $($row).data('distrito') != null ? String($($row).data('distrito')) : '';
-            var rowUnidad   = $($row).data('unidad')   != null ? String($($row).data('unidad'))   : '';
-            var rowJefe     = $($row).data('jefe')     != null ? String($($row).data('jefe'))     : '';
+            var $row        = $('#tabla').DataTable().row(dataIndex).node();
+            var rowDistrito = String($($row).data('distrito') ?? '');
+            var rowUnidad   = String($($row).data('unidad')   ?? '');
+            var rowJefe     = String($($row).data('jefe')     ?? '');
 
-            // Texto libre — busca en Nombre (col 0) y DUI (col 4)
+            // Buscar en TODAS las columnas de texto (nombre, distrito, unidad, cargo, dui)
             if (buscar) {
-                var nombre = (data[0] || '').toLowerCase();
-                var dui    = (data[4] || '').toLowerCase();
-                if (nombre.indexOf(buscar) === -1 && dui.indexOf(buscar) === -1) return false;
+                var textoFila = [
+                    data[0] || '', // Nombre
+                    data[1] || '', // Distrito
+                    data[2] || '', // Unidad
+                    data[3] || '', // Cargo
+                    data[4] || '', // DUI
+                ].join(' ').toLowerCase();
+                if (textoFila.indexOf(buscar) === -1) return false;
             }
 
             if (distrito !== '' && rowDistrito !== distrito) return false;
@@ -479,30 +508,18 @@
          * ══════════════════════════════════════════════════════════════════ */
         $(document).ready(function () {
 
-            /* ── Poblar #filtro-unidad con todas las unidades únicas de la tabla ── */
-            var unidadesVistas = {};
-            $('#tabla tbody tr').each(function () {
-                var u = $(this).data('unidad');
-                if (u && u !== '—' && !unidadesVistas[u]) {
-                    unidadesVistas[u] = true;
-                    $('#filtro-unidad').append(
-                        $('<option>', { value: u, text: u })
-                    );
-                }
-            });
-
-            /* ── Inicializar DataTable ── */
+            /* ── DataTable ── */
             var dt = $("#tabla").DataTable({
-                paging:      true,
-                searching:   true,
-                ordering:    true,
-                order:       [[0, 'asc']],
-                info:        true,
-                autoWidth:   false,
-                responsive:  true,
-                pagingType:  "full_numbers",
-                lengthMenu:  [[25, 50, 100, -1], [25, 50, 100, "Todo"]],
-                pageLength:  25,
+                paging:     true,
+                searching:  true,
+                ordering:   true,
+                order:      [[0, 'asc']],
+                info:       true,
+                autoWidth:  false,
+                responsive: true,
+                pagingType: "full_numbers",
+                lengthMenu: [[25, 50, 100, -1], [25, 50, 100, "Todo"]],
+                pageLength: 25,
                 language: {
                     sLengthMenu:   "Mostrar _MENU_ registros",
                     sZeroRecords:  "No se encontraron resultados",
@@ -515,55 +532,104 @@
                 drawCallback: actualizarContadores
             });
 
-            /* ── Listeners de los filtros del panel ── */
-            $('#filtro-buscar').on('keyup input', function () {
-                dt.draw();
-            });
-
-            $('#filtro-distrito').on('change', function () {
-                var distritoSel = $(this).val();
-
-                // Recargar las opciones de unidad según el distrito seleccionado
+            /* ── Poblar #filtro-unidad usando API DataTables (lee TODAS las filas) ── */
+            function poblarFiltroUnidad(distritoSel) {
                 $('#filtro-unidad').empty().append('<option value="">Todas las unidades</option>');
-
-                var unidadesVistas = {};
-                $('#tabla tbody tr').each(function () {
-                    var rowDist  = String($(this).data('distrito') || '');
-                    var rowUnid  = String($(this).data('unidad')   || '');
-                    if (rowUnid === '—' || rowUnid === '') return;
-                    if (distritoSel !== '' && rowDist !== distritoSel) return;
-                    if (!unidadesVistas[rowUnid]) {
-                        unidadesVistas[rowUnid] = true;
-                        $('#filtro-unidad').append(
-                            $('<option>', { value: rowUnid, text: rowUnid })
-                        );
+                var vistas = {};
+                dt.rows().every(function () {
+                    var $tr     = $(this.node());
+                    var rowDist = String($tr.data('distrito') || '');
+                    var rowUnid = String($tr.data('unidad')   || '');
+                    if (!rowUnid || rowUnid === '—') return;
+                    if (distritoSel && rowDist !== distritoSel) return;
+                    if (!vistas[rowUnid]) {
+                        vistas[rowUnid] = true;
+                        $('#filtro-unidad').append($('<option>', { value: rowUnid, text: rowUnid }));
                     }
                 });
+                // Ordenar alfabéticamente
+                var opciones = $('#filtro-unidad option:not(:first)').detach().sort(function (a, b) {
+                    return $(a).text().localeCompare($(b).text());
+                });
+                $('#filtro-unidad').append(opciones);
+            }
 
+            poblarFiltroUnidad(''); // carga inicial con todas las unidades
+
+            /* ── Filtros ── */
+            $('#filtro-buscar').on('keyup input', function () { dt.draw(); });
+
+            $('#filtro-distrito').on('change', function () {
+                poblarFiltroUnidad($(this).val());
+                $('#filtro-unidad').val('');
                 dt.draw();
             });
 
             $('#filtro-unidad').on('change', function () { dt.draw(); });
             $('#filtro-rol').on('change',    function () { dt.draw(); });
 
-            /* ── Mostrar contenedor ── */
+            /* ══ DELEGACIÓN DE EVENTOS ══ */
+
+            // Botón Nuevo Empleado
+            $(document).on('click', '#btn-nuevo-empleado', function () {
+                abrirModalAgregar();
+            });
+
+            // Botón Editar (en la tabla)
+            $(document).on('click', '.btn-editar-empleado', function () {
+                var id = $(this).data('id');
+                informacion(id);
+            });
+
+            // Guardar nuevo
+            $(document).on('click', '#btn-guardar-nuevo', function () {
+                nuevo();
+            });
+
+            // Actualizar editar
+            $(document).on('click', '#btn-guardar-editar', function () {
+                editar();
+            });
+
+            // Toggle ES JEFE (agregar)
+            $(document).on('change', '#check-jefe', function () {
+                toggleGrupoJefe('check-jefe', 'grupo-jefe-nuevo');
+            });
+
+            // Toggle ES JEFE (editar)
+            $(document).on('change', '#check-jefe-editar', function () {
+                toggleGrupoJefe('check-jefe-editar', 'grupo-jefe-editar');
+            });
+
+            // Cambio de distrito en modal agregar → recargar unidades
+            $(document).on('change', '#select-distrito', function () {
+                buscarUnidad();
+            });
+
+            // Cambio de distrito en modal editar → recargar unidades
+            $(document).on('change', '#select-distrito-editar', function () {
+                buscarUnidadEdicion();
+            });
+
+            // Botón limpiar filtros
+            $(document).on('click', '#btn-limpiar-filtros', function () {
+                limpiarFiltros();
+            });
+
             actualizarContadores();
             document.getElementById("divcontenedor").style.display = "block";
         });
 
         /* ══════════════════════════════════════════════════════════════════
-         *  CONTADORES (Jefes / Empleados / Total)
+         *  CONTADORES
          * ══════════════════════════════════════════════════════════════════ */
         function actualizarContadores() {
-
             var dt    = $('#tabla').DataTable();
             var total = dt.rows({ filter: 'applied' }).count();
             var jefes = 0;
-
             dt.rows({ filter: 'applied' }).every(function () {
                 if ($(this.node()).data('jefe') == 1) jefes++;
             });
-
             $('#cnt-total').text(total);
             $('#cnt-jefes').text(jefes);
             $('#cnt-empleados').text(total - jefes);
@@ -575,25 +641,40 @@
         function limpiarFiltros() {
             $('#filtro-buscar').val('');
             $('#filtro-rol').val('');
-            // Disparar change en distrito para que recargue unidades y redibuje
-            $('#filtro-distrito').val('').trigger('change');
+            $('#filtro-distrito').val('').trigger('change'); // recarga unidades y redibuja
         }
 
         /* ══════════════════════════════════════════════════════════════════
-         *  MODAL AGREGAR — buscar unidades por distrito (AJAX)
+         *  MODAL AGREGAR
          * ══════════════════════════════════════════════════════════════════ */
+        function abrirModalAgregar() {
+            document.getElementById("formulario-nuevo").reset();
+            // Asegurar que "Jefe Directo" empiece oculto
+            $('#grupo-jefe-nuevo').addClass('oculto');
+            $('#modalAgregar').modal('show');
+        }
+
+        $('#modalAgregar').on('shown.bs.modal', function () {
+            $('#select-distrito').select2(s2opts($('#modalAgregar')));
+            $('#select-unidad').select2(s2opts($('#modalAgregar')));
+            $('#select-cargo').select2(s2opts($('#modalAgregar')));
+            $('#select-jefe-nuevo').select2(s2opts($('#modalAgregar')));
+        });
+
+        $('#modalAgregar').on('hidden.bs.modal', function () {
+            $('#select-distrito, #select-unidad, #select-cargo, #select-jefe-nuevo')
+                .each(function () {
+                    if ($(this).hasClass('select2-hidden-accessible')) $(this).select2('destroy');
+                });
+        });
+
         function buscarUnidad() {
-
             var id = document.getElementById('select-distrito').value;
-
             if (id == '0') {
-                $('#select-unidad').empty();
-                $('#select-unidad').select2(s2opts($('#modalAgregar')));
+                $('#select-unidad').empty().select2(s2opts($('#modalAgregar')));
                 return;
             }
-
             openLoading();
-
             axios.post(url + '/empleados/buscarunidad', { 'id': id })
                 .then(function (r) {
                     closeLoading();
@@ -607,46 +688,23 @@
                         toastr.error('Información no encontrada');
                     }
                 })
-                .catch(function () {
-                    closeLoading();
-                    toastr.error('Información no encontrada');
-                });
+                .catch(function () { closeLoading(); toastr.error('Información no encontrada'); });
         }
-
-        function modalAgregar() {
-            document.getElementById("formulario-nuevo").reset();
-            $('#modalAgregar').modal('show');
-        }
-
-        $('#modalAgregar').on('shown.bs.modal', function () {
-            $('#select-distrito').select2(s2opts($('#modalAgregar')));
-            $('#select-unidad').select2(s2opts($('#modalAgregar')));
-            $('#select-cargo').select2(s2opts($('#modalAgregar')));
-            $('#select-jefe-nuevo').select2(s2opts($('#modalAgregar')));
-        });
-
-        $('#modalAgregar').on('hidden.bs.modal', function () {
-            $('#select-distrito').select2('destroy');
-            $('#select-unidad').select2('destroy');
-            $('#select-cargo').select2('destroy');
-            $('#select-jefe-nuevo').select2('destroy');
-        });
 
         function nuevo() {
-
             var unidad = document.getElementById('select-unidad').value;
             var cargo  = document.getElementById('select-cargo').value;
             var nombre = document.getElementById('nombre-nuevo').value;
             var dui    = document.getElementById('dui-nuevo').value;
             var jefe   = document.getElementById('check-jefe').checked ? 1 : 0;
-            var idJefe = document.getElementById('select-jefe-nuevo').value;
+            // Si no es jefe, id_jefe siempre vacío
+            var idJefe = jefe === 1 ? document.getElementById('select-jefe-nuevo').value : '';
 
             if (!unidad) { toastr.error('Unidad es requerida'); return; }
             if (!cargo)  { toastr.error('Cargo es requerido');  return; }
             if (!nombre) { toastr.error('Nombre es requerido'); return; }
 
             openLoading();
-
             var fd = new FormData();
             fd.append('nombre',  nombre);
             fd.append('unidad',  unidad);
@@ -666,25 +724,23 @@
                         toastr.error('Error al registrar');
                     }
                 })
-                .catch(function () {
-                    closeLoading();
-                    toastr.error('Error al registrar');
-                });
+                .catch(function () { closeLoading(); toastr.error('Error al registrar'); });
         }
 
         /* ══════════════════════════════════════════════════════════════════
          *  MODAL EDITAR
          * ══════════════════════════════════════════════════════════════════ */
         function buscarUnidadEdicion() {
-
             var id = document.getElementById('select-distrito-editar').value;
-
             openLoading();
-
             axios.post(url + '/empleados/buscarunidad', { 'id': id })
                 .then(function (r) {
                     closeLoading();
                     if (r.data.success === 1) {
+                        // Destruir Select2 antes de vaciar, para evitar estado colgado
+                        if ($('#select-unidad-editar').hasClass('select2-hidden-accessible')) {
+                            $('#select-unidad-editar').select2('destroy');
+                        }
                         $('#select-unidad-editar').empty();
                         $.each(r.data.arrayUnidad, function (k, v) {
                             $('#select-unidad-editar').append('<option value="' + v.id + '">' + v.nombre + '</option>');
@@ -694,29 +750,22 @@
                         toastr.error('Información no encontrada');
                     }
                 })
-                .catch(function () {
-                    closeLoading();
-                    toastr.error('Información no encontrada');
-                });
+                .catch(function () { closeLoading(); toastr.error('Información no encontrada'); });
         }
 
         function informacion(id) {
-
             openLoading();
             document.getElementById("formulario-editar").reset();
 
             axios.post(url + '/empleados/informacion', { 'id': id })
                 .then(function (r) {
                     closeLoading();
-
                     if (r.data.success === 1) {
 
                         $('#id-editar').val(id);
 
-                        $('#select-distrito-editar').empty();
-                        $('#select-unidad-editar').empty();
-                        $('#select-cargo-editar').empty();
-                        $('#select-jefe-editar').empty();
+                        // Poblar selects
+                        $('#select-distrito-editar, #select-unidad-editar, #select-cargo-editar, #select-jefe-editar').empty();
 
                         $.each(r.data.arrayDistrito, function (k, v) {
                             var sel = r.data.infoUniEmpleado.id_distrito == v.id ? 'selected' : '';
@@ -741,7 +790,16 @@
 
                         $('#nombre-editar').val(r.data.info.nombre);
                         $('#dui-editar').val(r.data.info.dui);
-                        $('#check-jefe-editar').prop('checked', r.data.info.jefe == 1);
+
+                        var esJefe = r.data.info.jefe == 1;
+                        $('#check-jefe-editar').prop('checked', esJefe);
+
+                        // Mostrar/ocultar Jefe Directo según el valor cargado
+                        if (esJefe) {
+                            $('#grupo-jefe-editar').removeClass('oculto');
+                        } else {
+                            $('#grupo-jefe-editar').addClass('oculto');
+                        }
 
                         $('#modalEditar').modal('show');
 
@@ -749,10 +807,7 @@
                         toastr.error('Información no encontrada');
                     }
                 })
-                .catch(function () {
-                    closeLoading();
-                    toastr.error('Información no encontrada');
-                });
+                .catch(function () { closeLoading(); toastr.error('Información no encontrada'); });
         }
 
         $('#modalEditar').on('shown.bs.modal', function () {
@@ -763,27 +818,26 @@
         });
 
         $('#modalEditar').on('hidden.bs.modal', function () {
-            $('#select-distrito-editar').select2('destroy');
-            $('#select-unidad-editar').select2('destroy');
-            $('#select-cargo-editar').select2('destroy');
-            $('#select-jefe-editar').select2('destroy');
+            $('#select-distrito-editar, #select-unidad-editar, #select-cargo-editar, #select-jefe-editar')
+                .each(function () {
+                    if ($(this).hasClass('select2-hidden-accessible')) $(this).select2('destroy');
+                });
         });
 
         function editar() {
-
             var id     = document.getElementById('id-editar').value;
             var nombre = document.getElementById('nombre-editar').value;
             var unidad = document.getElementById('select-unidad-editar').value;
             var cargo  = document.getElementById('select-cargo-editar').value;
             var dui    = document.getElementById('dui-editar').value;
             var jefe   = document.getElementById('check-jefe-editar').checked ? 1 : 0;
-            var idJefe = document.getElementById('select-jefe-editar').value;
+            // Si no es jefe, id_jefe siempre vacío
+            var idJefe = jefe === 1 ? document.getElementById('select-jefe-editar').value : '';
 
             if (!nombre) { toastr.error('Nombre es requerido'); return; }
             if (!unidad) { toastr.error('Unidad es requerida'); return; }
 
             openLoading();
-
             var fd = new FormData();
             fd.append('id',      id);
             fd.append('nombre',  nombre);
@@ -804,10 +858,7 @@
                         toastr.error('Error al actualizar');
                     }
                 })
-                .catch(function () {
-                    closeLoading();
-                    toastr.error('Error al actualizar');
-                });
+                .catch(function () { closeLoading(); toastr.error('Error al actualizar'); });
         }
 
     </script>

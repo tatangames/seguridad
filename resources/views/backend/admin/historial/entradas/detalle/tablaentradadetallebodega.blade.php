@@ -2,47 +2,82 @@
     <div class="container-fluid">
         <div class="row">
             <div class="col-12">
-                <div class="card">
-                    <div class="card-body">
-                        <table id="tabla" class="table table-bordered table-striped">
-                            <thead>
+                <div style="padding: 8px 0; overflow-x: auto; -webkit-overflow-scrolling: touch;">
+                    <table id="tabla" class="table table-bordered table-striped" style="min-width: 900px;">
+                        <thead>
+                        <tr>
+                            <th>Material</th>
+                            <th>Medida</th>
+                            <th>Marca</th>
+                            <th>Normativa</th>
+                            <th>Color</th>
+                            <th>Talla</th>
+                            <th>Cantidad</th>
+                            <th>Precio U.</th>
+                            <th>Opción</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        @foreach($listado as $dato)
                             <tr>
-                                <th style="width: 20%">Material</th>
-                                <th style="width: 11%">Medida</th>
-                                <th style="width: 11%">Marca</th>
-                                <th style="width: 11%">Normativa</th>
-                                <th style="width: 11%">Color</th>
-                                <th style="width: 11%">Talla</th>
-                                <th style="width: 8%">Cantidad Ingresada</th>
-                                <th style="width: 10%">Precio U.</th>
-                                <th style="width: 6%">Opción</th>
+                                <td title="{{ $dato->nombre }}">{{ $dato->nombre }}</td>
+                                <td>
+                                    @if($dato->nombreUnidad)
+                                        <span class="tag-chip">{{ $dato->nombreUnidad }}</span>
+                                    @else
+                                        <span class="empty-val">—</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($dato->marca)
+                                        <span class="tag-chip">{{ $dato->marca }}</span>
+                                    @else
+                                        <span class="empty-val">—</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($dato->normativa)
+                                        <span class="tag-chip">{{ $dato->normativa }}</span>
+                                    @else
+                                        <span class="empty-val">—</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($dato->color)
+                                        <span class="tag-chip">{{ $dato->color }}</span>
+                                    @else
+                                        <span class="empty-val">—</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($dato->talla)
+                                        <span class="tag-chip">{{ $dato->talla }}</span>
+                                    @else
+                                        <span class="empty-val">—</span>
+                                    @endif
+                                </td>
+                                <td>
+                                        <span class="qty-chip">
+                                            <i class="fas fa-cubes" style="font-size:9px"></i>
+                                            {{ $dato->cantidad }}
+                                        </span>
+                                </td>
+                                <td>
+                                    <span class="price-chip">{{ $dato->precioFormat }}</span>
+                                </td>
+                                <td>
+                                    <button type="button" class="btn-action delete" onclick="infoBorrar({{ $dato->id }})">
+                                        <i class="fas fa-trash"></i> Borrar
+                                    </button>
+                                </td>
                             </tr>
-                            </thead>
-                            <tbody>
+                        @endforeach
 
-                            @foreach($listado as $dato)
-                                <tr>
-                                    <td>{{ $dato->nombre }}</td>
-                                    <td>{{ $dato->nombreUnidad }}</td>
-                                    <td>{{ $dato->marca }}</td>
-                                    <td>{{ $dato->normativa }}</td>
-                                    <td>{{ $dato->color }}</td>
-                                    <td>{{ $dato->talla }}</td>
-                                    <td>{{ $dato->cantidad }}</td>
-                                    <td>{{ $dato->precioFormat }}</td>
-                                    <td>
-                                        <button style="margin: 3px" type="button" class="btn btn-danger btn-xs"
-                                                onclick="infoBorrar({{ $dato->id }})">
-                                            <i class="fas fa-trash" title="Borrar"></i>&nbsp; Borrar
-                                        </button>
-                                    </td>
-                                </tr>
-                            @endforeach
-
-
-                            </tbody>
-                        </table>
-                    </div>
+                        <script>
+                            setTimeout(function () { closeLoading(); }, 500);
+                        </script>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -51,45 +86,34 @@
 
 <script>
     $(function () {
+
         $("#tabla").DataTable({
-            "paging": true,
+            "paging":       true,
             "lengthChange": true,
-            "order": [[0, 'asc']],
-            "searching": true,
-            "ordering": true,
-            "info": true,
-            "autoWidth": false,
-            "pagingType": "full_numbers",
-            "lengthMenu": [[500, -1], [500, "Todo"]],
+            "order":        [[0, 'asc']],
+            "searching":    true,
+            "ordering":     true,
+            "info":         true,
+            "autoWidth":    false,
+            "pagingType":   "full_numbers",
+            "lengthMenu":   [[25, 100, 500, -1], [25, 100, 500, "Todo"]],
             "language": {
-
-                "sProcessing": "Procesando...",
-                "sLengthMenu": "Mostrar _MENU_ registros",
-                "sZeroRecords": "No se encontraron resultados",
-                "sEmptyTable": "Ningún dato disponible en esta tabla",
-                "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
-                "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
-                "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
-                "sInfoPostFix": "",
-                "sSearch": "Buscar:",
-                "sUrl": "",
-                "sInfoThousands": ",",
-                "sLoadingRecords": "Cargando...",
-                "oPaginate": {
-                    "sFirst": "Primero",
-                    "sLast": "Último",
-                    "sNext": "Siguiente",
-                    "sPrevious": "Anterior"
-                },
-                "oAria": {
-                    "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
-                    "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-                }
-
+                "sProcessing":   "Procesando...",
+                "sLengthMenu":   "Mostrar _MENU_ registros",
+                "sZeroRecords":  "No se encontraron resultados",
+                "sEmptyTable":   "Ningún dato disponible",
+                "sInfo":         "Registros _START_ – _END_ de _TOTAL_",
+                "sInfoEmpty":    "Registros 0 – 0 de 0",
+                "sInfoFiltered": "(filtrado de _MAX_ registros)",
+                "sSearch":       "Buscar:",
+                "oPaginate": { "sFirst": "«", "sLast": "»", "sNext": "›", "sPrevious": "‹" }
             },
-            "responsive": true, "lengthChange": true, "autoWidth": false,
+            "columnDefs": [
+                { "targets": [6, 7, 8], "orderable": false, "searchable": false }
+            ],
+            "responsive": true,
+            "dom": '<"row align-items-center mb-2"<"col-sm-6"l><"col-sm-6 text-right"f>>rtip',
         });
+
     });
-
-
 </script>

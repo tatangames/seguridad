@@ -882,10 +882,12 @@ class ConfiguracionController extends Controller
         $validar = Validator::make($request->all(), ['id' => 'required']);
         if ($validar->fails()) return ['success' => 0];
 
-        // Pre-cargar el jefe de la unidad una sola vez (evita N+1)
-        $jefeDeUnidad = Empleado::where('id_unidad_empleado', $request->id)
-            ->where('jefe', 1)
-            ->first();
+        // ✅ AHORA — jefe desde tabla jefe_unidad (pivote)
+        $jefeDeUnidad = DB::table('jefe_unidad')
+            ->join('empleado', 'jefe_unidad.id_empleado', '=', 'empleado.id')
+            ->where('jefe_unidad.id_unidad_empleado', $request->id)
+            ->pluck('empleado.nombre')
+            ->implode(' / ');  // → "ENRIQUE JOSE LOPEZ RIVAS / MAURICIO GIOVANY ROSALES HERNANDEZ"
 
         $arrayEmpleados = Empleado::with(['cargo', 'jefeDirecto'])
             ->where('id_unidad_empleado', $request->id)
@@ -895,11 +897,11 @@ class ConfiguracionController extends Controller
                 $item->nombreCompleto = $item->nombre . ' (' . ($item->cargo->nombre ?? '—') . ')';
 
                 if ($item->jefe == 1) {
-                    // Soy jefe → mi superior viene de id_jefe (autorreferencia)
+                    // Soy jefe → mi superior sigue siendo la autorreferencia
                     $item->jefe_nombre = $item->jefeDirecto?->nombre ?? 'Sin jefe superior';
                 } else {
-                    // Soy empleado → mi jefe es el jefe de mi unidad
-                    $item->jefe_nombre = $jefeDeUnidad?->nombre ?? 'Sin jefe asignado';
+                    // Soy empleado → jefe viene de jefe_unidad
+                    $item->jefe_nombre = $jefeDeUnidad ?: 'Sin jefe asignado';  // ← sin ->nombre
                 }
 
                 return $item;

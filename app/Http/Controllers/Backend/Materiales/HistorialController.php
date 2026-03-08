@@ -70,51 +70,74 @@ class HistorialController extends Controller
 
     public function informacionHistorialSalida(Request $request)
     {
-        $regla = array(
-            'id' => 'required' // id salida
-        );
-
+        $regla = array('id' => 'required');
         $validar = Validator::make($request->all(), $regla);
+        if ($validar->fails()) return ['success' => 0];
 
-        if ($validar->fails()) {
-            return ['success' => 0];
-        }
-
-        $infoSalida = Salidas::where('id', $request->id)->first();
-
-        $infoEmpleado = Empleado::where('id',$infoSalida->id_empleado)->first();
+        $infoSalida      = Salidas::where('id', $request->id)->first();
+        $infoEmpleado    = Empleado::where('id', $infoSalida->id_empleado)->first();
         $infoUniEmpleado = UnidadEmpleado::where('id', $infoEmpleado->id_unidad_empleado)->first();
 
-        $arrayDistrito = Distrito::orderBy('nombre', 'ASC')->get();
-        $arrayUnidad = UnidadEmpleado::orderBy('nombre', 'ASC')->get();
-        $arrayCargo = Cargo::orderBy('nombre', 'ASC')->get();
-        $arrayEmpleados = Empleado::where('id_unidad_empleado', $infoEmpleado->id_unidad_empleado)->get();
+        $arrayDistrito  = Distrito::orderBy('nombre', 'ASC')->get();
+        // ← Filtrar unidades solo del distrito actual
+        $arrayUnidad    = UnidadEmpleado::where('id_distrito', $infoUniEmpleado->id_distrito)
+            ->orderBy('nombre', 'ASC')->get();
+        $arrayEmpleados = Empleado::where('id_unidad_empleado', $infoEmpleado->id_unidad_empleado)
+            ->orderBy('nombre', 'ASC')->get();
 
-        return ['success' => 1, 'info' => $infoSalida, 'arrayDistrito' => $arrayDistrito, 'arrayCargo' => $arrayCargo,
-            'arrayUnidad' => $arrayUnidad, 'arrayEmpleados' => $arrayEmpleados, 'infoUniEmpleado' => $infoUniEmpleado];
+        return [
+            'success'        => 1,
+            'info'           => $infoSalida,
+            'arrayDistrito'  => $arrayDistrito,
+            'arrayUnidad'    => $arrayUnidad,
+            'arrayEmpleados' => $arrayEmpleados,
+            'infoUniEmpleado'=> $infoUniEmpleado,
+        ];
     }
 
 
     public function editarHistorialSalida(Request $request)
     {
-        $regla = array(
-            'id' => 'required',
-            'fecha' => 'required',
-        );
-
-        // descripcion, empleado
+        $regla = [
+            'id'      => 'required',
+            'fecha'   => 'required',
+            'empleado'=> 'required',
+        ];
 
         $validar = Validator::make($request->all(), $regla);
+        if ($validar->fails()) return ['success' => 0];
 
-        if ($validar->fails()) {
-            return ['success' => 0];
+        // Recalcular snapshot del empleado seleccionado
+        $empleado   = Empleado::find($request->empleado);
+        $infoCargo  = Cargo::find($empleado->id_cargo);
+        $infoUnidad = UnidadEmpleado::find($empleado->id_unidad_empleado);
+
+        $colaborador = $empleado->nombre;
+        $area        = $infoUnidad?->nombre ?? '';
+        $cargo       = $infoCargo?->nombre  ?? '';
+
+        // Jefe inmediato
+        if ($empleado->jefe == 1) {
+            $jefeDirecto   = Empleado::find($empleado->id_jefe);
+            $jefeInmediato = $jefeDirecto?->nombre ?? '';
+        } else {
+            $jefeInmediato = DB::table('jefe_unidad')
+                ->join('empleado', 'jefe_unidad.id_empleado', '=', 'empleado.id')
+                ->where('jefe_unidad.id_unidad_empleado', $empleado->id_unidad_empleado)
+                ->pluck('empleado.nombre')
+                ->implode(' / ') ?: '';
         }
 
         Salidas::where('id', $request->id)->update([
-            'fecha' => $request->fecha,
-            'descripcion' => $request->descripcion,
-            'id_empleado' => $request->empleado,
+            'fecha'          => $request->fecha,
+            'descripcion'    => $request->descripcion,
+            'id_empleado'    => $request->empleado,
             'material_linea' => $request->linea,
+            // ── Snapshot ──────────────────────────────────
+            'colaborador'    => $colaborador,
+            'area'           => $area,
+            'cargo'          => $cargo,
+            'jefe_inmediato' => $jefeInmediato,
         ]);
 
         return ['success' => 1];
@@ -329,46 +352,45 @@ class HistorialController extends Controller
         return view('backend.admin.historial.entradas.detalle.vistaentradadetallebodega', compact('id', 'info'));
     }
 
-    public function tablaHistorialEntradasDetalle($id){
-
-
+    public function tablaHistorialEntradasDetalle($id)
+    {
         $listado = DB::table('entradas_detalle AS bo')
             ->join('materiales AS bm', 'bo.id_material', '=', 'bm.id')
             ->join('unidad_medida AS uni', 'bm.id_medida', '=', 'uni.id')
-            ->select('bo.id', 'bo.cantidad', 'bm.nombre', 'uni.nombre AS nombreUnidad',
+            ->select('bo.id', 'bo.cantidad_inicial AS cantidad', 'bm.nombre', 'uni.nombre AS nombreUnidad',
                 'bo.id_entradas', 'bm.id_marca', 'bm.id_normativa', 'bm.id_color', 'bm.id_talla', 'bo.precio')
             ->where('bo.id_entradas', $id)
             ->get();
 
         foreach ($listado as $fila) {
 
-            $marca = "";
-            $normativa = "";
-            $color = "";
-            $talla = "";
+            $marca      = "";
+            $normativa  = "";
+            $color      = "";
+            $talla      = "";
 
-            if($info = Marca::where('id', $fila->id_marca)->first()){
-                $marca = $info->nombre;
+            if ($infoMarca = Marca::where('id', $fila->id_marca)->first()) {
+                $marca = $infoMarca->nombre;
             }
 
-            if($info = Normativa::where('id', $fila->id_normativa)->first()){
-                $normativa = $info->nombre;
+            if ($infoNormativa = Normativa::where('id', $fila->id_normativa)->first()) {
+                $normativa = $infoNormativa->nombre;
             }
 
-            if($info = Color::where('id', $fila->id_color)->first()){
-                $color = $info->nombre;
+            if ($infoColor = Color::where('id', $fila->id_color)->first()) {
+                $color = $infoColor->nombre;
             }
 
-            if($info = Talla::where('id', $fila->id_talla)->first()){
-                $talla = $info->nombre;
+            if ($infoTalla = Talla::where('id', $fila->id_talla)->first()) {
+                $talla = $infoTalla->nombre;
             }
 
-           $fila->marca = $marca;
-           $fila->normativa = $normativa;
-           $fila->color = $color;
-           $fila->talla = $talla;
+            $fila->marca      = $marca;
+            $fila->normativa  = $normativa;
+            $fila->color      = $color;
+            $fila->talla      = $talla;
 
-           $fila->precioFormat = '$' . number_format((float)$fila->precio, 2, '.', ',');
+            $fila->precioFormat = '$' . number_format((float) $fila->precio, 2, '.', ',');
         }
 
         return view('backend.admin.historial.entradas.detalle.tablaentradadetallebodega', compact('listado'));
@@ -504,10 +526,8 @@ class HistorialController extends Controller
                 $detalle = new EntradasDetalle();
                 $detalle->id_entradas = $request->identrada;
                 $detalle->id_material = $filaArray['infoIdProducto'];
-                $detalle->cantidad = $filaArray['infoCantidad'];
                 $detalle->cantidad_inicial = $filaArray['infoCantidad'];
                 $detalle->precio = $filaArray['infoPrecio'];
-                $detalle->cantidad_entregada = 0;
                 $detalle->save();
             }
 
@@ -519,56 +539,6 @@ class HistorialController extends Controller
             DB::rollback();
             return ['success' => 99];
         }
-    }
-
-
-    public function indexHistorialRetornos()
-    {
-        return view('backend.admin.historial.retornos.vistahistorialretornos');
-    }
-
-    public function tablaHistorialRetornos()
-    {
-
-        $listado = Retorno::orderBy('fecha', 'asc')->get();
-
-        foreach ($listado as $fila) {
-            $fila->fechaFormat = date("d-m-Y", strtotime($fila->fecha));
-
-            $infoEntradaDetalle = EntradasDetalle::where('id', $fila->id_entrada_detalle)->first();
-            $infoEntrada = Entradas::where('id', $infoEntradaDetalle->id_entradas)->first();
-            $infoMaterial = Materiales::where('id', $infoEntradaDetalle->id_material)->first();
-
-           // $infoEncargado = Encargado::where('id', $fila->id_encargado)->first();
-            //$infoSalidaDetalle = SalidasDetalle::where('id', $fila->id_salida_detalle)->first();
-
-            $infoUnidadMedida = UnidadMedida::where('id', $infoMaterial->id_medida)->first();
-            $fila->nombreMedida = $infoUnidadMedida->nombre;
-
-            $infoMarca = Marca::where('id', $infoMaterial->id_marca)->first();
-            $fila->nombreMarca = $infoMarca->nombre;
-
-            $infoNormativa = Normativa::where('id', $infoMaterial->id_normativa)->first();
-            $fila->nombreNormativa = $infoNormativa->nombre;
-
-            $color = "";
-            if($info = Color::where('id', $infoMaterial->id_color)->first()){
-                $color = $info->color;
-            }
-            $fila->nombreColor = $color;
-
-
-            $talla = "";
-            if($info = Talla::where('id', $infoMaterial->id_talla)->first()){
-                $talla = $info->talla;
-            }
-            $fila->nombreTalla = $talla;
-
-            $fila->lote = $infoEntrada->lote;
-            $fila->nombreMaterial = $infoMaterial->nombre;
-        }
-
-        return view('backend.admin.historial.retornos.tablahistorialretornos', compact('listado'));
     }
 
 
