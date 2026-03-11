@@ -118,21 +118,6 @@
     .dataTables_wrapper .dataTables_filter { display: none; }
     div.dataTables_wrapper div.dataTables_length select { min-width: 60px; }
     .dataTables_info { font-size: 12px; color: #888; }
-
-    /* ── Select2 fix z-index ── */
-    .select2-container--open { z-index: 99999 !important; }
-    .select2-dropdown        { z-index: 99999 !important; }
-
-    /* ── Jefe Directo: oculto por defecto, visible solo si es jefe ── */
-    .grupo-jefe-directo { transition: opacity .2s; }
-    .grupo-jefe-directo.oculto {
-        opacity: 0;
-        pointer-events: none;
-        height: 0;
-        overflow: hidden;
-        margin: 0;
-        padding: 0;
-    }
 </style>
 
 <div id="divcontenedor" style="display: none">
@@ -140,13 +125,12 @@
     <section class="content-header">
         <div class="row mb-2">
             <div class="col-sm-6">
-                {{-- Sin onclick inline: delegación en JS --}}
-                <button type="button"
-                        id="btn-nuevo-empleado"
-                        style="font-weight:bold; background-color:#2156af; color:white !important;"
-                        class="button button-3d button-rounded button-pill button-small">
+                {{-- Enlace directo a la vista de crear --}}
+                <a href="{{ route('admin.empleados.crear') }}"
+                   style="font-weight:bold; background-color:#2156af; color:white !important;"
+                   class="button button-3d button-rounded button-pill button-small">
                     <i class="fas fa-pencil-alt"></i> Nuevo Empleado
-                </button>
+                </a>
             </div>
             <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-right">
@@ -165,7 +149,7 @@
                 <div class="row align-items-end">
                     <div class="col-md-3 col-sm-6 mb-2">
                         <label><i class="fas fa-search mr-1"></i>Buscar</label>
-                        <input type="text" id="filtro-buscar" class="form-control" placeholder="Nombre, DUI…">
+                        <input type="text" id="filtro-buscar" autocomplete="off" class="form-control" placeholder="Nombre, DUI…">
                     </div>
                     <div class="col-md-3 col-sm-6 mb-2">
                         <label><i class="fas fa-map-marker-alt mr-1"></i>Distrito</label>
@@ -211,7 +195,8 @@
                     <div class="card" style="border-radius:10px; box-shadow:0 2px 16px rgba(0,0,0,.07); border:none;">
                         <div class="card-body p-0">
                             <div class="table-responsive">
-                                <table id="tabla" class="table table-bordered table-striped mb-0" style="table-layout:fixed; width:100%">
+                                <table id="tabla" class="table table-bordered table-striped mb-0"
+                                       style="table-layout:fixed; width:100%">
                                     <thead>
                                     <tr>
                                         <th style="width:20%">Nombre</th>
@@ -245,13 +230,12 @@
                                             </td>
                                             <td class="jefe-txt">{{ $dato->jefe_nombre ?? '—' }}</td>
                                             <td>
-                                                {{-- Sin onclick inline: data-id + clase para delegación --}}
-                                                <button type="button"
-                                                        class="btn btn-success btn-xs btn-editar-empleado"
-                                                        data-id="{{ $dato->id }}"
-                                                        title="Editar">
+                                                {{-- Enlace directo a la vista de editar --}}
+                                                <a href="{{ route('admin.empleados.editar', $dato->id) }}"
+                                                   class="btn btn-success btn-xs"
+                                                   title="Editar">
                                                     <i class="fas fa-edit"></i>
-                                                </button>
+                                                </a>
                                             </td>
                                         </tr>
                                     @endforeach
@@ -266,166 +250,6 @@
         </div>
     </section>
 
-    {{-- ══ MODAL AGREGAR ══ --}}
-    <div class="modal fade" id="modalAgregar" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title">Nuevo Empleado</h4>
-                    <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
-                </div>
-                <div class="modal-body">
-                    <form id="formulario-nuevo">
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-12">
-
-                                    <div class="form-group">
-                                        <label>Distrito:</label>
-                                        <select class="form-control" id="select-distrito">
-                                            <option value="0">Seleccionar opción</option>
-                                            @foreach($arrayDistrito as $sel)
-                                                <option value="{{ $sel->id }}">{{ $sel->nombre }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label>Unidad:</label>
-                                        <select class="form-control" id="select-unidad"></select>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label>Nombre</label>
-                                        <input type="text" maxlength="100" class="form-control" id="nombre-nuevo" autocomplete="off">
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label>DUI</label>
-                                        <input type="text" maxlength="50" class="form-control" id="dui-nuevo" autocomplete="off">
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label>Cargo:</label>
-                                        <select class="form-control" id="select-cargo">
-                                            @foreach($arrayCargo as $sel)
-                                                <option value="{{ $sel->id }}">{{ $sel->nombre }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label>ES JEFE?</label><br>
-                                        <label class="switch" style="margin-top:10px">
-                                            <input type="checkbox" id="check-jefe">
-                                            <div class="slider round">
-                                                <span class="on">SI</span>
-                                                <span class="off">NO</span>
-                                            </div>
-                                        </label>
-                                    </div>
-
-                                    {{-- Solo visible si ES JEFE = SI --}}
-                                    <div class="form-group grupo-jefe-directo oculto" id="grupo-jefe-nuevo">
-                                        <label>Jefe Directo: <small class="text-muted">(opcional)</small></label>
-                                        <select class="form-control" id="select-jefe-nuevo">
-                                            <option value="">Sin jefe directo</option>
-                                            @foreach($arrayEmpleados as $emp)
-                                                <option value="{{ $emp->id }}">{{ $emp->nombre }} ({{ $emp->cargo_nombre }})</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer justify-content-between">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
-                    <button type="button"
-                            id="btn-guardar-nuevo"
-                            style="font-weight:bold; background-color:#2156af; color:white !important;"
-                            class="button button-rounded button-pill button-small">Guardar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- ══ MODAL EDITAR ══ --}}
-    <div class="modal fade" id="modalEditar" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title">Editar Empleado</h4>
-                    <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
-                </div>
-                <div class="modal-body">
-                    <form id="formulario-editar">
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-12">
-
-                                    <input type="hidden" id="id-editar">
-
-                                    <div class="form-group">
-                                        <label>Distrito:</label>
-                                        <select class="form-control" id="select-distrito-editar"></select>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label>Unidad:</label>
-                                        <select class="form-control" id="select-unidad-editar"></select>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label>Nombre</label>
-                                        <input type="text" maxlength="100" class="form-control" id="nombre-editar" autocomplete="off">
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label>DUI</label>
-                                        <input type="text" maxlength="50" class="form-control" id="dui-editar" autocomplete="off">
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label>Cargo:</label>
-                                        <select class="form-control" id="select-cargo-editar"></select>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label>ES JEFE?</label><br>
-                                        <label class="switch" style="margin-top:10px">
-                                            <input type="checkbox" id="check-jefe-editar">
-                                            <div class="slider round">
-                                                <span class="on">SI</span>
-                                                <span class="off">NO</span>
-                                            </div>
-                                        </label>
-                                    </div>
-
-                                    {{-- Solo visible si ES JEFE = SI --}}
-                                    <div class="form-group grupo-jefe-directo oculto" id="grupo-jefe-editar">
-                                        <label>Jefe Directo: <small class="text-muted">(opcional)</small></label>
-                                        <select class="form-control" id="select-jefe-editar"></select>
-                                    </div>
-
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer justify-content-between">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
-                    <button type="button"
-                            id="btn-guardar-editar"
-                            style="font-weight:bold; background-color:#28a745; color:white !important;"
-                            class="button button-rounded button-pill button-small">Actualizar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
 </div>{{-- fin #divcontenedor --}}
 
 
@@ -435,38 +259,9 @@
     <script src="{{ asset('js/jquery.dataTables.js') }}"></script>
     <script src="{{ asset('js/dataTables.bootstrap4.js') }}"></script>
     <script src="{{ asset('js/toastr.min.js') }}"></script>
-    <script src="{{ asset('js/axios.min.js') }}"></script>
-    <script src="{{ asset('js/sweetalert2.all.min.js') }}"></script>
-    <script src="{{ asset('js/alertaPersonalizada.js') }}"></script>
     <script src="{{ asset('js/select2.min.js') }}"></script>
 
     <script>
-
-        /* ══════════════════════════════════════════════════════════════════
-         *  HELPERS
-         * ══════════════════════════════════════════════════════════════════ */
-        function s2opts(parent) {
-            return {
-                theme: "bootstrap-5",
-                dropdownParent: parent || $('body'),
-                minimumResultsForSearch: 0,
-                width: '100%',
-                language: { noResults: function () { return "Búsqueda no encontrada"; } }
-            };
-        }
-
-        // Muestra u oculta el grupo "Jefe Directo" según el estado del toggle
-        function toggleGrupoJefe(checkboxId, grupoId) {
-            var esJefe = document.getElementById(checkboxId).checked;
-            var $grupo = $('#' + grupoId);
-            if (esJefe) {
-                $grupo.removeClass('oculto');
-            } else {
-                $grupo.addClass('oculto');
-                // Limpiar selección cuando se oculta
-                $grupo.find('select').val('').trigger('change.select2');
-            }
-        }
 
         /* ══════════════════════════════════════════════════════════════════
          *  FILTRO PERSONALIZADO DE DATATABLES
@@ -484,14 +279,13 @@
             var rowUnidad   = String($($row).data('unidad')   ?? '');
             var rowJefe     = String($($row).data('jefe')     ?? '');
 
-            // Buscar en TODAS las columnas de texto (nombre, distrito, unidad, cargo, dui)
             if (buscar) {
                 var textoFila = [
-                    data[0] || '', // Nombre
-                    data[1] || '', // Distrito
-                    data[2] || '', // Unidad
-                    data[3] || '', // Cargo
-                    data[4] || '', // DUI
+                    data[0] || '',
+                    data[1] || '',
+                    data[2] || '',
+                    data[3] || '',
+                    data[4] || '',
                 ].join(' ').toLowerCase();
                 if (textoFila.indexOf(buscar) === -1) return false;
             }
@@ -532,7 +326,7 @@
                 drawCallback: actualizarContadores
             });
 
-            /* ── Poblar #filtro-unidad usando API DataTables (lee TODAS las filas) ── */
+            /* ── Poblar #filtro-unidad ── */
             function poblarFiltroUnidad(distritoSel) {
                 $('#filtro-unidad').empty().append('<option value="">Todas las unidades</option>');
                 var vistas = {};
@@ -547,16 +341,15 @@
                         $('#filtro-unidad').append($('<option>', { value: rowUnid, text: rowUnid }));
                     }
                 });
-                // Ordenar alfabéticamente
                 var opciones = $('#filtro-unidad option:not(:first)').detach().sort(function (a, b) {
                     return $(a).text().localeCompare($(b).text());
                 });
                 $('#filtro-unidad').append(opciones);
             }
 
-            poblarFiltroUnidad(''); // carga inicial con todas las unidades
+            poblarFiltroUnidad('');
 
-            /* ── Filtros ── */
+            /* ── Eventos de filtros ── */
             $('#filtro-buscar').on('keyup input', function () { dt.draw(); });
 
             $('#filtro-distrito').on('change', function () {
@@ -568,52 +361,10 @@
             $('#filtro-unidad').on('change', function () { dt.draw(); });
             $('#filtro-rol').on('change',    function () { dt.draw(); });
 
-            /* ══ DELEGACIÓN DE EVENTOS ══ */
-
-            // Botón Nuevo Empleado
-            $(document).on('click', '#btn-nuevo-empleado', function () {
-                abrirModalAgregar();
-            });
-
-            // Botón Editar (en la tabla)
-            $(document).on('click', '.btn-editar-empleado', function () {
-                var id = $(this).data('id');
-                informacion(id);
-            });
-
-            // Guardar nuevo
-            $(document).on('click', '#btn-guardar-nuevo', function () {
-                nuevo();
-            });
-
-            // Actualizar editar
-            $(document).on('click', '#btn-guardar-editar', function () {
-                editar();
-            });
-
-            // Toggle ES JEFE (agregar)
-            $(document).on('change', '#check-jefe', function () {
-                toggleGrupoJefe('check-jefe', 'grupo-jefe-nuevo');
-            });
-
-            // Toggle ES JEFE (editar)
-            $(document).on('change', '#check-jefe-editar', function () {
-                toggleGrupoJefe('check-jefe-editar', 'grupo-jefe-editar');
-            });
-
-            // Cambio de distrito en modal agregar → recargar unidades
-            $(document).on('change', '#select-distrito', function () {
-                buscarUnidad();
-            });
-
-            // Cambio de distrito en modal editar → recargar unidades
-            $(document).on('change', '#select-distrito-editar', function () {
-                buscarUnidadEdicion();
-            });
-
-            // Botón limpiar filtros
-            $(document).on('click', '#btn-limpiar-filtros', function () {
-                limpiarFiltros();
+            $('#btn-limpiar-filtros').on('click', function () {
+                $('#filtro-buscar').val('');
+                $('#filtro-rol').val('');
+                $('#filtro-distrito').val('').trigger('change');
             });
 
             actualizarContadores();
@@ -633,232 +384,6 @@
             $('#cnt-total').text(total);
             $('#cnt-jefes').text(jefes);
             $('#cnt-empleados').text(total - jefes);
-        }
-
-        /* ══════════════════════════════════════════════════════════════════
-         *  LIMPIAR FILTROS
-         * ══════════════════════════════════════════════════════════════════ */
-        function limpiarFiltros() {
-            $('#filtro-buscar').val('');
-            $('#filtro-rol').val('');
-            $('#filtro-distrito').val('').trigger('change'); // recarga unidades y redibuja
-        }
-
-        /* ══════════════════════════════════════════════════════════════════
-         *  MODAL AGREGAR
-         * ══════════════════════════════════════════════════════════════════ */
-        function abrirModalAgregar() {
-            document.getElementById("formulario-nuevo").reset();
-            // Asegurar que "Jefe Directo" empiece oculto
-            $('#grupo-jefe-nuevo').addClass('oculto');
-            $('#modalAgregar').modal('show');
-        }
-
-        $('#modalAgregar').on('shown.bs.modal', function () {
-            $('#select-distrito').select2(s2opts($('#modalAgregar')));
-            $('#select-unidad').select2(s2opts($('#modalAgregar')));
-            $('#select-cargo').select2(s2opts($('#modalAgregar')));
-            $('#select-jefe-nuevo').select2(s2opts($('#modalAgregar')));
-        });
-
-        $('#modalAgregar').on('hidden.bs.modal', function () {
-            $('#select-distrito, #select-unidad, #select-cargo, #select-jefe-nuevo')
-                .each(function () {
-                    if ($(this).hasClass('select2-hidden-accessible')) $(this).select2('destroy');
-                });
-        });
-
-        function buscarUnidad() {
-            var id = document.getElementById('select-distrito').value;
-            if (id == '0') {
-                $('#select-unidad').empty().select2(s2opts($('#modalAgregar')));
-                return;
-            }
-            openLoading();
-            axios.post(url + '/empleados/buscarunidad', { 'id': id })
-                .then(function (r) {
-                    closeLoading();
-                    if (r.data.success === 1) {
-                        $('#select-unidad').empty();
-                        $.each(r.data.arrayUnidad, function (k, v) {
-                            $('#select-unidad').append('<option value="' + v.id + '">' + v.nombre + '</option>');
-                        });
-                        $('#select-unidad').select2(s2opts($('#modalAgregar')));
-                    } else {
-                        toastr.error('Información no encontrada');
-                    }
-                })
-                .catch(function () { closeLoading(); toastr.error('Información no encontrada'); });
-        }
-
-        function nuevo() {
-            var unidad = document.getElementById('select-unidad').value;
-            var cargo  = document.getElementById('select-cargo').value;
-            var nombre = document.getElementById('nombre-nuevo').value;
-            var dui    = document.getElementById('dui-nuevo').value;
-            var jefe   = document.getElementById('check-jefe').checked ? 1 : 0;
-            // Si no es jefe, id_jefe siempre vacío
-            var idJefe = jefe === 1 ? document.getElementById('select-jefe-nuevo').value : '';
-
-            if (!unidad) { toastr.error('Unidad es requerida'); return; }
-            if (!cargo)  { toastr.error('Cargo es requerido');  return; }
-            if (!nombre) { toastr.error('Nombre es requerido'); return; }
-
-            openLoading();
-            var fd = new FormData();
-            fd.append('nombre',  nombre);
-            fd.append('unidad',  unidad);
-            fd.append('cargo',   cargo);
-            fd.append('dui',     dui);
-            fd.append('jefe',    jefe);
-            fd.append('id_jefe', idJefe);
-
-            axios.post(url + '/empleados/nuevo', fd)
-                .then(function (r) {
-                    closeLoading();
-                    if (r.data.success === 1) {
-                        toastr.success('Registrado correctamente');
-                        $('#modalAgregar').modal('hide');
-                        location.reload();
-                    } else {
-                        toastr.error('Error al registrar');
-                    }
-                })
-                .catch(function () { closeLoading(); toastr.error('Error al registrar'); });
-        }
-
-        /* ══════════════════════════════════════════════════════════════════
-         *  MODAL EDITAR
-         * ══════════════════════════════════════════════════════════════════ */
-        function buscarUnidadEdicion() {
-            var id = document.getElementById('select-distrito-editar').value;
-            openLoading();
-            axios.post(url + '/empleados/buscarunidad', { 'id': id })
-                .then(function (r) {
-                    closeLoading();
-                    if (r.data.success === 1) {
-                        // Destruir Select2 antes de vaciar, para evitar estado colgado
-                        if ($('#select-unidad-editar').hasClass('select2-hidden-accessible')) {
-                            $('#select-unidad-editar').select2('destroy');
-                        }
-                        $('#select-unidad-editar').empty();
-                        $.each(r.data.arrayUnidad, function (k, v) {
-                            $('#select-unidad-editar').append('<option value="' + v.id + '">' + v.nombre + '</option>');
-                        });
-                        $('#select-unidad-editar').select2(s2opts($('#modalEditar')));
-                    } else {
-                        toastr.error('Información no encontrada');
-                    }
-                })
-                .catch(function () { closeLoading(); toastr.error('Información no encontrada'); });
-        }
-
-        function informacion(id) {
-            openLoading();
-            document.getElementById("formulario-editar").reset();
-
-            axios.post(url + '/empleados/informacion', { 'id': id })
-                .then(function (r) {
-                    closeLoading();
-                    if (r.data.success === 1) {
-
-                        $('#id-editar').val(id);
-
-                        // Poblar selects
-                        $('#select-distrito-editar, #select-unidad-editar, #select-cargo-editar, #select-jefe-editar').empty();
-
-                        $.each(r.data.arrayDistrito, function (k, v) {
-                            var sel = r.data.infoUniEmpleado.id_distrito == v.id ? 'selected' : '';
-                            $('#select-distrito-editar').append('<option value="' + v.id + '" ' + sel + '>' + v.nombre + '</option>');
-                        });
-
-                        $.each(r.data.arrayUnidad, function (k, v) {
-                            var sel = r.data.info.id_unidad_empleado == v.id ? 'selected' : '';
-                            $('#select-unidad-editar').append('<option value="' + v.id + '" ' + sel + '>' + v.nombre + '</option>');
-                        });
-
-                        $.each(r.data.arrayCargo, function (k, v) {
-                            var sel = r.data.info.id_cargo == v.id ? 'selected' : '';
-                            $('#select-cargo-editar').append('<option value="' + v.id + '" ' + sel + '>' + v.nombre + '</option>');
-                        });
-
-                        $('#select-jefe-editar').append('<option value="">Sin jefe directo</option>');
-                        $.each(r.data.arrayEmpleados, function (k, v) {
-                            var sel = r.data.info.id_jefe == v.id ? 'selected' : '';
-                            $('#select-jefe-editar').append('<option value="' + v.id + '" ' + sel + '>' + v.nombre_completo + '</option>');
-                        });
-
-                        $('#nombre-editar').val(r.data.info.nombre);
-                        $('#dui-editar').val(r.data.info.dui);
-
-                        var esJefe = r.data.info.jefe == 1;
-                        $('#check-jefe-editar').prop('checked', esJefe);
-
-                        // Mostrar/ocultar Jefe Directo según el valor cargado
-                        if (esJefe) {
-                            $('#grupo-jefe-editar').removeClass('oculto');
-                        } else {
-                            $('#grupo-jefe-editar').addClass('oculto');
-                        }
-
-                        $('#modalEditar').modal('show');
-
-                    } else {
-                        toastr.error('Información no encontrada');
-                    }
-                })
-                .catch(function () { closeLoading(); toastr.error('Información no encontrada'); });
-        }
-
-        $('#modalEditar').on('shown.bs.modal', function () {
-            $('#select-distrito-editar').select2(s2opts($('#modalEditar')));
-            $('#select-unidad-editar').select2(s2opts($('#modalEditar')));
-            $('#select-cargo-editar').select2(s2opts($('#modalEditar')));
-            $('#select-jefe-editar').select2(s2opts($('#modalEditar')));
-        });
-
-        $('#modalEditar').on('hidden.bs.modal', function () {
-            $('#select-distrito-editar, #select-unidad-editar, #select-cargo-editar, #select-jefe-editar')
-                .each(function () {
-                    if ($(this).hasClass('select2-hidden-accessible')) $(this).select2('destroy');
-                });
-        });
-
-        function editar() {
-            var id     = document.getElementById('id-editar').value;
-            var nombre = document.getElementById('nombre-editar').value;
-            var unidad = document.getElementById('select-unidad-editar').value;
-            var cargo  = document.getElementById('select-cargo-editar').value;
-            var dui    = document.getElementById('dui-editar').value;
-            var jefe   = document.getElementById('check-jefe-editar').checked ? 1 : 0;
-            // Si no es jefe, id_jefe siempre vacío
-            var idJefe = jefe === 1 ? document.getElementById('select-jefe-editar').value : '';
-
-            if (!nombre) { toastr.error('Nombre es requerido'); return; }
-            if (!unidad) { toastr.error('Unidad es requerida'); return; }
-
-            openLoading();
-            var fd = new FormData();
-            fd.append('id',      id);
-            fd.append('nombre',  nombre);
-            fd.append('unidad',  unidad);
-            fd.append('cargo',   cargo);
-            fd.append('dui',     dui);
-            fd.append('jefe',    jefe);
-            fd.append('id_jefe', idJefe);
-
-            axios.post(url + '/empleados/editar', fd)
-                .then(function (r) {
-                    closeLoading();
-                    if (r.data.success === 1) {
-                        toastr.success('Actualizado correctamente');
-                        $('#modalEditar').modal('hide');
-                        location.reload();
-                    } else {
-                        toastr.error('Error al actualizar');
-                    }
-                })
-                .catch(function () { closeLoading(); toastr.error('Error al actualizar'); });
         }
 
     </script>

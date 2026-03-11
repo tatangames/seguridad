@@ -11,6 +11,7 @@ use App\Http\Controllers\Backend\Materiales\MaterialesController;
 use App\Http\Controllers\Backend\Materiales\RegistrosController;
 use App\Http\Controllers\Backend\Materiales\HistorialController;
 use App\Http\Controllers\Backend\Config\ReportesController;
+use App\Http\Controllers\Backend\Config\EmpleadoController;
 
 
 // --- LOGIN ---
@@ -102,7 +103,7 @@ Route::get('/admin/material/detalle/tabla/{id}', [MaterialesController::class,'t
 
 
 
-// UNIDAD EMPLEADO
+// DISTRITOS
 Route::get('/admin/distrito/index', [ConfiguracionController::class,'vistaDistrito'])->name('admin.distrito.index');
 Route::get('/admin/distrito/tabla', [ConfiguracionController::class,'tablaDistrito']);
 Route::post('/admin/distrito/nuevo', [ConfiguracionController::class,'nuevoDistrito']);
@@ -121,15 +122,6 @@ Route::post('/admin/unidadempleado/jefes/informacion', [ConfiguracionController:
 Route::post('/admin/unidadempleado/jefes/agregar',     [ConfiguracionController::class, 'agregarJefeUnidad']);
 Route::post('/admin/unidadempleado/jefes/quitar',      [ConfiguracionController::class, 'quitarJefeUnidad']);
 
-
-
-
-
-
-
-
-
-
 // CARGOS
 Route::get('/admin/cargo/index', [ConfiguracionController::class,'vistaCargo'])->name('admin.cargo.index');
 Route::get('/admin/cargo/tabla', [ConfiguracionController::class,'tablaCargo']);
@@ -140,13 +132,17 @@ Route::post('/admin/cargo/editar', [ConfiguracionController::class,'actualizarCa
 // EMPLEADO
 Route::get('/admin/empleados/index', [ConfiguracionController::class,'vistaEmpleados'])->name('admin.empleados.index');
 Route::get('/admin/empleados/tabla', [ConfiguracionController::class,'tablaEmpleados']);
-
 Route::post('/admin/empleados/buscarunidad', [ConfiguracionController::class,'buscarUnidadConDistrito']);
 Route::post('/admin/empleados/buscarunidad-empleado', [ConfiguracionController::class,'buscarUnidadConDistritoEmpleado']);
-
-Route::post('/admin/empleados/nuevo', [ConfiguracionController::class,'nuevoEmpleados']);
 Route::post('/admin/empleados/informacion', [ConfiguracionController::class,'infoEmpleados']);
-Route::post('/admin/empleados/editar', [ConfiguracionController::class,'actualizarEmpleados']);
+
+
+Route::get('/admin/empleados/crear',            [EmpleadoController::class, 'crear']        )->name('admin.empleados.crear');
+Route::get('/admin/empleados/editar/{id}',      [EmpleadoController::class, 'editar']       )->name('admin.empleados.editar');
+Route::post('/admin/empleados/buscarunidad',    [EmpleadoController::class, 'buscarUnidad'] );
+Route::post('/admin/empleados/nuevo',           [EmpleadoController::class, 'nuevo']        );
+Route::post('/admin/empleados/actualizar',      [EmpleadoController::class, 'actualizar']   );
+
 
 
 
