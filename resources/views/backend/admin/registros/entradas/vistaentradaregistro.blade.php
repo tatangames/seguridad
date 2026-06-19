@@ -188,7 +188,7 @@
     </section>
 
     <div class="modal-footer justify-content-between" style="margin-top: 25px;">
-        <button type="button" class="btn btn-success" onclick="preguntaGuardar()">Guardar</button>
+        <!-- <button type="button" class="btn btn-success" onclick="preguntaGuardar()">Guardar</button> -->
     </div>
 
 </div>

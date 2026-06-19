@@ -253,9 +253,13 @@
                 <div class="card-footer d-flex justify-content-between align-items-center"
                      style="border-top:2px solid #e8eef8; background:#f8faff; border-radius:0 0 10px 10px">
                     <small class="text-muted">Agregue materiales usando el buscador</small>
+
+                    <!--
                     <button type="button" class="btn-guardar-salida" onclick="preguntaGuardar()">
                         <i class="fas fa-save mr-1"></i>Guardar Salida
                     </button>
+                    -->
+
                 </div>
             </div>
         </div>
